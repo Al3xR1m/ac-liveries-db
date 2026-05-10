@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit a livery — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-logo"><i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB</a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="mods.html">RSS Mods</a>
+    <a href="submit.html" class="active">Submit</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="nav-submit">+ Submit a livery</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">Submit a livery</h1>
+    <p class="page-sub">Share your creation with the community. All submissions are reviewed before publication.</p>
+  </div>
+
+  <div class="form-card" id="formCard">
+    <div class="form-grid">
+      <div class="field full">
+        <label>Livery name *</label>
+        <input type="text" id="f-name" placeholder="e.g. Ferrari — C. Leclerc #16">
+      </div>
+      <div class="field">
+        <label>RSS Mod *</label>
+        <select id="f-mod">
+          <option value="">Select a mod…</option>
+          <optgroup label="Formula">
+            <option>RSS Formula Hybrid 2024</option>
+            <option>RSS Formula Hybrid 2022</option>
+            <option>RSS Formula Hybrid 2021</option>
+            <option>RSS Formula Hybrid 2020</option>
+            <option>RSS Formula Hybrid 2019</option>
+            <option>RSS Formula 2 V6</option>
+            <option>RSS Formula 3</option>
+            <option>RSS Formula 4</option>
+          </optgroup>
+          <optgroup label="GT">
+            <option>RSS GT3</option>
+            <option>RSS GT Pack</option>
+            <option>RSS GT3 Legends</option>
+          </optgroup>
+          <optgroup label="Hillclimb">
+            <option>RSS Hillclimb</option>
+          </optgroup>
+          <optgroup label="Touring">
+            <option>RSS Touring Cars</option>
+            <option>RSS Touring Classics</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field">
+        <label>Category *</label>
+        <select id="f-cat">
+          <option value="">Select…</option>
+          <option value="Formula">Formula</option>
+          <option value="GT">GT</option>
+          <option value="Hillclimb">Hillclimb</option>
+          <option value="Touring">Touring</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Team / Livery name</label>
+        <input type="text" id="f-team" placeholder="e.g. Scuderia Ferrari">
+      </div>
+      <div class="field">
+        <label>Driver</label>
+        <input type="text" id="f-driver" placeholder="e.g. Charles Leclerc">
+      </div>
+      <div class="field">
+        <label>Season / Year</label>
+        <input type="text" id="f-season" placeholder="e.g. 2024">
+      </div>
+      <div class="field">
+        <label>Your name / alias *</label>
+        <input type="text" id="f-author" placeholder="e.g. SimPainter_IT">
+      </div>
+      <div class="field full">
+        <label>Download URL *</label>
+        <input type="url" id="f-url" placeholder="https://www.racedepartment.com/…">
+      </div>
+      <div class="field full">
+        <label>Screenshot image URL</label>
+        <input type="url" id="f-img" placeholder="https://… (direct link to an image)">
+        <span style="font-size:11px;color:var(--text3);margin-top:3px">Paste a direct image URL (imgur, Discord CDN, etc.). Leave empty to use a generated car preview.</span>
+      </div>
+      <div class="field full">
+        <label>Notes / Description</label>
+        <textarea id="f-notes" placeholder="Any extra info: number kit, template version, known issues…"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:wrap">
+      <button class="submit-btn" id="submitBtn">Submit for review</button>
+      <p class="form-note"><i class="ti ti-shield-check" style="font-size:14px;vertical-align:-2px"></i> Your livery will be visible after moderation (usually within 24h).</p>
+    </div>
+    <div id="error-msg" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const name    = document.getElementById('f-name').value.trim();
+    const mod     = document.getElementById('f-mod').value;
+    const cat     = document.getElementById('f-cat').value;
+    const author  = document.getElementById('f-author').value.trim();
+    const url     = document.getElementById('f-url').value.trim();
+    const errDiv  = document.getElementById('error-msg');
+
+    if (!name || !mod || !cat || !author || !url) {
+      errDiv.style.display = 'block';
+      errDiv.textContent = 'Please fill in all required fields (marked with *).';
+      return;
+    }
+
+    errDiv.style.display = 'none';
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const ok = await submitLivery({
+      name,
+      mod,
+      category: cat,
+      team:   document.getElementById('f-team').value.trim(),
+      driver: document.getElementById('f-driver').value.trim(),
+      season: document.getElementById('f-season').value.trim(),
+      author,
+      download_url: url,
+      image_url: document.getElementById('f-img').value.trim(),
+      notes:  document.getElementById('f-notes').value.trim(),
+    });
+
+    if (ok) {
+      document.getElementById('formCard').innerHTML = `
+        <div class="success-msg">
+          <i class="ti ti-circle-check"></i>
+          <h2>Livery submitted!</h2>
+          <p>Thank you! Your livery is pending review and will appear in the gallery once approved.</p>
+          <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;color:var(--accent);font-size:14px">
+            <i class="ti ti-arrow-left"></i> Back to gallery
+          </a>
+        </div>`;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Submit for review';
+      errDiv.style.display = 'block';
+      errDiv.textContent = 'Something went wrong. Please try again.';
+    }
+  });
+</script>
+</body>
+</html>

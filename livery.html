@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livery — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="mods.html">RSS Mods</a>
+    <a href="submit.html">Submit</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="nav-submit">+ Submit a livery</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div style="padding:16px 0 0">
+    <a href="index.html" style="font-size:13px;color:var(--text2);display:inline-flex;align-items:center;gap:6px">
+      <i class="ti ti-arrow-left" style="font-size:15px"></i> Back to gallery
+    </a>
+  </div>
+  <div id="content" class="detail-grid">
+    <div class="skeleton" style="min-height:300px;border-radius:10px"></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="skeleton" style="height:220px;border-radius:10px"></div>
+      <div class="skeleton" style="height:80px;border-radius:10px"></div>
+    </div>
+  </div>
+  <div id="similar" style="margin-bottom:40px"></div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  const CAT_COLORS = {
+    Formula:['#E82020','#003087','#006400','#FF8000'],
+    GT:['#C8A800','#E82020','#003087'],
+    Hillclimb:['#E87000','#E82020','#1D9E75'],
+    Touring:['#534AB7','#E82020','#185FA5']
+  };
+  const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
+
+  function carSVGLarge(cat, seed) {
+    const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
+    const col = palette[seed % palette.length];
+    const num = (seed * 7 + 1) % 99 + 1;
+    const bg = CAT_BG[cat] || '#111';
+    return `<svg viewBox="0 0 500 260" width="100%" style="display:block">
+      <rect width="500" height="260" fill="${bg}"/>
+      <ellipse cx="250" cy="180" rx="160" ry="25" fill="#000" opacity=".4"/>
+      <path d="M90 162 Q112 115 150 105 L190 90 Q250 75 310 90 L350 105 Q388 115 410 162Z" fill="${col}"/>
+      <path d="M150 105 L160 80 Q250 60 340 80 L350 105Z" fill="${col}" opacity=".75"/>
+      <rect x="188" y="76" width="124" height="22" rx="4" fill="#88ccff" opacity=".5"/>
+      <circle cx="150" cy="166" r="26" fill="#1a1a1a"/><circle cx="150" cy="166" r="14" fill="#2a2a2a"/>
+      <circle cx="350" cy="166" r="26" fill="#1a1a1a"/><circle cx="350" cy="166" r="14" fill="#2a2a2a"/>
+      <path d="M104 142 L150 136 L160 154 L100 160Z" fill="${col}" opacity=".7"/>
+      <path d="M396 142 L350 136 L340 154 L400 160Z" fill="${col}" opacity=".7"/>
+      <text x="250" y="138" text-anchor="middle" fill="white" font-size="22" font-family="sans-serif" font-weight="bold">${num}</text>
+    </svg>`;
+  }
+
+  async function init() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) { location.href = 'index.html'; return; }
+
+    const l = await fetchLivery(id);
+    if (!l) { document.getElementById('content').innerHTML = '<div class="empty" style="grid-column:1/-1"><i class="ti ti-alert-circle"></i><p>Livery not found.</p></div>'; return; }
+
+    document.title = `${l.name} — AC Liveries DB`;
+
+    const voted = getVotedSet();
+    const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6)) || 42;
+
+    const rows = [
+      ['ti-car','Mod', l.mod],
+      ['ti-category','Category', `<span class="cat-badge cat-${l.category}">${l.category}</span>`],
+      ['ti-flag','Team', l.team || '—'],
+      ['ti-user','Driver', l.driver || '—'],
+      ['ti-calendar','Season', l.season || '—'],
+      ['ti-pencil','Author', l.author || '—'],
+    ].map(([ico,k,v]) => `
+      <div class="detail-row">
+        <div class="detail-key"><i class="ti ${ico}"></i>${k}</div>
+        <div class="detail-val">${v}</div>
+      </div>`).join('');
+
+    document.getElementById('content').innerHTML = `
+      <div class="detail-cover">
+        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(l.category, seed)}
+      </div>
+      <div class="detail-side">
+        <div class="detail-card">
+          <div class="detail-title">${l.name}</div>
+          <div class="detail-mod">${l.mod}</div>
+          ${rows}
+          ${l.notes ? `<div class="detail-row"><div class="detail-key"><i class="ti ti-notes"></i>Notes</div><div class="detail-val">${l.notes}</div></div>` : ''}
+        </div>
+        ${l.download_url ? `<a href="${l.download_url}" target="_blank" class="dl-btn"><i class="ti ti-download"></i>Download livery</a>` : ''}
+        <button class="upvote-big${voted.has(l.id)?' voted':''}" id="upvoteBtn">
+          <i class="ti ti-thumb-up" style="font-size:20px"></i>
+          <span id="upvoteCount">${l.upvotes}</span> upvotes
+        </button>
+      </div>`;
+
+    document.getElementById('upvoteBtn').addEventListener('click', async () => {
+      const ok = await upvoteLivery(l.id);
+      if (ok) {
+        l.upvotes++;
+        document.getElementById('upvoteCount').textContent = l.upvotes;
+        document.getElementById('upvoteBtn').classList.add('voted');
+      }
+    });
+
+    // Similar liveries
+    const all = await fetchLiveries({ category: l.category, sort: 'votes' });
+    const similar = all.filter(x => x.id !== l.id).slice(0, 4);
+    if (similar.length) {
+      document.getElementById('similar').innerHTML = `
+        <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:14px;color:var(--text)">Similar liveries</h2>
+        <div class="gallery" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+          ${similar.map(s => {
+            const s2 = parseInt((s.id||'').replace(/\D/g,'').slice(0,6))||0;
+            return `<div class="livery-card" onclick="location.href='livery.html?id=${s.id}'">
+              <div class="card-cover">${s.image_url ? `<img src="${s.image_url}" alt="${s.name}" loading="lazy">` : carSVGLarge(s.category, s2).replace('viewBox="0 0 500 260"','viewBox="0 0 500 260" height="100"')}</div>
+              <div class="card-body">
+                <div class="card-mod">${s.mod}</div>
+                <div class="card-name">${s.name}</div>
+                <div class="card-footer">
+                  <span class="cat-badge cat-${s.category}">${s.category}</span>
+                  <span style="font-size:12px;color:var(--text3)"><i class="ti ti-thumb-up" style="font-size:11px"></i> ${s.upvotes}</span>
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

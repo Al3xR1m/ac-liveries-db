@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AC Liveries DB — Community livery database for RSS mods</title>
+  <meta name="description" content="Find and share liveries for Race Sim Studio mods on Assetto Corsa.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB
+  </a>
+  <div class="nav-links">
+    <a href="index.html" class="active">Gallery</a>
+    <a href="mods.html">RSS Mods</a>
+    <a href="submit.html">Submit</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="nav-submit">+ Submit a livery</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">Livery Gallery</h1>
+    <p class="page-sub">Community-built liveries for all Race Sim Studio mods on Assetto Corsa</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-n" id="s-total">—</div><div class="stat-l">Liveries</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-mods">—</div><div class="stat-l">RSS Mods</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-votes">—</div><div class="stat-l">Total upvotes</div></div>
+    <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" class="search-input" id="search" placeholder="Search livery, driver, team, author…">
+    </div>
+    <select class="sort-select" id="sort">
+      <option value="votes">Most popular</option>
+      <option value="newest">Newest first</option>
+      <option value="name">A → Z</option>
+    </select>
+  </div>
+
+  <div class="filter-pills">
+    <button class="pill active" data-cat="all">All</button>
+    <button class="pill" data-cat="Formula">Formula</button>
+    <button class="pill" data-cat="GT">GT</button>
+    <button class="pill" data-cat="Hillclimb">Hillclimb</button>
+    <button class="pill" data-cat="Touring">Touring</button>
+  </div>
+
+  <div class="gallery" id="gallery">
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // ---- Theme ----
+  const root = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  themeIcon.className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('acliveries_theme', next);
+    themeIcon.className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  // ---- Car SVG placeholder ----
+  const CAT_COLORS = {
+    Formula: ['#E82020','#003087','#006400','#FF8000','#FF1493'],
+    GT:      ['#C8A800','#E82020','#003087','#FF8000','#006400'],
+    Hillclimb:['#E87000','#E82020','#1D9E75'],
+    Touring: ['#534AB7','#E82020','#185FA5','#639922']
+  };
+  const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
+
+  function carSVG(cat, seed) {
+    const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
+    const col = palette[seed % palette.length];
+    const num = (seed * 7 + 1) % 99 + 1;
+    const bg = CAT_BG[cat] || '#111';
+    if (cat === 'Hillclimb') {
+      return `<svg viewBox="0 0 200 100" width="200" height="100">
+        <rect width="200" height="100" fill="${bg}"/>
+        <ellipse cx="100" cy="72" rx="42" ry="7" fill="#000" opacity=".4"/>
+        <path d="M68 66 Q73 52 83 48 L100 43 L117 48 Q127 52 132 66Z" fill="${col}"/>
+        <path d="M83 48 L85 37 Q100 33 115 37 L117 48Z" fill="${col}" opacity=".75"/>
+        <rect x="90" y="35" width="20" height="9" rx="2" fill="#88ccff" opacity=".5"/>
+        <circle cx="76" cy="68" r="8" fill="#1a1a1a"/><circle cx="76" cy="68" r="4" fill="#333"/>
+        <circle cx="124" cy="68" r="8" fill="#1a1a1a"/><circle cx="124" cy="68" r="4" fill="#333"/>
+        <text x="100" y="61" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">${num}</text>
+      </svg>`;
+    }
+    return `<svg viewBox="0 0 200 100" width="200" height="100">
+      <rect width="200" height="100" fill="${bg}"/>
+      <ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/>
+      <path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/>
+      <path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/>
+      <rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/>
+      <circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/>
+      <circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/>
+      <path d="M44 55 L60 53 L64 60 L42 62Z" fill="${col}" opacity=".7"/>
+      <path d="M156 55 L140 53 L136 60 L158 62Z" fill="${col}" opacity=".7"/>
+      <text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text>
+    </svg>`;
+  }
+
+  function heatBars(votes, maxVotes) {
+    const ratio = maxVotes > 0 ? votes / maxVotes : 0;
+    const filled = Math.round(ratio * 5);
+    const heights = [5,8,11,14,17];
+    return heights.map((h,i) =>
+      `<div class="hs" style="height:${h}px;opacity:${i < filled ? 1 : 0.15}"></div>`
+    ).join('');
+  }
+
+  // ---- State ----
+  let allLiveries = [];
+  let activeFilter = 'all';
+  let voted = getVotedSet();
+  let maxVotes = 1;
+
+  // ---- Render ----
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const sort = document.getElementById('sort').value;
+
+    let list = allLiveries.filter(l => {
+      const matchCat = activeFilter === 'all' || l.category === activeFilter;
+      const matchQ = !q || [l.name, l.team, l.author, l.driver, l.mod].join(' ').toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+
+    if (sort === 'votes') list.sort((a,b) => b.upvotes - a.upvotes);
+    else if (sort === 'newest') list.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    else list.sort((a,b) => a.name.localeCompare(b.name));
+
+    const g = document.getElementById('gallery');
+    if (!list.length) {
+      g.innerHTML = `<div class="empty"><i class="ti ti-search"></i><p>No liveries found. Try a different filter or <a href="submit.html" style="color:var(--accent)">submit one</a>!</p></div>`;
+      return;
+    }
+
+    const seed = l => parseInt((l.id || '').replace(/\D/g,'').slice(0,6)) || 0;
+    g.innerHTML = list.map(l => `
+      <div class="livery-card" data-id="${l.id}">
+        <div class="card-cover">
+          ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(l.category, seed(l))}
+        </div>
+        <div class="card-body">
+          <div class="card-mod">${l.mod}</div>
+          <div class="card-name" title="${l.name}">${l.name}</div>
+          <div class="card-footer">
+            <span class="cat-badge cat-${l.category}">${l.category}</span>
+            <button class="upvote-btn${voted.has(l.id) ? ' voted' : ''}" data-vote="${l.id}" onclick="event.stopPropagation()">
+              <i class="ti ti-thumb-up" style="font-size:12px"></i>
+              <span id="vc-${l.id}">${l.upvotes}</span>
+              <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
+            </button>
+          </div>
+        </div>
+      </div>`).join('');
+
+    // Card click → detail page
+    g.querySelectorAll('.livery-card').forEach(card => {
+      card.addEventListener('click', () => {
+        window.location.href = `livery.html?id=${card.dataset.id}`;
+      });
+    });
+
+    // Upvote buttons
+    g.querySelectorAll('[data-vote]').forEach(btn => {
+      btn.addEventListener('click', async e => {
+        e.stopPropagation();
+        const id = btn.dataset.vote;
+        if (voted.has(id)) return;
+        const ok = await upvoteLivery(id);
+        if (ok) {
+          voted = getVotedSet();
+          const liv = allLiveries.find(l => l.id === id);
+          if (liv) liv.upvotes++;
+          maxVotes = Math.max(...allLiveries.map(l => l.upvotes));
+          render();
+        }
+      });
+    });
+  }
+
+  // ---- Init ----
+  async function init() {
+    const [liveries, stats] = await Promise.all([
+      fetchLiveries({ sort: 'votes' }),
+      fetchStats()
+    ]);
+    allLiveries = liveries;
+    maxVotes = allLiveries.length ? Math.max(...allLiveries.map(l => l.upvotes), 1) : 1;
+
+    document.getElementById('s-total').textContent = stats.total;
+    document.getElementById('s-mods').textContent = stats.mods;
+    document.getElementById('s-votes').textContent = stats.votes;
+    document.getElementById('s-top').textContent = stats.top;
+
+    render();
+  }
+
+  // ---- Events ----
+  document.getElementById('search').addEventListener('input', render);
+  document.getElementById('sort').addEventListener('change', render);
+  document.querySelectorAll('[data-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-cat]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.cat;
+      render();
+    });
+  });
+
+  init();
+</script>
+</body>
+</html>
