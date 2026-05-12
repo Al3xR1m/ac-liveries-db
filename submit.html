@@ -39,41 +39,15 @@
       </div>
       <div class="field">
         <label>RSS Mod *</label>
-        <select id="f-mod">
-          <option value="">Select a mod…</option>
-          <optgroup label="Formula">
-            <option>RSS Formula Hybrid 2024</option>
-            <option>RSS Formula Hybrid 2022</option>
-            <option>RSS Formula Hybrid 2021</option>
-            <option>RSS Formula Hybrid 2020</option>
-            <option>RSS Formula Hybrid 2019</option>
-            <option>RSS Formula 2 V6</option>
-            <option>RSS Formula 3</option>
-            <option>RSS Formula 4</option>
-          </optgroup>
-          <optgroup label="GT">
-            <option>RSS GT3</option>
-            <option>RSS GT Pack</option>
-            <option>RSS GT3 Legends</option>
-          </optgroup>
-          <optgroup label="Hillclimb">
-            <option>RSS Hillclimb</option>
-          </optgroup>
-          <optgroup label="Touring">
-            <option>RSS Touring Cars</option>
-            <option>RSS Touring Classics</option>
-          </optgroup>
-        </select>
+        <select id="f-mod"><option value="">Loading mods…</option></select>
       </div>
       <div class="field">
         <label>Category *</label>
-        <select id="f-cat">
-          <option value="">Select…</option>
-          <option value="Formula">Formula</option>
-          <option value="GT">GT</option>
-          <option value="Hillclimb">Hillclimb</option>
-          <option value="Touring">Touring</option>
-        </select>
+        <select id="f-cat"><option value="">Loading categories…</option></select>
+      </div>
+      <div class="field full">
+        <label>Championship</label>
+        <select id="f-champ"><option value="">Loading championships…</option></select>
       </div>
       <div class="field">
         <label>Team / Livery name</label>
@@ -98,7 +72,7 @@
       <div class="field full">
         <label>Screenshot image URL</label>
         <input type="url" id="f-img" placeholder="https://… (direct link to an image)">
-        <span style="font-size:11px;color:var(--text3);margin-top:3px">Paste a direct image URL (imgur, Discord CDN, etc.). Leave empty to use a generated car preview.</span>
+        <span style="font-size:11px;color:var(--text3);margin-top:3px">Paste a direct image URL. Leave empty to use a generated car preview.</span>
       </div>
       <div class="field full">
         <label>Notes / Description</label>
@@ -127,13 +101,50 @@
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
+  // Load dynamic selects
+  async function loadSelects() {
+    const [mods, cats, champs] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
+
+    // Group mods by category
+    const catMap = {};
+    mods.forEach(m => {
+      const cName = m.categories?.name || 'Other';
+      if (!catMap[cName]) catMap[cName] = [];
+      catMap[cName].push(m);
+    });
+    const modSel = document.getElementById('f-mod');
+    modSel.innerHTML = '<option value="">Select a mod…</option>';
+    Object.entries(catMap).forEach(([cName, list]) => {
+      const og = document.createElement('optgroup');
+      og.label = cName;
+      list.forEach(m => {
+        const o = document.createElement('option');
+        o.value = m.id; o.textContent = m.name;
+        og.appendChild(o);
+      });
+      modSel.appendChild(og);
+    });
+
+    const catSel = document.getElementById('f-cat');
+    catSel.innerHTML = '<option value="">Select…</option>' + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    const champSel = document.getElementById('f-champ');
+    champSel.innerHTML = '<option value="">— No specific championship —</option>' + champs.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('');
+
+    // Auto-select category when mod is chosen
+    modSel.addEventListener('change', () => {
+      const m = mods.find(x => x.id === modSel.value);
+      if (m?.category_id) catSel.value = m.category_id;
+    });
+  }
+
   document.getElementById('submitBtn').addEventListener('click', async () => {
-    const name    = document.getElementById('f-name').value.trim();
-    const mod     = document.getElementById('f-mod').value;
-    const cat     = document.getElementById('f-cat').value;
-    const author  = document.getElementById('f-author').value.trim();
-    const url     = document.getElementById('f-url').value.trim();
-    const errDiv  = document.getElementById('error-msg');
+    const name   = document.getElementById('f-name').value.trim();
+    const mod    = document.getElementById('f-mod').value;
+    const cat    = document.getElementById('f-cat').value;
+    const author = document.getElementById('f-author').value.trim();
+    const url    = document.getElementById('f-url').value.trim();
+    const errDiv = document.getElementById('error-msg');
 
     if (!name || !mod || !cat || !author || !url) {
       errDiv.style.display = 'block';
@@ -143,20 +154,18 @@
 
     errDiv.style.display = 'none';
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = 'Submitting…';
+    btn.disabled = true; btn.textContent = 'Submitting…';
 
     const ok = await submitLivery({
-      name,
-      mod,
-      category: cat,
+      name, mod_id: mod, category_id: cat,
+      championship_id: document.getElementById('f-champ').value || null,
       team:   document.getElementById('f-team').value.trim(),
       driver: document.getElementById('f-driver').value.trim(),
       season: document.getElementById('f-season').value.trim(),
       author,
       download_url: url,
       image_url: document.getElementById('f-img').value.trim(),
-      notes:  document.getElementById('f-notes').value.trim(),
+      notes:   document.getElementById('f-notes').value.trim(),
     });
 
     if (ok) {
@@ -170,12 +179,13 @@
           </a>
         </div>`;
     } else {
-      btn.disabled = false;
-      btn.textContent = 'Submit for review';
+      btn.disabled = false; btn.textContent = 'Submit for review';
       errDiv.style.display = 'block';
       errDiv.textContent = 'Something went wrong. Please try again.';
     }
   });
+
+  loadSelects();
 </script>
 </body>
 </html>

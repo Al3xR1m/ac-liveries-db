@@ -12,16 +12,14 @@
 <body>
 
 <nav class="navbar">
-  <a href="index.html" class="nav-logo">
-    <i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB
-  </a>
+  <a href="index.html" class="nav-logo"><i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB</a>
   <div class="nav-links">
     <a href="index.html" class="active">Gallery</a>
     <a href="mods.html">RSS Mods</a>
     <a href="submit.html">Submit</a>
   </div>
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
       <i class="ti ti-sun" id="themeIcon"></i>
     </button>
     <a href="submit.html" class="nav-submit">+ Submit a livery</a>
@@ -41,6 +39,7 @@
     <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
   </div>
 
+  <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-wrap">
       <i class="ti ti-search"></i>
@@ -53,12 +52,16 @@
     </select>
   </div>
 
-  <div class="filter-pills">
-    <button class="pill active" data-cat="all">All</button>
-    <button class="pill" data-cat="Formula">Formula</button>
-    <button class="pill" data-cat="GT">GT</button>
-    <button class="pill" data-cat="Hillclimb">Hillclimb</button>
-    <button class="pill" data-cat="Touring">Touring</button>
+  <!-- Category filter -->
+  <div style="margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Category</div>
+  <div class="filter-pills" id="cat-pills">
+    <button class="pill active" data-cat-id="all">All</button>
+  </div>
+
+  <!-- Championship filter -->
+  <div style="margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Championship</div>
+  <div class="filter-pills" id="champ-pills">
+    <button class="pill active" data-champ-id="all">All</button>
   </div>
 
   <div class="gallery" id="gallery">
@@ -75,123 +78,137 @@
 <script>
   // ---- Theme ----
   const root = document.documentElement;
-  const themeToggle = document.getElementById('themeToggle');
-  const themeIcon = document.getElementById('themeIcon');
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
-  themeIcon.className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
-
-  themeToggle.addEventListener('click', () => {
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
     localStorage.setItem('acliveries_theme', next);
-    themeIcon.className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  // ---- Car SVG placeholder ----
-  const CAT_COLORS = {
-    Formula: ['#E82020','#003087','#006400','#FF8000','#FF1493'],
-    GT:      ['#C8A800','#E82020','#003087','#FF8000','#006400'],
-    Hillclimb:['#E87000','#E82020','#1D9E75'],
-    Touring: ['#534AB7','#E82020','#185FA5','#639922']
-  };
+  // ---- Car SVG ----
+  const CAT_COLORS = { Formula:['#E82020','#003087','#006400','#FF8000'], GT:['#C8A800','#E82020','#003087'], Hillclimb:['#E87000','#E82020','#1D9E75'], Touring:['#534AB7','#E82020','#185FA5'] };
   const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
-
   function carSVG(cat, seed) {
     const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
     const col = palette[seed % palette.length];
     const num = (seed * 7 + 1) % 99 + 1;
     const bg = CAT_BG[cat] || '#111';
-    if (cat === 'Hillclimb') {
-      return `<svg viewBox="0 0 200 100" width="200" height="100">
-        <rect width="200" height="100" fill="${bg}"/>
-        <ellipse cx="100" cy="72" rx="42" ry="7" fill="#000" opacity=".4"/>
-        <path d="M68 66 Q73 52 83 48 L100 43 L117 48 Q127 52 132 66Z" fill="${col}"/>
-        <path d="M83 48 L85 37 Q100 33 115 37 L117 48Z" fill="${col}" opacity=".75"/>
-        <rect x="90" y="35" width="20" height="9" rx="2" fill="#88ccff" opacity=".5"/>
-        <circle cx="76" cy="68" r="8" fill="#1a1a1a"/><circle cx="76" cy="68" r="4" fill="#333"/>
-        <circle cx="124" cy="68" r="8" fill="#1a1a1a"/><circle cx="124" cy="68" r="4" fill="#333"/>
-        <text x="100" y="61" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">${num}</text>
-      </svg>`;
-    }
-    return `<svg viewBox="0 0 200 100" width="200" height="100">
-      <rect width="200" height="100" fill="${bg}"/>
-      <ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/>
-      <path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/>
-      <path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/>
-      <rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/>
-      <circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/>
-      <circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/>
-      <path d="M44 55 L60 53 L64 60 L42 62Z" fill="${col}" opacity=".7"/>
-      <path d="M156 55 L140 53 L136 60 L158 62Z" fill="${col}" opacity=".7"/>
-      <text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text>
-    </svg>`;
+    if (cat === 'Hillclimb') return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="72" rx="42" ry="7" fill="#000" opacity=".4"/><path d="M68 66 Q73 52 83 48 L100 43 L117 48 Q127 52 132 66Z" fill="${col}"/><path d="M83 48 L85 37 Q100 33 115 37 L117 48Z" fill="${col}" opacity=".75"/><rect x="90" y="35" width="20" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="76" cy="68" r="8" fill="#1a1a1a"/><circle cx="76" cy="68" r="4" fill="#333"/><circle cx="124" cy="68" r="8" fill="#1a1a1a"/><circle cx="124" cy="68" r="4" fill="#333"/><text x="100" y="61" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
+    return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><path d="M44 55 L60 53 L64 60 L42 62Z" fill="${col}" opacity=".7"/><path d="M156 55 L140 53 L136 60 L158 62Z" fill="${col}" opacity=".7"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
-
   function heatBars(votes, maxVotes) {
     const ratio = maxVotes > 0 ? votes / maxVotes : 0;
     const filled = Math.round(ratio * 5);
-    const heights = [5,8,11,14,17];
-    return heights.map((h,i) =>
-      `<div class="hs" style="height:${h}px;opacity:${i < filled ? 1 : 0.15}"></div>`
-    ).join('');
+    return [5,8,11,14,17].map((h,i) => `<div class="hs" style="height:${h}px;opacity:${i<filled?1:0.15}"></div>`).join('');
   }
 
   // ---- State ----
-  let allLiveries = [];
-  let activeFilter = 'all';
+  let allLiveries = [], activeCatId = 'all', activeChampId = 'all', maxVotes = 1;
   let voted = getVotedSet();
-  let maxVotes = 1;
+
+  // ---- Build filter pills from DB ----
+  async function buildFilters() {
+    const [cats, champs] = await Promise.all([fetchCategories(), fetchChampionships()]);
+
+    const catPills = document.getElementById('cat-pills');
+    cats.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'pill';
+      btn.dataset.catId = c.id;
+      btn.textContent = c.name;
+      btn.addEventListener('click', () => {
+        catPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        activeCatId = c.id;
+        activeChampId = 'all';
+        // reset champ pills
+        document.querySelectorAll('[data-champ-id]').forEach(p => p.classList.remove('active'));
+        document.querySelector('[data-champ-id="all"]').classList.add('active');
+        render();
+      });
+      catPills.appendChild(btn);
+    });
+
+    const champPills = document.getElementById('champ-pills');
+    champs.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'pill';
+      btn.dataset.champId = ch.id;
+      btn.textContent = ch.short_name || ch.name;
+      btn.addEventListener('click', () => {
+        champPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        activeChampId = ch.id;
+        activeCatId = 'all';
+        document.querySelectorAll('[data-cat-id]').forEach(p => p.classList.remove('active'));
+        document.querySelector('[data-cat-id="all"]').classList.add('active');
+        render();
+      });
+      champPills.appendChild(btn);
+    });
+
+    // "All" buttons
+    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => {
+      document.querySelectorAll('[data-cat-id]').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-cat-id="all"]').classList.add('active');
+      activeCatId = 'all'; render();
+    });
+    document.querySelector('[data-champ-id="all"]').addEventListener('click', () => {
+      document.querySelectorAll('[data-champ-id]').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-champ-id="all"]').classList.add('active');
+      activeChampId = 'all'; render();
+    });
+  }
 
   // ---- Render ----
   function render() {
     const q = document.getElementById('search').value.toLowerCase();
     const sort = document.getElementById('sort').value;
-
     let list = allLiveries.filter(l => {
-      const matchCat = activeFilter === 'all' || l.category === activeFilter;
-      const matchQ = !q || [l.name, l.team, l.author, l.driver, l.mod].join(' ').toLowerCase().includes(q);
-      return matchCat && matchQ;
+      const matchCat   = activeCatId   === 'all' || l.category_id === activeCatId;
+      const matchChamp = activeChampId === 'all' || l.championship_id === activeChampId;
+      const matchQ = !q || [l.name, l.team, l.author, l.driver, l.mods?.name].join(' ').toLowerCase().includes(q);
+      return matchCat && matchChamp && matchQ;
     });
-
-    if (sort === 'votes') list.sort((a,b) => b.upvotes - a.upvotes);
+    if (sort === 'votes')  list.sort((a,b) => b.upvotes - a.upvotes);
     else if (sort === 'newest') list.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
     else list.sort((a,b) => a.name.localeCompare(b.name));
 
     const g = document.getElementById('gallery');
     if (!list.length) {
-      g.innerHTML = `<div class="empty"><i class="ti ti-search"></i><p>No liveries found. Try a different filter or <a href="submit.html" style="color:var(--accent)">submit one</a>!</p></div>`;
+      g.innerHTML = `<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
       return;
     }
-
-    const seed = l => parseInt((l.id || '').replace(/\D/g,'').slice(0,6)) || 0;
-    g.innerHTML = list.map(l => `
-      <div class="livery-card" data-id="${l.id}">
-        <div class="card-cover">
-          ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(l.category, seed(l))}
-        </div>
+    const seed = l => parseInt((l.id||'').replace(/\D/g,'').slice(0,6)) || 0;
+    const catName = l => l.categories?.name || '';
+    g.innerHTML = list.map(l => {
+      const bg = l.categories?.color_bg || '#E6F1FB';
+      const tc = l.categories?.color_text || '#0C447C';
+      const cn = catName(l);
+      return `<div class="livery-card" data-id="${l.id}">
+        <div class="card-cover">${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(cn, seed(l))}</div>
         <div class="card-body">
-          <div class="card-mod">${l.mod}</div>
+          <div class="card-mod">${l.mods?.name || '—'}</div>
           <div class="card-name" title="${l.name}">${l.name}</div>
+          ${l.championships?.short_name ? `<div style="font-size:10px;color:var(--text3);margin-bottom:5px"><i class="ti ti-trophy" style="font-size:10px"></i> ${l.championships.short_name}</div>` : ''}
           <div class="card-footer">
-            <span class="cat-badge cat-${l.category}">${l.category}</span>
-            <button class="upvote-btn${voted.has(l.id) ? ' voted' : ''}" data-vote="${l.id}" onclick="event.stopPropagation()">
+            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+            <button class="upvote-btn${voted.has(l.id)?' voted':''}" data-vote="${l.id}" onclick="event.stopPropagation()">
               <i class="ti ti-thumb-up" style="font-size:12px"></i>
               <span id="vc-${l.id}">${l.upvotes}</span>
               <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
             </button>
           </div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
-    // Card click → detail page
     g.querySelectorAll('.livery-card').forEach(card => {
-      card.addEventListener('click', () => {
-        window.location.href = `livery.html?id=${card.dataset.id}`;
-      });
+      card.addEventListener('click', () => location.href = `livery.html?id=${card.dataset.id}`);
     });
-
-    // Upvote buttons
     g.querySelectorAll('[data-vote]').forEach(btn => {
       btn.addEventListener('click', async e => {
         e.stopPropagation();
@@ -202,7 +219,7 @@
           voted = getVotedSet();
           const liv = allLiveries.find(l => l.id === id);
           if (liv) liv.upvotes++;
-          maxVotes = Math.max(...allLiveries.map(l => l.upvotes));
+          maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
           render();
         }
       });
@@ -211,33 +228,26 @@
 
   // ---- Init ----
   async function init() {
-    const [liveries, stats] = await Promise.all([
-      fetchLiveries({ sort: 'votes' }),
-      fetchStats()
-    ]);
+    await buildFilters();
+    const [liveries, stats] = await Promise.all([fetchLiveries({ sort: 'votes' }), fetchStats()]);
     allLiveries = liveries;
     maxVotes = allLiveries.length ? Math.max(...allLiveries.map(l => l.upvotes), 1) : 1;
-
     document.getElementById('s-total').textContent = stats.total;
-    document.getElementById('s-mods').textContent = stats.mods;
+    document.getElementById('s-mods').textContent  = stats.mods;
     document.getElementById('s-votes').textContent = stats.votes;
-    document.getElementById('s-top').textContent = stats.top;
+    document.getElementById('s-top').textContent   = stats.top;
 
+    // URL param: ?mod=…
+    const params = new URLSearchParams(location.search);
+    const modParam = params.get('mod');
+    if (modParam) {
+      document.getElementById('search').value = modParam;
+    }
     render();
   }
 
-  // ---- Events ----
   document.getElementById('search').addEventListener('input', render);
   document.getElementById('sort').addEventListener('change', render);
-  document.querySelectorAll('[data-cat]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-cat]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeFilter = btn.dataset.cat;
-      render();
-    });
-  });
-
   init();
 </script>
 </body>
