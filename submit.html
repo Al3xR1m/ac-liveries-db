@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    select:disabled { opacity: .45; cursor: not-allowed; }
+  </style>
 </head>
 <body>
 
@@ -38,16 +41,18 @@
         <input type="text" id="f-name" placeholder="e.g. Ferrari — C. Leclerc #16">
       </div>
       <div class="field">
-        <label>RSS Mod *</label>
-        <select id="f-mod"><option value="">Loading mods…</option></select>
+        <label>Category *</label>
+        <select id="f-cat"></select>
       </div>
       <div class="field">
-        <label>Category *</label>
-        <select id="f-cat"><option value="">Loading categories…</option></select>
+        <label>RSS Mod *</label>
+        <select id="f-mod" disabled></select>
+        <span id="mod-hint" style="font-size:11px;color:var(--text3);margin-top:3px"></span>
       </div>
       <div class="field full">
         <label>Championship</label>
-        <select id="f-champ"><option value="">Loading championships…</option></select>
+        <select id="f-champ" disabled></select>
+        <span id="champ-hint" style="font-size:11px;color:var(--text3);margin-top:3px"></span>
       </div>
       <div class="field">
         <label>Team / Livery name</label>
@@ -103,38 +108,73 @@
 
   // Load dynamic selects
   async function loadSelects() {
-    const [mods, cats, champs] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
+    const [allMods, cats, allChamps] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
 
-    // Group mods by category
-    const catMap = {};
-    mods.forEach(m => {
-      const cName = m.categories?.name || 'Other';
-      if (!catMap[cName]) catMap[cName] = [];
-      catMap[cName].push(m);
-    });
-    const modSel = document.getElementById('f-mod');
-    modSel.innerHTML = '<option value="">Select a mod…</option>';
-    Object.entries(catMap).forEach(([cName, list]) => {
-      const og = document.createElement('optgroup');
-      og.label = cName;
-      list.forEach(m => {
-        const o = document.createElement('option');
-        o.value = m.id; o.textContent = m.name;
-        og.appendChild(o);
-      });
-      modSel.appendChild(og);
-    });
-
-    const catSel = document.getElementById('f-cat');
-    catSel.innerHTML = '<option value="">Select…</option>' + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
+    const catSel   = document.getElementById('f-cat');
+    const modSel   = document.getElementById('f-mod');
     const champSel = document.getElementById('f-champ');
-    champSel.innerHTML = '<option value="">— No specific championship —</option>' + champs.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('');
+    const modHint  = document.getElementById('mod-hint');
+    const champHint= document.getElementById('champ-hint');
 
-    // Auto-select category when mod is chosen
+    // ---- Populate categories ----
+    catSel.innerHTML = '<option value="">Select a category first…</option>'
+      + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+    // ---- Initially disable mod & champ selects ----
+    modSel.innerHTML   = '<option value="">— Select a category first —</option>';
+    champSel.innerHTML = '<option value="">— Select a category first —</option>';
+    modSel.disabled    = true;
+    champSel.disabled  = true;
+
+    // ---- When category changes → filter mods & championships ----
+    catSel.addEventListener('change', () => {
+      const catId = catSel.value;
+      modSel.value   = '';
+      champSel.value = '';
+
+      if (!catId) {
+        modSel.innerHTML   = '<option value="">— Select a category first —</option>';
+        champSel.innerHTML = '<option value="">— Select a category first —</option>';
+        modSel.disabled    = true;
+        champSel.disabled  = true;
+        modHint.textContent  = '';
+        champHint.textContent= '';
+        return;
+      }
+
+      // Filter mods linked to selected category
+      const filteredMods = allMods.filter(m => m.category_id === catId);
+      modSel.disabled = false;
+      modSel.innerHTML = filteredMods.length
+        ? '<option value="">Select a mod…</option>' + filteredMods.map(m => `<option value="${m.id}">${m.name}</option>`).join('')
+        : '<option value="">No mods available for this category</option>';
+      modHint.textContent = filteredMods.length
+        ? `${filteredMods.length} mod${filteredMods.length > 1 ? 's' : ''} available`
+        : '';
+
+      // Filter championships linked to mods of this category
+      const catModIds = filteredMods.map(m => m.id);
+      const filteredChamps = allChamps.filter(ch => catModIds.includes(ch.mod_id));
+      champSel.disabled = false;
+      champSel.innerHTML = filteredChamps.length
+        ? '<option value="">— No specific championship —</option>' + filteredChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('')
+        : '<option value="">— No championship for this category —</option>';
+      champHint.textContent = filteredChamps.length
+        ? `${filteredChamps.length} championship${filteredChamps.length > 1 ? 's' : ''} available`
+        : '';
+    });
+
+    // ---- When mod changes → auto-filter championships to that mod only ----
     modSel.addEventListener('change', () => {
-      const m = mods.find(x => x.id === modSel.value);
-      if (m?.category_id) catSel.value = m.category_id;
+      const modId = modSel.value;
+      if (!modId) return;
+      const modChamps = allChamps.filter(ch => ch.mod_id === modId);
+      champSel.innerHTML = modChamps.length
+        ? '<option value="">— No specific championship —</option>' + modChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('')
+        : '<option value="">— No championship for this mod —</option>';
+      champHint.textContent = modChamps.length
+        ? `${modChamps.length} championship${modChamps.length > 1 ? 's' : ''} for this mod`
+        : '';
     });
   }
 
