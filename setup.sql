@@ -1,16 +1,17 @@
 -- ============================================
--- AC LIVERIES DB — Supabase Setup Script v2
+-- AC LIVERIES DB — Supabase Setup Script v3
+-- Championships linked to categories (many-to-many)
 -- Run this in Supabase > SQL Editor
 -- ============================================
 
--- Drop existing tables (clean reinstall)
 DROP TABLE IF EXISTS votes CASCADE;
 DROP TABLE IF EXISTS liveries CASCADE;
+DROP TABLE IF EXISTS championship_categories CASCADE;
 DROP TABLE IF EXISTS championships CASCADE;
 DROP TABLE IF EXISTS mods CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 
--- ---- Table: categories ----
+-- ---- categories ----
 CREATE TABLE categories (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
@@ -19,7 +20,7 @@ CREATE TABLE categories (
   created_at timestamptz DEFAULT now()
 );
 
--- ---- Table: mods ----
+-- ---- mods ----
 CREATE TABLE mods (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
@@ -28,17 +29,23 @@ CREATE TABLE mods (
   created_at timestamptz DEFAULT now()
 );
 
--- ---- Table: championships ----
+-- ---- championships ----
 CREATE TABLE championships (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
   short_name text,
   season text,
-  mod_id uuid REFERENCES mods(id) ON DELETE SET NULL,
   created_at timestamptz DEFAULT now()
 );
 
--- ---- Table: liveries ----
+-- ---- championship_categories (many-to-many) ----
+CREATE TABLE championship_categories (
+  championship_id uuid REFERENCES championships(id) ON DELETE CASCADE,
+  category_id     uuid REFERENCES categories(id)    ON DELETE CASCADE,
+  PRIMARY KEY (championship_id, category_id)
+);
+
+-- ---- liveries ----
 CREATE TABLE liveries (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL,
@@ -57,7 +64,7 @@ CREATE TABLE liveries (
   created_at timestamptz DEFAULT now()
 );
 
--- ---- Table: votes ----
+-- ---- votes ----
 CREATE TABLE votes (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   livery_id uuid REFERENCES liveries(id) ON DELETE CASCADE,
@@ -69,27 +76,29 @@ CREATE TABLE votes (
 -- ============================================
 -- Row Level Security
 -- ============================================
-ALTER TABLE categories    ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mods          ENABLE ROW LEVEL SECURITY;
-ALTER TABLE championships ENABLE ROW LEVEL SECURITY;
-ALTER TABLE liveries      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE votes         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mods                   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE championships          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE championship_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE liveries               ENABLE ROW LEVEL SECURITY;
+ALTER TABLE votes                  ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public read categories"    ON categories    FOR SELECT USING (true);
-CREATE POLICY "Public read mods"          ON mods          FOR SELECT USING (true);
-CREATE POLICY "Public read championships" ON championships FOR SELECT USING (true);
-CREATE POLICY "Public read approved"      ON liveries      FOR SELECT USING (approved = true);
-CREATE POLICY "Admin read all liveries"   ON liveries      FOR SELECT USING (true);
-CREATE POLICY "Public read votes"         ON votes         FOR SELECT USING (true);
+CREATE POLICY "Public read categories"              ON categories             FOR SELECT USING (true);
+CREATE POLICY "Public read mods"                    ON mods                   FOR SELECT USING (true);
+CREATE POLICY "Public read championships"           ON championships          FOR SELECT USING (true);
+CREATE POLICY "Public read champ_categories"        ON championship_categories FOR SELECT USING (true);
+CREATE POLICY "Public read approved liveries"       ON liveries               FOR SELECT USING (approved = true);
+CREATE POLICY "Public read votes"                   ON votes                  FOR SELECT USING (true);
 
-CREATE POLICY "Anyone can submit livery"  ON liveries FOR INSERT WITH CHECK (true);
-CREATE POLICY "Anyone can vote"           ON votes    FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can submit livery"            ON liveries               FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can vote"                     ON votes                  FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Admin manage categories"    ON categories    FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Admin manage mods"          ON mods          FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Admin manage championships" ON championships FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Admin manage liveries"      ON liveries      FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Admin delete liveries"      ON liveries      FOR DELETE USING (true);
+CREATE POLICY "Admin manage categories"             ON categories             FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage mods"                   ON mods                   FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage championships"          ON championships          FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Admin manage champ_categories"       ON championship_categories FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Admin update liveries"               ON liveries               FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "Admin delete liveries"               ON liveries               FOR DELETE USING (true);
 
 -- ============================================
 -- Safe upvote function
@@ -129,37 +138,62 @@ INSERT INTO mods (name, category_id, official_url) SELECT 'RSS Touring Cars',   
 -- ============================================
 -- Seed: Championships
 -- ============================================
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'Formula 1 World Championship 2024','F1 2024','2024',id FROM mods WHERE name='RSS Formula Hybrid 2024';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'Formula 1 World Championship 2022','F1 2022','2022',id FROM mods WHERE name='RSS Formula Hybrid 2022';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'Formula 2 Championship 2023','F2 2023','2023',id FROM mods WHERE name='RSS Formula 2 V6';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'Blancpain GT Series 2023','Blancpain 2023','2023',id FROM mods WHERE name='RSS GT3';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'WEC GTE 2023','WEC 2023','2023',id FROM mods WHERE name='RSS GT3';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'IMSA WeatherTech 2023','IMSA 2023','2023',id FROM mods WHERE name='RSS GT3';
-INSERT INTO championships (name, short_name, season, mod_id) SELECT 'Pikes Peak 2023','Pikes Peak','2023',id FROM mods WHERE name='RSS Hillclimb';
+INSERT INTO championships (name, short_name, season) VALUES
+('Formula 1 World Championship 2024', 'F1 2024',       '2024'),
+('Formula 1 World Championship 2022', 'F1 2022',       '2022'),
+('Formula 2 Championship 2023',       'F2 2023',       '2023'),
+('Formula 3 Championship 2023',       'F3 2023',       '2023'),
+('Blancpain GT Series 2023',          'Blancpain 2023','2023'),
+('WEC GTE 2023',                      'WEC 2023',      '2023'),
+('IMSA WeatherTech 2023',             'IMSA 2023',     '2023'),
+('GT World Challenge 2023',           'GTWC 2023',     '2023'),
+('Pikes Peak 2023',                   'Pikes Peak',    '2023'),
+('WTCR 2023',                         'WTCR 2023',     '2023');
+
+-- ============================================
+-- Seed: Championship ↔ Category links
+-- ============================================
+-- F1 → Formula
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='F1 2024' AND cat.name='Formula';
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='F1 2022' AND cat.name='Formula';
+-- F2 → Formula
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='F2 2023' AND cat.name='Formula';
+-- F3 → Formula
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='F3 2023' AND cat.name='Formula';
+-- Blancpain → GT + Touring (mixed grid)
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='Blancpain 2023' AND cat.name='GT';
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='Blancpain 2023' AND cat.name='Touring';
+-- WEC → GT
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='WEC 2023' AND cat.name='GT';
+-- IMSA → GT + Touring
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='IMSA 2023' AND cat.name='GT';
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='IMSA 2023' AND cat.name='Touring';
+-- GTWC → GT
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='GTWC 2023' AND cat.name='GT';
+-- Pikes Peak → Hillclimb
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='Pikes Peak' AND cat.name='Hillclimb';
+-- WTCR → Touring
+INSERT INTO championship_categories SELECT c.id, cat.id FROM championships c, categories cat WHERE c.short_name='WTCR 2023' AND cat.name='Touring';
 
 -- ============================================
 -- Seed: Sample liveries
 -- ============================================
 INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
 SELECT 'Ferrari — C. Leclerc #16', m.id, c.id, ch.id, 'Scuderia Ferrari','Charles Leclerc','2024','SimPainter_IT','https://www.racedepartment.com',142,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS Formula Hybrid 2024' AND c.name='Formula' AND ch.name='Formula 1 World Championship 2024';
+FROM mods m, categories c, championships ch WHERE m.name='RSS Formula Hybrid 2024' AND c.name='Formula' AND ch.short_name='F1 2024';
 
 INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
 SELECT 'Red Bull — M. Verstappen #1', m.id, c.id, ch.id, 'Red Bull Racing','Max Verstappen','2024','F1Skinner','https://www.racedepartment.com',118,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS Formula Hybrid 2024' AND c.name='Formula' AND ch.name='Formula 1 World Championship 2024';
-
-INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
-SELECT 'Aston Martin — F. Alonso #14', m.id, c.id, ch.id, 'Aston Martin','Fernando Alonso','2024','LiveryLab','https://www.racedepartment.com',87,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS Formula Hybrid 2024' AND c.name='Formula' AND ch.name='Formula 1 World Championship 2024';
+FROM mods m, categories c, championships ch WHERE m.name='RSS Formula Hybrid 2024' AND c.name='Formula' AND ch.short_name='F1 2024';
 
 INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
 SELECT 'McLaren 720S — WRT #63', m.id, c.id, ch.id, 'WRT','','2023','Sim_Painter','https://www.racedepartment.com',64,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS GT3' AND c.name='GT' AND ch.name='Blancpain GT Series 2023';
+FROM mods m, categories c, championships ch WHERE m.name='RSS GT3' AND c.name='GT' AND ch.short_name='Blancpain 2023';
 
 INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
 SELECT 'Mercedes AMG GT3 — HRT #5', m.id, c.id, ch.id, 'HRT','','2023','GT3_Skins','https://www.racedepartment.com',51,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS GT3' AND c.name='GT' AND ch.name='WEC GTE 2023';
+FROM mods m, categories c, championships ch WHERE m.name='RSS GT3' AND c.name='GT' AND ch.short_name='WEC 2023';
 
 INSERT INTO liveries (name, mod_id, category_id, championship_id, team, driver, season, author, download_url, upvotes, approved)
 SELECT 'Monster Energy HC — #21', m.id, c.id, ch.id, 'Monster Energy','','2023','HillPainter','https://www.racedepartment.com',39,true
-FROM mods m, categories c, championships ch WHERE m.name='RSS Hillclimb' AND c.name='Hillclimb' AND ch.name='Pikes Peak 2023';
+FROM mods m, categories c, championships ch WHERE m.name='RSS Hillclimb' AND c.name='Hillclimb' AND ch.short_name='Pikes Peak';

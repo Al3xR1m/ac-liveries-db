@@ -18,8 +18,6 @@
     .admin-main { padding: 28px; overflow-y: auto; }
     .admin-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
     .admin-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
-
-    /* Table */
     .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .data-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); border-bottom: 0.5px solid var(--border); }
     .data-table td { padding: 10px 12px; border-bottom: 0.5px solid var(--border); color: var(--text); vertical-align: middle; }
@@ -30,41 +28,37 @@
     .action-btn.danger:hover { border-color: #E82020; color: #E82020; }
     .action-btn.success { background: var(--green-bg); border-color: var(--green); color: var(--green); }
     .action-btn.success:hover { background: var(--green); color: #fff; }
-
-    /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
-    .modal-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+    .modal-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
     .modal-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
     .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-    .color-preview { width: 24px; height: 24px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-left: 8px; }
-
-    /* Login */
     #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); }
     .login-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 36px; width: 100%; max-width: 360px; text-align: center; }
     .login-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-bottom: 6px; }
     .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; }
     .login-input { width: 100%; padding: 10px 14px; border: 0.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; margin-bottom: 12px; outline: none; }
-    .login-btn { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; letter-spacing: .04em; }
+    .login-btn { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font-display); font-size: 16px; font-weight: 700; cursor: pointer; }
     .login-err { color: var(--accent); font-size: 13px; margin-top: 8px; display: none; }
-
-    /* Tabs */
     .panel { display: none; }
     .panel.active { display: block; }
-
-    /* Add btn */
-    .add-row { display: flex; justify-content: flex-end; margin-bottom: 14px; }
     .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-
-    /* Color swatch */
     .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 5px; vertical-align: -2px; }
+
+    /* Multi-category checkboxes */
+    .cat-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .cat-check-item { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; border: 0.5px solid var(--border); cursor: pointer; font-size: 12px; color: var(--text2); background: var(--bg); transition: all .12s; user-select: none; }
+    .cat-check-item input { display: none; }
+    .cat-check-item.checked { color: var(--text); border-color: var(--accent); background: var(--bg2); }
+    .cat-check-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .linked-cats { display: flex; flex-wrap: wrap; gap: 4px; }
 
     @media (max-width:700px) { .admin-layout { grid-template-columns: 1fr; } .sidebar { display: flex; overflow-x: auto; padding: 0; } .sidebar-item { flex-shrink: 0; } }
   </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-card">
     <div style="font-size:36px;color:var(--accent);margin-bottom:12px"><i class="ti ti-shield-lock"></i></div>
@@ -76,13 +70,11 @@
   </div>
 </div>
 
-<!-- ADMIN APP (hidden until login) -->
+<!-- ADMIN APP -->
 <div id="adminApp" style="display:none">
   <nav class="navbar">
     <a href="index.html" class="nav-logo"><i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB</a>
-    <div class="nav-links">
-      <a href="index.html">← Back to site</a>
-    </div>
+    <div class="nav-links"><a href="index.html">← Back to site</a></div>
     <div class="nav-right">
       <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
       <button class="action-btn danger" id="logoutBtn" style="margin:0"><i class="ti ti-logout" style="font-size:13px"></i> Logout</button>
@@ -90,7 +82,6 @@
   </nav>
 
   <div class="admin-layout">
-    <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-label">Overview</div>
       <div class="sidebar-item active" data-panel="dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
@@ -103,7 +94,6 @@
       <div class="sidebar-item" data-panel="categories"><i class="ti ti-category"></i>Categories</div>
     </div>
 
-    <!-- Main content -->
     <div class="admin-main">
 
       <!-- DASHBOARD -->
@@ -118,10 +108,10 @@
         <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:18px">
           <div style="font-size:14px;font-weight:500;margin-bottom:12px;color:var(--text)">Quick actions</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="action-btn" onclick="showPanel('pending')"><i class="ti ti-clock"></i> Review pending submissions</button>
-            <button class="action-btn" onclick="showPanel('championships')"><i class="ti ti-trophy"></i> Manage championships</button>
-            <button class="action-btn" onclick="showPanel('mods')"><i class="ti ti-car"></i> Manage mods</button>
-            <button class="action-btn" onclick="showPanel('categories')"><i class="ti ti-category"></i> Manage categories</button>
+            <button class="action-btn" onclick="showPanel('pending')"><i class="ti ti-clock"></i> Review pending</button>
+            <button class="action-btn" onclick="showPanel('championships')"><i class="ti ti-trophy"></i> Championships</button>
+            <button class="action-btn" onclick="showPanel('mods')"><i class="ti ti-car"></i> Mods RSS</button>
+            <button class="action-btn" onclick="showPanel('categories')"><i class="ti ti-category"></i> Categories</button>
           </div>
         </div>
       </div>
@@ -138,7 +128,7 @@
           <div class="admin-title" style="margin:0"><i class="ti ti-photo"></i>All Liveries</div>
           <input type="text" class="search-input" id="livery-search" placeholder="Search…" style="max-width:220px">
         </div>
-        <div style="overflow-x:auto"><table class="data-table" id="liveries-table"><tr><td style="color:var(--text3)">Loading…</td></tr></table></div>
+        <div style="overflow-x:auto"><table class="data-table" id="liveries-table"></table></div>
       </div>
 
       <!-- CHAMPIONSHIPS -->
@@ -147,7 +137,7 @@
           <div class="admin-title" style="margin:0"><i class="ti ti-trophy"></i>Championships</div>
           <button class="action-btn success" id="addChampBtn"><i class="ti ti-plus"></i> Add championship</button>
         </div>
-        <div style="overflow-x:auto"><table class="data-table" id="champ-table"><tr><td style="color:var(--text3)">Loading…</td></tr></table></div>
+        <div style="overflow-x:auto"><table class="data-table" id="champ-table"></table></div>
       </div>
 
       <!-- MODS -->
@@ -156,7 +146,7 @@
           <div class="admin-title" style="margin:0"><i class="ti ti-car"></i>Mods RSS</div>
           <button class="action-btn success" id="addModBtn"><i class="ti ti-plus"></i> Add mod</button>
         </div>
-        <div style="overflow-x:auto"><table class="data-table" id="mods-table"><tr><td style="color:var(--text3)">Loading…</td></tr></table></div>
+        <div style="overflow-x:auto"><table class="data-table" id="mods-table"></table></div>
       </div>
 
       <!-- CATEGORIES -->
@@ -165,7 +155,7 @@
           <div class="admin-title" style="margin:0"><i class="ti ti-category"></i>Categories</div>
           <button class="action-btn success" id="addCatBtn"><i class="ti ti-plus"></i> Add category</button>
         </div>
-        <div style="overflow-x:auto"><table class="data-table" id="cat-table"><tr><td style="color:var(--text3)">Loading…</td></tr></table></div>
+        <div style="overflow-x:auto"><table class="data-table" id="cat-table"></table></div>
       </div>
 
     </div>
@@ -195,15 +185,12 @@ root.setAttribute('data-theme', savedTheme);
 document.getElementById('themeIcon').className = savedTheme === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
 document.getElementById('themeToggle').addEventListener('click', () => {
   const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  root.setAttribute('data-theme', next);
-  localStorage.setItem('acliveries_theme', next);
+  root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
   document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
 });
 
 // ---- Login ----
-function checkLogin() {
-  return sessionStorage.getItem('acl_admin') === '1';
-}
+function checkLogin() { return sessionStorage.getItem('acl_admin') === '1'; }
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 function doLogin() {
@@ -212,18 +199,10 @@ function doLogin() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminApp').style.display = 'block';
     initAdmin();
-  } else {
-    document.getElementById('loginErr').style.display = 'block';
-  }
+  } else { document.getElementById('loginErr').style.display = 'block'; }
 }
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('acl_admin');
-  location.reload();
-});
-if (checkLogin()) {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('adminApp').style.display = 'block';
-}
+document.getElementById('logoutBtn').addEventListener('click', () => { sessionStorage.removeItem('acl_admin'); location.reload(); });
+if (checkLogin()) { document.getElementById('loginScreen').style.display = 'none'; document.getElementById('adminApp').style.display = 'block'; }
 
 // ---- Panel nav ----
 function showPanel(name) {
@@ -237,7 +216,7 @@ document.querySelectorAll('.sidebar-item').forEach(item => {
   item.addEventListener('click', () => showPanel(item.dataset.panel));
 });
 
-// ---- Modal helpers ----
+// ---- Modal ----
 let modalSaveFn = null;
 function openModal(title, bodyHTML, saveFn) {
   document.getElementById('modal-title').innerHTML = title;
@@ -248,24 +227,16 @@ function openModal(title, bodyHTML, saveFn) {
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
-document.getElementById('modal-save').addEventListener('click', async () => {
-  if (modalSaveFn) await modalSaveFn();
-});
+document.getElementById('modal-save').addEventListener('click', async () => { if (modalSaveFn) await modalSaveFn(); });
 
-// ---- Shared data cache ----
+// ---- Cache ----
 let _cats = [], _mods = [], _champs = [];
-
 async function reloadCache() {
   [_cats, _mods, _champs] = await Promise.all([fetchCategories(), fetchMods(), fetchChampionships()]);
 }
 
-// ---- Init ----
-async function initAdmin() {
-  await reloadCache();
-  loadPanel('dashboard');
-}
+async function initAdmin() { await reloadCache(); loadPanel('dashboard'); }
 
-// ---- Load panel ----
 async function loadPanel(name) {
   if (name === 'dashboard')    await loadDashboard();
   if (name === 'pending')      await loadPending();
@@ -294,70 +265,55 @@ async function loadPending() {
     <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
       <div style="flex:1;min-width:200px">
         <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:4px">${l.name}</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:2px"><i class="ti ti-car" style="font-size:12px"></i> ${l.mods?.name || '—'}</div>
-        <div style="font-size:12px;color:var(--text2)"><i class="ti ti-user" style="font-size:12px"></i> ${l.author || '—'} &nbsp;·&nbsp; <i class="ti ti-calendar" style="font-size:12px"></i> ${l.season || '—'}</div>
-        ${l.download_url ? `<a href="${l.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download page</a>` : ''}
+        <div style="font-size:12px;color:var(--text2);margin-bottom:2px"><i class="ti ti-car"></i> ${l.mods?.name||'—'} &nbsp;·&nbsp; <span class="cat-badge" style="background:${l.categories?.color_bg||'#eee'};color:${l.categories?.color_text||'#333'}">${l.categories?.name||'—'}</span></div>
+        <div style="font-size:12px;color:var(--text2)"><i class="ti ti-user"></i> ${l.author||'—'} &nbsp;·&nbsp; <i class="ti ti-calendar"></i> ${l.season||'—'}</div>
+        ${l.championships ? `<div style="font-size:12px;color:var(--text2);margin-top:2px"><i class="ti ti-trophy"></i> ${l.championships.name}</div>` : ''}
+        ${l.download_url ? `<a href="${l.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download</a>` : ''}
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="action-btn" onclick="editLiveryModal('${l.id}', true)"><i class="ti ti-pencil"></i> Edit</button>
+        <button class="action-btn" onclick="editLiveryModal('${l.id}',true)"><i class="ti ti-pencil"></i> Edit</button>
         <button class="action-btn success" onclick="doApprove('${l.id}')"><i class="ti ti-check"></i> Approve</button>
         <button class="action-btn danger" onclick="doReject('${l.id}')"><i class="ti ti-x"></i> Reject</button>
       </div>
     </div>`).join('');
 }
-
-async function doApprove(id) {
-  if (!confirm('Approve this livery?')) return;
-  await approveLivery(id);
-  await loadPending();
-  await loadDashboard();
-}
-async function doReject(id) {
-  if (!confirm('Reject and delete this submission?')) return;
-  await rejectLivery(id);
-  await loadPending();
-  await loadDashboard();
-}
+async function doApprove(id) { if (!confirm('Approve this livery?')) return; await approveLivery(id); await loadPending(); await loadDashboard(); }
+async function doReject(id) { if (!confirm('Reject and delete this submission?')) return; await rejectLivery(id); await loadPending(); await loadDashboard(); }
 
 // ---- ALL LIVERIES ----
 async function loadLiveries(search='') {
   const list = await fetchLiveries({ search, sort: 'newest', approvedOnly: false });
   const t = document.getElementById('liveries-table');
   if (!list.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No liveries found.</td></tr>'; return; }
-  t.innerHTML = `<thead><tr>
-    <th>Name</th><th>Mod</th><th>Championship</th><th>Author</th><th>Votes</th><th>Status</th><th>Actions</th>
-  </tr></thead><tbody>${list.map(l => `<tr>
+  t.innerHTML = `<thead><tr><th>Name</th><th>Mod</th><th>Championship</th><th>Author</th><th>Votes</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>${list.map(l=>`<tr>
     <td><strong>${l.name}</strong></td>
-    <td style="color:var(--text2)">${l.mods?.name || '—'}</td>
-    <td style="color:var(--text2)">${l.championships?.short_name || '—'}</td>
-    <td style="color:var(--text2)">${l.author || '—'}</td>
+    <td style="color:var(--text2)">${l.mods?.name||'—'}</td>
+    <td style="color:var(--text2)">${l.championships?.short_name||'—'}</td>
+    <td style="color:var(--text2)">${l.author||'—'}</td>
     <td>${l.upvotes}</td>
     <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${l.approved?'var(--green-bg)':'#FAEEDA'};color:${l.approved?'var(--green)':'#633806'}">${l.approved?'Published':'Pending'}</span></td>
     <td>
-      <button class="action-btn" onclick="editLiveryModal('${l.id}', false)"><i class="ti ti-pencil"></i></button>
+      <button class="action-btn" onclick="editLiveryModal('${l.id}',false)"><i class="ti ti-pencil"></i></button>
       <button class="action-btn danger" onclick="doDeleteLivery('${l.id}')"><i class="ti ti-trash"></i></button>
     </td>
   </tr>`).join('')}</tbody>`;
 }
-
 document.getElementById('livery-search').addEventListener('input', e => loadLiveries(e.target.value));
-
-async function doDeleteLivery(id) {
-  if (!confirm('Delete this livery permanently?')) return;
-  await deleteLivery(id); await loadLiveries();
-}
+async function doDeleteLivery(id) { if (!confirm('Delete this livery permanently?')) return; await deleteLivery(id); await loadLiveries(); }
 
 async function editLiveryModal(id, isApproval) {
-  const l = await fetchLivery(id) || (await fetchPendingLiveries()).find(x=>x.id===id);
+  const pending = await fetchPendingLiveries();
+  const l = (await fetchLivery(id)) || pending.find(x=>x.id===id);
   if (!l) return;
-  const catOpts  = _cats.map(c  => `<option value="${c.id}"  ${l.category_id===c.id?'selected':''}>${c.name}</option>`).join('');
-  const modOpts  = _mods.map(m  => `<option value="${m.id}"  ${l.mod_id===m.id?'selected':''}>${m.name}</option>`).join('');
-  const champOpts= _champs.map(ch=> `<option value="${ch.id}" ${l.championship_id===ch.id?'selected':''}>${ch.name}</option>`).join('');
+  const catOpts   = _cats.map(c  => `<option value="${c.id}"  ${l.category_id===c.id?'selected':''}>${c.name}</option>`).join('');
+  const modOpts   = _mods.map(m  => `<option value="${m.id}"  ${l.mod_id===m.id?'selected':''}>${m.name}</option>`).join('');
+  const champOpts = _champs.map(ch=> `<option value="${ch.id}" ${l.championship_id===ch.id?'selected':''}>${ch.name}</option>`).join('');
   openModal(`<i class="ti ti-pencil"></i> Edit livery`, `
     <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px">
       <div class="field full"><label>Name</label><input id="el-name" value="${l.name||''}"></div>
-      <div class="field"><label>Mod</label><select id="el-mod"><option value="">—</option>${modOpts}</select></div>
       <div class="field"><label>Category</label><select id="el-cat"><option value="">—</option>${catOpts}</select></div>
+      <div class="field"><label>Mod</label><select id="el-mod"><option value="">—</option>${modOpts}</select></div>
       <div class="field full"><label>Championship</label><select id="el-champ"><option value="">—</option>${champOpts}</select></div>
       <div class="field"><label>Team</label><input id="el-team" value="${l.team||''}"></div>
       <div class="field"><label>Driver</label><input id="el-driver" value="${l.driver||''}"></div>
@@ -369,9 +325,9 @@ async function editLiveryModal(id, isApproval) {
     </div>`, async () => {
     await updateLivery(id, {
       name: document.getElementById('el-name').value,
-      mod_id: document.getElementById('el-mod').value || null,
-      category_id: document.getElementById('el-cat').value || null,
-      championship_id: document.getElementById('el-champ').value || null,
+      category_id: document.getElementById('el-cat').value||null,
+      mod_id: document.getElementById('el-mod').value||null,
+      championship_id: document.getElementById('el-champ').value||null,
       team: document.getElementById('el-team').value,
       driver: document.getElementById('el-driver').value,
       season: document.getElementById('el-season').value,
@@ -382,22 +338,20 @@ async function editLiveryModal(id, isApproval) {
       approved: isApproval ? true : l.approved,
     });
     closeModal();
-    if (isApproval) { await loadPending(); await loadDashboard(); }
-    else await loadLiveries();
+    if (isApproval) { await loadPending(); await loadDashboard(); } else await loadLiveries();
   });
 }
 
 // ---- CHAMPIONSHIPS ----
 async function loadChampionships() {
-  const list = _champs;
   const t = document.getElementById('champ-table');
-  if (!list.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No championships yet.</td></tr>'; return; }
-  t.innerHTML = `<thead><tr><th>Name</th><th>Short name</th><th>Season</th><th>Linked mod</th><th>Actions</th></tr></thead>
-  <tbody>${list.map(ch => `<tr>
+  if (!_champs.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No championships yet.</td></tr>'; return; }
+  t.innerHTML = `<thead><tr><th>Name</th><th>Short name</th><th>Season</th><th>Linked categories</th><th>Actions</th></tr></thead>
+  <tbody>${_champs.map(ch=>`<tr>
     <td><strong>${ch.name}</strong></td>
     <td style="color:var(--text2)">${ch.short_name||'—'}</td>
     <td style="color:var(--text2)">${ch.season||'—'}</td>
-    <td style="color:var(--text2)">${ch.mods?.name||'—'}</td>
+    <td><div class="linked-cats">${(ch.linked_categories||[]).map(c=>`<span class="cat-badge" style="background:${c.color_bg};color:${c.color_text}">${c.name}</span>`).join('')||'<span style="color:var(--text3);font-size:12px">None</span>'}</div></td>
     <td>
       <button class="action-btn" onclick="editChampModal('${ch.id}')"><i class="ti ti-pencil"></i></button>
       <button class="action-btn danger" onclick="doDeleteChamp('${ch.id}')"><i class="ti ti-trash"></i></button>
@@ -405,40 +359,68 @@ async function loadChampionships() {
   </tr>`).join('')}</tbody>`;
 }
 
+// Build the championship modal with multi-category checkboxes
 function champModalForm(ch={}) {
-  const modOpts = _mods.map(m => `<option value="${m.id}" ${ch.mod_id===m.id?'selected':''}>${m.name}</option>`).join('');
-  return `<div style="display:flex;flex-direction:column;gap:12px">
-    <div class="field"><label>Name *</label><input id="cf-name" value="${ch.name||''}"></div>
-    <div class="field"><label>Short name</label><input id="cf-short" value="${ch.short_name||''}" placeholder="e.g. F1 2024"></div>
-    <div class="field"><label>Season</label><input id="cf-season" value="${ch.season||''}" placeholder="e.g. 2024"></div>
-    <div class="field"><label>Linked RSS Mod</label><select id="cf-mod"><option value="">— None —</option>${modOpts}</select></div>
-  </div>`;
+  const linkedIds = (ch.linked_categories||[]).map(c=>c.id);
+  const checksHTML = _cats.map(c => `
+    <label class="cat-check-item${linkedIds.includes(c.id)?' checked':''}" data-cat-id="${c.id}">
+      <input type="checkbox" value="${c.id}" ${linkedIds.includes(c.id)?'checked':''}>
+      <span class="dot" style="background:${c.color_text}"></span>
+      ${c.name}
+    </label>`).join('');
+  return `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="field"><label>Championship name *</label><input id="cf-name" value="${ch.name||''}"></div>
+      <div class="field"><label>Short name</label><input id="cf-short" value="${ch.short_name||''}" placeholder="e.g. F1 2024"></div>
+      <div class="field"><label>Season</label><input id="cf-season" value="${ch.season||''}" placeholder="e.g. 2024"></div>
+      <div class="field">
+        <label>Linked categories</label>
+        <div class="cat-checks" id="cat-checks">${checksHTML}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">A user choosing one of these categories will see this championship as an option.</div>
+      </div>
+    </div>`;
+}
+
+function bindCatChecks() {
+  setTimeout(() => {
+    document.querySelectorAll('.cat-check-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const cb = item.querySelector('input');
+        cb.checked = !cb.checked;
+        item.classList.toggle('checked', cb.checked);
+      });
+    });
+  }, 50);
+}
+
+function getCheckedCatIds() {
+  return [...document.querySelectorAll('.cat-check-item input:checked')].map(cb => cb.value);
 }
 
 document.getElementById('addChampBtn').addEventListener('click', () => {
   openModal('<i class="ti ti-trophy"></i> Add championship', champModalForm(), async () => {
-    const ok = await createChampionship({
-      name: document.getElementById('cf-name').value.trim(),
-      short_name: document.getElementById('cf-short').value.trim(),
-      season: document.getElementById('cf-season').value.trim(),
-      mod_id: document.getElementById('cf-mod').value || null,
-    });
+    const name = document.getElementById('cf-name').value.trim();
+    if (!name) return;
+    const ok = await createChampionship(
+      { name, short_name: document.getElementById('cf-short').value.trim(), season: document.getElementById('cf-season').value.trim() },
+      getCheckedCatIds()
+    );
     if (ok) { await reloadCache(); closeModal(); await loadChampionships(); }
   });
+  bindCatChecks();
 });
 
 async function editChampModal(id) {
   const ch = _champs.find(c=>c.id===id);
   if (!ch) return;
   openModal('<i class="ti ti-pencil"></i> Edit championship', champModalForm(ch), async () => {
-    await updateChampionship(id, {
-      name: document.getElementById('cf-name').value.trim(),
-      short_name: document.getElementById('cf-short').value.trim(),
-      season: document.getElementById('cf-season').value.trim(),
-      mod_id: document.getElementById('cf-mod').value || null,
-    });
+    await updateChampionship(id,
+      { name: document.getElementById('cf-name').value.trim(), short_name: document.getElementById('cf-short').value.trim(), season: document.getElementById('cf-season').value.trim() },
+      getCheckedCatIds()
+    );
     await reloadCache(); closeModal(); await loadChampionships();
   });
+  bindCatChecks();
 }
 
 async function doDeleteChamp(id) {
@@ -448,14 +430,13 @@ async function doDeleteChamp(id) {
 
 // ---- MODS ----
 async function loadMods() {
-  const list = _mods;
   const t = document.getElementById('mods-table');
-  if (!list.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No mods yet.</td></tr>'; return; }
+  if (!_mods.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No mods yet.</td></tr>'; return; }
   t.innerHTML = `<thead><tr><th>Name</th><th>Category</th><th>Official URL</th><th>Actions</th></tr></thead>
-  <tbody>${list.map(m => `<tr>
+  <tbody>${_mods.map(m=>`<tr>
     <td><strong>${m.name}</strong></td>
-    <td>${m.categories ? `<span class="swatch" style="background:${m.categories.color_bg};border:1px solid ${m.categories.color_text}20"></span>${m.categories.name}` : '—'}</td>
-    <td>${m.official_url ? `<a href="${m.official_url}" target="_blank" style="color:var(--accent);font-size:12px">Link</a>` : '—'}</td>
+    <td>${m.categories?`<span class="cat-badge" style="background:${m.categories.color_bg};color:${m.categories.color_text}">${m.categories.name}</span>`:'—'}</td>
+    <td>${m.official_url?`<a href="${m.official_url}" target="_blank" style="color:var(--accent);font-size:12px">Link</a>`:'—'}</td>
     <td>
       <button class="action-btn" onclick="editModModal('${m.id}')"><i class="ti ti-pencil"></i></button>
       <button class="action-btn danger" onclick="doDeleteMod('${m.id}')"><i class="ti ti-trash"></i></button>
@@ -474,40 +455,29 @@ function modModalForm(m={}) {
 
 document.getElementById('addModBtn').addEventListener('click', () => {
   openModal('<i class="ti ti-car"></i> Add mod', modModalForm(), async () => {
-    const ok = await createMod({
-      name: document.getElementById('mf-name').value.trim(),
-      category_id: document.getElementById('mf-cat').value || null,
-      official_url: document.getElementById('mf-url').value.trim(),
-    });
+    const ok = await createMod({ name: document.getElementById('mf-name').value.trim(), category_id: document.getElementById('mf-cat').value||null, official_url: document.getElementById('mf-url').value.trim() });
     if (ok) { await reloadCache(); closeModal(); await loadMods(); }
   });
 });
-
 async function editModModal(id) {
   const m = _mods.find(x=>x.id===id);
   if (!m) return;
   openModal('<i class="ti ti-pencil"></i> Edit mod', modModalForm(m), async () => {
-    await updateMod(id, {
-      name: document.getElementById('mf-name').value.trim(),
-      category_id: document.getElementById('mf-cat').value || null,
-      official_url: document.getElementById('mf-url').value.trim(),
-    });
+    await updateMod(id, { name: document.getElementById('mf-name').value.trim(), category_id: document.getElementById('mf-cat').value||null, official_url: document.getElementById('mf-url').value.trim() });
     await reloadCache(); closeModal(); await loadMods();
   });
 }
-
 async function doDeleteMod(id) {
-  if (!confirm('Delete this mod? All associated liveries will lose the link.')) return;
+  if (!confirm('Delete this mod?')) return;
   await deleteMod(id); await reloadCache(); await loadMods();
 }
 
 // ---- CATEGORIES ----
 async function loadCategories() {
-  const list = _cats;
   const t = document.getElementById('cat-table');
-  if (!list.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No categories yet.</td></tr>'; return; }
+  if (!_cats.length) { t.innerHTML = '<tr><td style="color:var(--text3)">No categories yet.</td></tr>'; return; }
   t.innerHTML = `<thead><tr><th>Name</th><th>Badge preview</th><th>BG color</th><th>Text color</th><th>Actions</th></tr></thead>
-  <tbody>${list.map(c => `<tr>
+  <tbody>${_cats.map(c=>`<tr>
     <td><strong>${c.name}</strong></td>
     <td><span class="cat-badge" style="background:${c.color_bg};color:${c.color_text}">${c.name}</span></td>
     <td><span class="swatch" style="background:${c.color_bg};border:1px solid #0005"></span>${c.color_bg}</td>
@@ -524,53 +494,41 @@ function catModalForm(c={}) {
     <div class="field"><label>Category name *</label><input id="catf-name" value="${c.name||''}" placeholder="e.g. GT4"></div>
     <div class="field"><label>Badge background color</label><input id="catf-bg" type="color" value="${c.color_bg||'#E6F1FB'}" style="width:60px;height:34px;padding:2px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);cursor:pointer"></div>
     <div class="field"><label>Badge text color</label><input id="catf-text" type="color" value="${c.color_text||'#0C447C'}" style="width:60px;height:34px;padding:2px;border:0.5px solid var(--border);border-radius:6px;background:var(--bg);cursor:pointer"></div>
-    <div id="cat-preview" style="margin-top:4px;font-size:13px;color:var(--text2)">Preview: <span id="cp-badge" class="cat-badge" style="background:${c.color_bg||'#E6F1FB'};color:${c.color_text||'#0C447C'}">${c.name||'Category'}</span></div>
+    <div style="font-size:13px;color:var(--text2)">Preview: <span id="cp-badge" class="cat-badge" style="background:${c.color_bg||'#E6F1FB'};color:${c.color_text||'#0C447C'}">${c.name||'Category'}</span></div>
   </div>`;
 }
-
 function bindCatPreview() {
-  const update = () => {
-    const name = document.getElementById('catf-name')?.value || 'Category';
-    const bg   = document.getElementById('catf-bg')?.value   || '#E6F1FB';
-    const txt  = document.getElementById('catf-text')?.value || '#0C447C';
-    const badge= document.getElementById('cp-badge');
-    if (badge) { badge.textContent = name; badge.style.background = bg; badge.style.color = txt; }
-  };
   setTimeout(() => {
-    document.getElementById('catf-name')?.addEventListener('input', update);
-    document.getElementById('catf-bg')?.addEventListener('input', update);
-    document.getElementById('catf-text')?.addEventListener('input', update);
-  }, 100);
+    const update = () => {
+      const n = document.getElementById('catf-name')?.value||'Category';
+      const bg= document.getElementById('catf-bg')?.value||'#E6F1FB';
+      const tc= document.getElementById('catf-text')?.value||'#0C447C';
+      const b = document.getElementById('cp-badge');
+      if(b){b.textContent=n;b.style.background=bg;b.style.color=tc;}
+    };
+    document.getElementById('catf-name')?.addEventListener('input',update);
+    document.getElementById('catf-bg')?.addEventListener('input',update);
+    document.getElementById('catf-text')?.addEventListener('input',update);
+  },100);
 }
-
 document.getElementById('addCatBtn').addEventListener('click', () => {
   openModal('<i class="ti ti-category"></i> Add category', catModalForm(), async () => {
-    const ok = await createCategory({
-      name: document.getElementById('catf-name').value.trim(),
-      color_bg: document.getElementById('catf-bg').value,
-      color_text: document.getElementById('catf-text').value,
-    });
+    const ok = await createCategory({ name: document.getElementById('catf-name').value.trim(), color_bg: document.getElementById('catf-bg').value, color_text: document.getElementById('catf-text').value });
     if (ok) { await reloadCache(); closeModal(); await loadCategories(); }
   });
   bindCatPreview();
 });
-
 async function editCatModal(id) {
   const c = _cats.find(x=>x.id===id);
   if (!c) return;
   openModal('<i class="ti ti-pencil"></i> Edit category', catModalForm(c), async () => {
-    await updateCategory(id, {
-      name: document.getElementById('catf-name').value.trim(),
-      color_bg: document.getElementById('catf-bg').value,
-      color_text: document.getElementById('catf-text').value,
-    });
+    await updateCategory(id, { name: document.getElementById('catf-name').value.trim(), color_bg: document.getElementById('catf-bg').value, color_text: document.getElementById('catf-text').value });
     await reloadCache(); closeModal(); await loadCategories();
   });
   bindCatPreview();
 }
-
 async function doDeleteCat(id) {
-  if (!confirm('Delete this category? All linked liveries and mods will lose this category.')) return;
+  if (!confirm('Delete this category?')) return;
   await deleteCategory(id); await reloadCache(); await loadCategories();
 }
 

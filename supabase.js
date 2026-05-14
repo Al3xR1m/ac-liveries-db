@@ -1,5 +1,6 @@
 // ============================================
-// AC LIVERIES DB — Supabase Configuration v2
+// AC LIVERIES DB — Supabase Configuration v3
+// Championships linked to categories (many-to-many)
 // ============================================
 
 const SUPABASE_URL = 'https://nfwxckigiyolqugrbssk.supabase.co';
@@ -8,7 +9,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ---- Browser fingerprint ----
+// ---- Fingerprint & vote cache ----
 function getFingerprint() {
   let fp = localStorage.getItem('acliveries_fp');
   if (!fp) { fp = 'fp_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('acliveries_fp', fp); }
@@ -42,7 +43,7 @@ async function deleteCategory(id) {
 // MODS
 // ============================================
 async function fetchMods() {
-  const { data } = await db.from('mods').select('*, categories(name, color_bg, color_text)').order('name');
+  const { data } = await db.from('mods').select('*, categories(name,color_bg,color_text)').order('name');
   return data || [];
 }
 async function createMod(payload) {
@@ -58,16 +59,61 @@ async function deleteMod(id) {
 // ============================================
 // CHAMPIONSHIPS
 // ============================================
+
+// Fetch all championships with their linked category ids
 async function fetchChampionships() {
-  const { data } = await db.from('championships').select('*, mods(name)').order('name');
-  return data || [];
+  const { data: champs } = await db.from('championships').select('*').order('name');
+  if (!champs) return [];
+  // Fetch all links
+  const { data: links } = await db.from('championship_categories').select('championship_id, category_id, categories(name,color_bg,color_text)');
+  const linkMap = {};
+  (links || []).forEach(l => {
+    if (!linkMap[l.championship_id]) linkMap[l.championship_id] = [];
+    linkMap[l.championship_id].push({ id: l.category_id, ...l.categories });
+  });
+  return champs.map(ch => ({ ...ch, linked_categories: linkMap[ch.id] || [] }));
 }
-async function createChampionship(payload) {
-  const { error } = await db.from('championships').insert([payload]); return !error;
+
+// Fetch championships filtered by one or more category ids
+async function fetchChampionshipsByCategory(categoryIds) {
+  if (!categoryIds || !categoryIds.length) return fetchChampionships();
+  const { data: links } = await db.from('championship_categories')
+    .select('championship_id').in('category_id', categoryIds);
+  if (!links || !links.length) return [];
+  const champIds = [...new Set(links.map(l => l.championship_id))];
+  const { data: champs } = await db.from('championships').select('*').in('id', champIds).order('name');
+  if (!champs) return [];
+  // Re-attach linked categories
+  const { data: allLinks } = await db.from('championship_categories')
+    .select('championship_id, category_id, categories(name,color_bg,color_text)').in('championship_id', champIds);
+  const linkMap = {};
+  (allLinks || []).forEach(l => {
+    if (!linkMap[l.championship_id]) linkMap[l.championship_id] = [];
+    linkMap[l.championship_id].push({ id: l.category_id, ...l.categories });
+  });
+  return champs.map(ch => ({ ...ch, linked_categories: linkMap[ch.id] || [] }));
 }
-async function updateChampionship(id, payload) {
-  const { error } = await db.from('championships').update(payload).eq('id', id); return !error;
+
+async function createChampionship(payload, categoryIds = []) {
+  const { data, error } = await db.from('championships').insert([payload]).select().single();
+  if (error || !data) return false;
+  if (categoryIds.length) {
+    await db.from('championship_categories').insert(categoryIds.map(cid => ({ championship_id: data.id, category_id: cid })));
+  }
+  return true;
 }
+
+async function updateChampionship(id, payload, categoryIds = []) {
+  const { error } = await db.from('championships').update(payload).eq('id', id);
+  if (error) return false;
+  // Replace category links
+  await db.from('championship_categories').delete().eq('championship_id', id);
+  if (categoryIds.length) {
+    await db.from('championship_categories').insert(categoryIds.map(cid => ({ championship_id: id, category_id: cid })));
+  }
+  return true;
+}
+
 async function deleteChampionship(id) {
   const { error } = await db.from('championships').delete().eq('id', id); return !error;
 }
@@ -82,51 +128,46 @@ async function fetchLiveries({ categoryId, championshipId, modId, search, sort, 
   if (championshipId) q = q.eq('championship_id', championshipId);
   if (modId)          q = q.eq('mod_id', modId);
   if (search) q = q.or(`name.ilike.%${search}%,team.ilike.%${search}%,author.ilike.%${search}%,driver.ilike.%${search}%`);
-  if (sort === 'votes')  q = q.order('upvotes', { ascending: false });
+  if (sort === 'votes')       q = q.order('upvotes', { ascending: false });
   else if (sort === 'newest') q = q.order('created_at', { ascending: false });
-  else q = q.order('name', { ascending: true });
+  else                        q = q.order('name', { ascending: true });
   const { data, error } = await q;
   if (error) { console.error(error); return []; }
   return data;
 }
 
 async function fetchLivery(id) {
-  const { data } = await db.from('liveries').select('*, categories(name,color_bg,color_text), mods(name), championships(name,short_name)').eq('id', id).single();
+  const { data } = await db.from('liveries')
+    .select('*, categories(name,color_bg,color_text), mods(name), championships(name,short_name)')
+    .eq('id', id).single();
   return data || null;
 }
 
 async function fetchPendingLiveries() {
-  const { data } = await db.from('liveries').select('*, mods(name), categories(name)').eq('approved', false).order('created_at', { ascending: false });
+  const { data } = await db.from('liveries')
+    .select('*, mods(name), categories(name,color_bg,color_text), championships(name,short_name)')
+    .eq('approved', false).order('created_at', { ascending: false });
   return data || [];
 }
 
 async function submitLivery(payload) {
   const { error } = await db.from('liveries').insert([{ ...payload, approved: false }]); return !error;
 }
-
 async function updateLivery(id, payload) {
   const { error } = await db.from('liveries').update(payload).eq('id', id); return !error;
 }
-
 async function deleteLivery(id) {
   const { error } = await db.from('liveries').delete().eq('id', id); return !error;
 }
-
-async function approveLivery(id) {
-  return updateLivery(id, { approved: true });
-}
-
-async function rejectLivery(id) {
-  return deleteLivery(id);
-}
+async function approveLivery(id)  { return updateLivery(id, { approved: true }); }
+async function rejectLivery(id)   { return deleteLivery(id); }
 
 // ============================================
 // UPVOTE
 // ============================================
 async function upvoteLivery(id) {
   const fp = getFingerprint();
-  const voted = getVotedSet();
-  if (voted.has(id)) return false;
+  if (getVotedSet().has(id)) return false;
   const { error } = await db.rpc('increment_upvote', { livery_id: id, browser_fp: fp });
   if (!error) { addVoted(id); return true; }
   return false;

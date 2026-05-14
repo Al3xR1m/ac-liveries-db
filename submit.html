@@ -9,6 +9,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     select:disabled { opacity: .45; cursor: not-allowed; }
+    .field-hint { font-size: 11px; color: var(--text3); margin-top: 3px; min-height: 16px; }
+    .field-hint.ok { color: var(--green); }
   </style>
 </head>
 <body>
@@ -36,24 +38,39 @@
 
   <div class="form-card" id="formCard">
     <div class="form-grid">
+
       <div class="field full">
         <label>Livery name *</label>
         <input type="text" id="f-name" placeholder="e.g. Ferrari — C. Leclerc #16">
       </div>
+
+      <!-- Step 1: Category -->
       <div class="field">
         <label>Category *</label>
-        <select id="f-cat"></select>
+        <select id="f-cat">
+          <option value="">Loading categories…</option>
+        </select>
+        <div class="field-hint" id="cat-hint">Choose a category to unlock the other fields.</div>
       </div>
+
+      <!-- Step 2: Mod (filtered by category) -->
       <div class="field">
         <label>RSS Mod *</label>
-        <select id="f-mod" disabled></select>
-        <span id="mod-hint" style="font-size:11px;color:var(--text3);margin-top:3px"></span>
+        <select id="f-mod" disabled>
+          <option value="">— Select a category first —</option>
+        </select>
+        <div class="field-hint" id="mod-hint"></div>
       </div>
+
+      <!-- Step 3: Championship (filtered by category) -->
       <div class="field full">
         <label>Championship</label>
-        <select id="f-champ" disabled></select>
-        <span id="champ-hint" style="font-size:11px;color:var(--text3);margin-top:3px"></span>
+        <select id="f-champ" disabled>
+          <option value="">— Select a category first —</option>
+        </select>
+        <div class="field-hint" id="champ-hint"></div>
       </div>
+
       <div class="field">
         <label>Team / Livery name</label>
         <input type="text" id="f-team" placeholder="e.g. Scuderia Ferrari">
@@ -77,16 +94,18 @@
       <div class="field full">
         <label>Screenshot image URL</label>
         <input type="url" id="f-img" placeholder="https://… (direct link to an image)">
-        <span style="font-size:11px;color:var(--text3);margin-top:3px">Paste a direct image URL. Leave empty to use a generated car preview.</span>
+        <div class="field-hint">Paste a direct image URL (imgur, Discord CDN…). Leave empty to use a generated car preview.</div>
       </div>
       <div class="field full">
         <label>Notes / Description</label>
         <textarea id="f-notes" placeholder="Any extra info: number kit, template version, known issues…"></textarea>
       </div>
+
     </div>
+
     <div style="display:flex;align-items:center;gap:16px;margin-top:8px;flex-wrap:wrap">
       <button class="submit-btn" id="submitBtn">Submit for review</button>
-      <p class="form-note"><i class="ti ti-shield-check" style="font-size:14px;vertical-align:-2px"></i> Your livery will be visible after moderation (usually within 24h).</p>
+      <p class="form-note"><i class="ti ti-shield-check" style="font-size:14px;vertical-align:-2px"></i> Reviewed before publication — usually within 24h.</p>
     </div>
     <div id="error-msg" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
   </div>
@@ -94,7 +113,7 @@
 
 <script src="supabase.js"></script>
 <script>
-  // Theme
+  // ---- Theme ----
   const root = document.documentElement;
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
@@ -106,30 +125,22 @@
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  // Load dynamic selects
+  // ---- Load selects ----
   async function loadSelects() {
     const [allMods, cats, allChamps] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
 
     const catSel   = document.getElementById('f-cat');
     const modSel   = document.getElementById('f-mod');
     const champSel = document.getElementById('f-champ');
-    const modHint  = document.getElementById('mod-hint');
-    const champHint= document.getElementById('champ-hint');
 
-    // ---- Populate categories ----
+    // Populate categories
     catSel.innerHTML = '<option value="">Select a category first…</option>'
       + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-    // ---- Initially disable mod & champ selects ----
-    modSel.innerHTML   = '<option value="">— Select a category first —</option>';
-    champSel.innerHTML = '<option value="">— Select a category first —</option>';
-    modSel.disabled    = true;
-    champSel.disabled  = true;
-
-    // ---- When category changes → filter mods & championships ----
+    // When category changes
     catSel.addEventListener('change', () => {
       const catId = catSel.value;
-      modSel.value   = '';
+      modSel.value = '';
       champSel.value = '';
 
       if (!catId) {
@@ -137,47 +148,45 @@
         champSel.innerHTML = '<option value="">— Select a category first —</option>';
         modSel.disabled    = true;
         champSel.disabled  = true;
-        modHint.textContent  = '';
-        champHint.textContent= '';
+        setHint('cat-hint', 'Choose a category to unlock the other fields.', false);
+        setHint('mod-hint', '', false);
+        setHint('champ-hint', '', false);
         return;
       }
 
-      // Filter mods linked to selected category
+      // Filter mods by category
       const filteredMods = allMods.filter(m => m.category_id === catId);
       modSel.disabled = false;
       modSel.innerHTML = filteredMods.length
         ? '<option value="">Select a mod…</option>' + filteredMods.map(m => `<option value="${m.id}">${m.name}</option>`).join('')
-        : '<option value="">No mods available for this category</option>';
-      modHint.textContent = filteredMods.length
-        ? `${filteredMods.length} mod${filteredMods.length > 1 ? 's' : ''} available`
-        : '';
+        : '<option value="">No mods for this category</option>';
+      setHint('mod-hint', filteredMods.length ? `${filteredMods.length} mod${filteredMods.length > 1 ? 's' : ''} available` : '', filteredMods.length > 0);
 
-      // Filter championships linked to mods of this category
-      const catModIds = filteredMods.map(m => m.id);
-      const filteredChamps = allChamps.filter(ch => catModIds.includes(ch.mod_id));
+      // Filter championships by category (using linked_categories)
+      const filteredChamps = allChamps.filter(ch =>
+        ch.linked_categories && ch.linked_categories.some(lc => lc.id === catId)
+      );
       champSel.disabled = false;
-      champSel.innerHTML = filteredChamps.length
-        ? '<option value="">— No specific championship —</option>' + filteredChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('')
-        : '<option value="">— No championship for this category —</option>';
-      champHint.textContent = filteredChamps.length
-        ? `${filteredChamps.length} championship${filteredChamps.length > 1 ? 's' : ''} available`
-        : '';
-    });
+      champSel.innerHTML = '<option value="">— No specific championship —</option>'
+        + (filteredChamps.length ? filteredChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('') : '');
+      setHint('champ-hint',
+        filteredChamps.length
+          ? `${filteredChamps.length} championship${filteredChamps.length > 1 ? 's' : ''} available`
+          : 'No championships for this category yet.',
+        filteredChamps.length > 0
+      );
 
-    // ---- When mod changes → auto-filter championships to that mod only ----
-    modSel.addEventListener('change', () => {
-      const modId = modSel.value;
-      if (!modId) return;
-      const modChamps = allChamps.filter(ch => ch.mod_id === modId);
-      champSel.innerHTML = modChamps.length
-        ? '<option value="">— No specific championship —</option>' + modChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('')
-        : '<option value="">— No championship for this mod —</option>';
-      champHint.textContent = modChamps.length
-        ? `${modChamps.length} championship${modChamps.length > 1 ? 's' : ''} for this mod`
-        : '';
+      setHint('cat-hint', '', false);
     });
   }
 
+  function setHint(id, text, isOk) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'field-hint' + (isOk ? ' ok' : '');
+  }
+
+  // ---- Submit ----
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const name   = document.getElementById('f-name').value.trim();
     const mod    = document.getElementById('f-mod').value;
@@ -191,21 +200,22 @@
       errDiv.textContent = 'Please fill in all required fields (marked with *).';
       return;
     }
-
     errDiv.style.display = 'none';
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Submitting…';
 
     const ok = await submitLivery({
-      name, mod_id: mod, category_id: cat,
+      name,
+      mod_id:          mod,
+      category_id:     cat,
       championship_id: document.getElementById('f-champ').value || null,
-      team:   document.getElementById('f-team').value.trim(),
-      driver: document.getElementById('f-driver').value.trim(),
-      season: document.getElementById('f-season').value.trim(),
+      team:            document.getElementById('f-team').value.trim(),
+      driver:          document.getElementById('f-driver').value.trim(),
+      season:          document.getElementById('f-season').value.trim(),
       author,
-      download_url: url,
-      image_url: document.getElementById('f-img').value.trim(),
-      notes:   document.getElementById('f-notes').value.trim(),
+      download_url:    url,
+      image_url:       document.getElementById('f-img').value.trim(),
+      notes:           document.getElementById('f-notes').value.trim(),
     });
 
     if (ok) {
@@ -213,7 +223,7 @@
         <div class="success-msg">
           <i class="ti ti-circle-check"></i>
           <h2>Livery submitted!</h2>
-          <p>Thank you! Your livery is pending review and will appear in the gallery once approved.</p>
+          <p>Thank you! Your livery will appear in the gallery once approved.</p>
           <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;color:var(--accent);font-size:14px">
             <i class="ti ti-arrow-left"></i> Back to gallery
           </a>
