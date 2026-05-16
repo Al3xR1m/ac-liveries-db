@@ -16,17 +16,23 @@
 <body>
 
 <nav class="navbar">
-  <a href="index.html" class="nav-logo"><i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB</a>
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+  </a>
   <div class="nav-links">
     <a href="index.html">Gallery</a>
     <a href="mods.html">RSS Mods</a>
     <a href="submit.html" class="active">Submit</a>
   </div>
+  <div class="nav-divider"></div>
   <div class="nav-right">
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
       <i class="ti ti-sun" id="themeIcon"></i>
     </button>
-    <a href="submit.html" class="nav-submit">+ Submit a livery</a>
+    <a href="submit.html" class="nav-submit">
+      <i class="ti ti-plus" style="font-size:13px"></i> Submit a livery
+    </a>
   </div>
 </nav>
 
@@ -76,7 +82,7 @@
         <input type="text" id="f-team" placeholder="e.g. Scuderia Ferrari">
       </div>
       <div class="field">
-        <label>Driver</label>
+        <label>Drivers</label>
         <input type="text" id="f-driver" placeholder="e.g. Charles Leclerc">
       </div>
       <div class="field">
@@ -84,8 +90,21 @@
         <input type="text" id="f-season" placeholder="e.g. 2024">
       </div>
       <div class="field">
-        <label>Your name / alias *</label>
+        <label>Creator name *</label>
         <input type="text" id="f-author" placeholder="e.g. SimPainter_IT">
+      </div>
+      <div class="field full">
+        <label>Pricing</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-free">
+            <input type="radio" name="pricing" id="r-free" value="free" checked style="accent-color:var(--green)">
+            <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-paid">
+            <input type="radio" name="pricing" id="r-paid" value="paid" style="accent-color:#92400E">
+            <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid
+          </label>
+        </div>
       </div>
       <div class="field full">
         <label>Download URL *</label>
@@ -216,6 +235,7 @@
       download_url:    url,
       image_url:       document.getElementById('f-img').value.trim(),
       notes:           document.getElementById('f-notes').value.trim(),
+      is_paid:         document.getElementById('r-paid').checked,
     });
 
     if (ok) {

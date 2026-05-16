@@ -162,14 +162,26 @@ async function deleteLivery(id) {
 async function approveLivery(id)  { return updateLivery(id, { approved: true }); }
 async function rejectLivery(id)   { return deleteLivery(id); }
 
+function removeVoted(id) {
+  const s = getVotedSet(); s.delete(id); localStorage.setItem('acliveries_voted', JSON.stringify([...s]));
+}
+
 // ============================================
-// UPVOTE
+// UPVOTE / REMOVE UPVOTE
 // ============================================
 async function upvoteLivery(id) {
   const fp = getFingerprint();
   if (getVotedSet().has(id)) return false;
   const { error } = await db.rpc('increment_upvote', { livery_id: id, browser_fp: fp });
   if (!error) { addVoted(id); return true; }
+  return false;
+}
+
+async function removeUpvoteLivery(id) {
+  const fp = getFingerprint();
+  if (!getVotedSet().has(id)) return false;
+  const { error } = await db.rpc('remove_upvote', { livery_id: id, browser_fp: fp });
+  if (!error) { removeVoted(id); return true; }
   return false;
 }
 

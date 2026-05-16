@@ -98,26 +98,34 @@
     const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6)) || 42;
 
     const rows = [
-      ['ti-car','Mod', l.mod],
-      ['ti-category','Category', `<span class="cat-badge cat-${l.category}">${l.category}</span>`],
-      ['ti-flag','Team', l.team || '—'],
-      ['ti-user','Driver', l.driver || '—'],
-      ['ti-calendar','Season', l.season || '—'],
-      ['ti-pencil','Author', l.author || '—'],
+      ['ti-car',      'Mod',          l.mods?.name || '—'],
+      ['ti-category', 'Category',     l.categories ? `<span class="cat-badge" style="background:${l.categories.color_bg};color:${l.categories.color_text}">${l.categories.name}</span>` : '—'],
+      ['ti-trophy',   'Championship', l.championships?.name || '—'],
+      ['ti-flag',     'Team',         l.team   || '—'],
+      ['ti-users',    'Drivers',      l.driver || '—'],
+      ['ti-calendar', 'Season',       l.season || '—'],
+      ['ti-pencil',   'Creator',      l.author || '—'],
     ].map(([ico,k,v]) => `
       <div class="detail-row">
         <div class="detail-key"><i class="ti ${ico}"></i>${k}</div>
         <div class="detail-val">${v}</div>
       </div>`).join('');
 
+    const paidBadge = l.is_paid
+      ? `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock" style="font-size:12px"></i>Paid livery</span>`
+      : `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock-open" style="font-size:12px"></i>Free livery</span>`;
+
     document.getElementById('content').innerHTML = `
       <div class="detail-cover">
-        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(l.category, seed)}
+        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(l.categories?.name || '', seed)}
       </div>
       <div class="detail-side">
         <div class="detail-card">
-          <div class="detail-title">${l.name}</div>
-          <div class="detail-mod">${l.mod}</div>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+            <div class="detail-title" style="margin:0">${l.name}</div>
+            ${paidBadge}
+          </div>
+          <div class="detail-mod">${l.mods?.name || '—'}</div>
           ${rows}
           ${l.notes ? `<div class="detail-row"><div class="detail-key"><i class="ti ti-notes"></i>Notes</div><div class="detail-val">${l.notes}</div></div>` : ''}
         </div>
@@ -125,15 +133,28 @@
         <button class="upvote-big${voted.has(l.id)?' voted':''}" id="upvoteBtn">
           <i class="ti ti-thumb-up" style="font-size:20px"></i>
           <span id="upvoteCount">${l.upvotes}</span> upvotes
+          <span id="upvoteHint" style="font-size:12px;font-weight:400;margin-left:4px;opacity:.6">${voted.has(l.id)?'(click to remove)':'(click to upvote)'}</span>
         </button>
       </div>`;
 
     document.getElementById('upvoteBtn').addEventListener('click', async () => {
-      const ok = await upvoteLivery(l.id);
-      if (ok) {
-        l.upvotes++;
-        document.getElementById('upvoteCount').textContent = l.upvotes;
-        document.getElementById('upvoteBtn').classList.add('voted');
+      const isVoted = getVotedSet().has(l.id);
+      if (isVoted) {
+        const ok = await removeUpvoteLivery(l.id);
+        if (ok) {
+          l.upvotes = Math.max(0, l.upvotes - 1);
+          document.getElementById('upvoteCount').textContent = l.upvotes;
+          document.getElementById('upvoteBtn').classList.remove('voted');
+          document.getElementById('upvoteHint').textContent = '(click to upvote)';
+        }
+      } else {
+        const ok = await upvoteLivery(l.id);
+        if (ok) {
+          l.upvotes++;
+          document.getElementById('upvoteCount').textContent = l.upvotes;
+          document.getElementById('upvoteBtn').classList.add('voted');
+          document.getElementById('upvoteHint').textContent = '(click to remove)';
+        }
       }
     });
 

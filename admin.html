@@ -261,21 +261,42 @@ async function loadPending() {
   const list = await fetchPendingLiveries();
   const el = document.getElementById('pending-list');
   if (!list.length) { el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending submissions 🎉</div>'; return; }
-  el.innerHTML = list.map(l => `
-    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
-        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:4px">${l.name}</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:2px"><i class="ti ti-car"></i> ${l.mods?.name||'—'} &nbsp;·&nbsp; <span class="cat-badge" style="background:${l.categories?.color_bg||'#eee'};color:${l.categories?.color_text||'#333'}">${l.categories?.name||'—'}</span></div>
-        <div style="font-size:12px;color:var(--text2)"><i class="ti ti-user"></i> ${l.author||'—'} &nbsp;·&nbsp; <i class="ti ti-calendar"></i> ${l.season||'—'}</div>
-        ${l.championships ? `<div style="font-size:12px;color:var(--text2);margin-top:2px"><i class="ti ti-trophy"></i> ${l.championships.name}</div>` : ''}
-        ${l.download_url ? `<a href="${l.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download</a>` : ''}
+  el.innerHTML = list.map(l => {
+    const CAT_BG_MAP = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
+    const catName = l.categories?.name || '';
+    const coverBg = CAT_BG_MAP[catName] || '#111';
+    const imgBlock = l.image_url
+      ? `<img src="${l.image_url}" alt="${l.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`
+      : `<div style="width:100%;height:100%;background:${coverBg};border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px">No image</div>`;
+    const paidBadge = l.is_paid
+      ? `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+      : `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+    return `
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start">
+      <div style="height:90px">${imgBlock}</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:700">${l.name}</div>
+          ${paidBadge}
+          ${l.categories ? `<span class="cat-badge" style="background:${l.categories.color_bg};color:${l.categories.color_text}">${l.categories.name}</span>` : ''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12px;color:var(--text2)">
+          <div><i class="ti ti-car" style="font-size:11px"></i> <strong>Mod:</strong> ${l.mods?.name||'—'}</div>
+          <div><i class="ti ti-trophy" style="font-size:11px"></i> <strong>Championship:</strong> ${l.championships?.name||'—'}</div>
+          <div><i class="ti ti-users" style="font-size:11px"></i> <strong>Drivers:</strong> ${l.driver||'—'}</div>
+          <div><i class="ti ti-flag" style="font-size:11px"></i> <strong>Team:</strong> ${l.team||'—'}</div>
+          <div><i class="ti ti-calendar" style="font-size:11px"></i> <strong>Season:</strong> ${l.season||'—'}</div>
+          <div><i class="ti ti-pencil" style="font-size:11px"></i> <strong>Creator:</strong> ${l.author||'—'}</div>
+        </div>
+        ${l.notes ? `<div style="font-size:12px;color:var(--text3);margin-top:6px;font-style:italic">${l.notes}</div>` : ''}
+        ${l.download_url ? `<a href="${l.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:8px"><i class="ti ti-external-link"></i>View download page</a>` : ''}
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="action-btn" onclick="editLiveryModal('${l.id}',true)"><i class="ti ti-pencil"></i> Edit</button>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:110px">
+        <button class="action-btn" onclick="editLiveryModal('${l.id}',true)"><i class="ti ti-pencil"></i> Edit & approve</button>
         <button class="action-btn success" onclick="doApprove('${l.id}')"><i class="ti ti-check"></i> Approve</button>
         <button class="action-btn danger" onclick="doReject('${l.id}')"><i class="ti ti-x"></i> Reject</button>
       </div>
-    </div>`).join('');
+    </div>`}).join('');
 }
 async function doApprove(id) { if (!confirm('Approve this livery?')) return; await approveLivery(id); await loadPending(); await loadDashboard(); }
 async function doReject(id) { if (!confirm('Reject and delete this submission?')) return; await rejectLivery(id); await loadPending(); await loadDashboard(); }
@@ -322,6 +343,16 @@ async function editLiveryModal(id, isApproval) {
       <div class="field full"><label>Download URL</label><input id="el-url" value="${l.download_url||''}"></div>
       <div class="field full"><label>Image URL</label><input id="el-img" value="${l.image_url||''}"></div>
       <div class="field full"><label>Notes</label><textarea id="el-notes">${l.notes||''}</textarea></div>
+      <div class="field full"><label>Pricing</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)">
+            <input type="radio" name="el-pricing" id="el-free" value="free" ${!l.is_paid?'checked':''}> Free
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)">
+            <input type="radio" name="el-pricing" id="el-paid" value="paid" ${l.is_paid?'checked':''}> Paid
+          </label>
+        </div>
+      </div>
     </div>`, async () => {
     await updateLivery(id, {
       name: document.getElementById('el-name').value,
@@ -335,6 +366,7 @@ async function editLiveryModal(id, isApproval) {
       download_url: document.getElementById('el-url').value,
       image_url: document.getElementById('el-img').value,
       notes: document.getElementById('el-notes').value,
+      is_paid: document.getElementById('el-paid')?.checked || false,
       approved: isApproval ? true : l.approved,
     });
     closeModal();

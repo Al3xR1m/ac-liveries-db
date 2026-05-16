@@ -32,6 +32,7 @@
   </div>
 </nav>
 
+
 <div class="container">
   <div class="page-header">
     <h1 class="page-title">Livery Gallery</h1>
@@ -194,15 +195,22 @@
       const bg = l.categories?.color_bg || '#E6F1FB';
       const tc = l.categories?.color_text || '#0C447C';
       const cn = catName(l);
+      const isVoted = voted.has(l.id);
+      const paidBadge = l.is_paid
+        ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+        : `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
       return `<div class="livery-card" data-id="${l.id}">
         <div class="card-cover">${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(cn, seed(l))}</div>
         <div class="card-body">
-          <div class="card-mod">${l.mods?.name || '—'}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <div class="card-mod" style="margin:0">${l.mods?.name || '—'}</div>
+            ${paidBadge}
+          </div>
           <div class="card-name" title="${l.name}">${l.name}</div>
           ${l.championships?.short_name ? `<div style="font-size:10px;color:var(--text3);margin-bottom:5px"><i class="ti ti-trophy" style="font-size:10px"></i> ${l.championships.short_name}</div>` : ''}
           <div class="card-footer">
             <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
-            <button class="upvote-btn${voted.has(l.id)?' voted':''}" data-vote="${l.id}" onclick="event.stopPropagation()">
+            <button class="upvote-btn${isVoted?' voted':''}" data-vote="${l.id}" data-voted="${isVoted}" onclick="event.stopPropagation()" title="${isVoted?'Remove upvote':'Upvote'}">
               <i class="ti ti-thumb-up" style="font-size:12px"></i>
               <span id="vc-${l.id}">${l.upvotes}</span>
               <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
@@ -219,14 +227,24 @@
       btn.addEventListener('click', async e => {
         e.stopPropagation();
         const id = btn.dataset.vote;
-        if (voted.has(id)) return;
-        const ok = await upvoteLivery(id);
-        if (ok) {
-          voted = getVotedSet();
-          const liv = allLiveries.find(l => l.id === id);
-          if (liv) liv.upvotes++;
-          maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
-          render();
+        const isVoted = voted.has(id);
+        const liv = allLiveries.find(l => l.id === id);
+        if (isVoted) {
+          const ok = await removeUpvoteLivery(id);
+          if (ok) {
+            voted = getVotedSet();
+            if (liv) liv.upvotes = Math.max(0, liv.upvotes - 1);
+            maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
+            render();
+          }
+        } else {
+          const ok = await upvoteLivery(id);
+          if (ok) {
+            voted = getVotedSet();
+            if (liv) liv.upvotes++;
+            maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
+            render();
+          }
         }
       });
     });
@@ -243,11 +261,12 @@
     document.getElementById('s-votes').textContent = stats.votes;
     document.getElementById('s-top').textContent   = stats.top;
 
-    // URL param: ?mod=…
+    // URL param: ?mod_id=… (from mods page)
     const params = new URLSearchParams(location.search);
-    const modParam = params.get('mod');
-    if (modParam) {
-      document.getElementById('search').value = modParam;
+    const modIdParam = params.get('mod_id');
+    if (modIdParam) {
+      const mod = allLiveries.find(l => l.mod_id === modIdParam);
+      if (mod) document.getElementById('search').value = mod.mods?.name || '';
     }
     render();
   }
