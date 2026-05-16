@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    .about-wrap {
+      max-width: 680px;
+      margin: 40px auto 60px;
+    }
+    .about-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 16px;
+    }
+    .about-section-title {
+      font-family: var(--font-display);
+      font-size: 13px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text3);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .about-text {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.8;
+    }
+    .about-text strong { color: var(--text); font-weight: 500; }
+    .discord-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-top: 16px;
+      transition: border-color .15s;
+    }
+    .discord-card:hover { border-color: #5865F2; }
+    .discord-icon {
+      width: 44px; height: 44px;
+      background: #5865F2;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 22px;
+      flex-shrink: 0;
+    }
+    .discord-label { font-size: 12px; color: var(--text3); margin-bottom: 2px; }
+    .discord-name { font-size: 16px; font-weight: 600; color: var(--text); font-family: var(--font-display); letter-spacing: .02em; }
+    .copy-btn {
+      margin-left: auto;
+      font-size: 12px; padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text2);
+      cursor: pointer; transition: all .12s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .copy-btn:hover { border-color: #5865F2; color: #5865F2; }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+    .rule-list { list-style: none; margin-top: 10px; }
+    .rule-list li {
+      font-size: 14px; color: var(--text2);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 10px;
+      line-height: 1.5;
+    }
+    .rule-list li:last-child { border-bottom: none; }
+    .rule-list li i { color: var(--accent); margin-top: 2px; flex-shrink: 0; }
+    .badge-free { font-size: 11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0; }
+    .badge-paid { font-size: 11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="mods.html">RSS Mods</a>
+    <a href="submit.html">Submit</a>
+    <a href="about.html" class="active">About</a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="nav-submit">
+      <i class="ti ti-plus" style="font-size:13px"></i> Submit a livery
+    </a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">About</h1>
+    <p class="page-sub">AC Liveries DB — a community project for sim racers</p>
+  </div>
+
+  <div class="about-wrap">
+
+    <!-- What is this -->
+    <div class="about-section">
+      <div class="about-section-title"><i class="ti ti-info-circle"></i>What is AC Liveries DB?</div>
+      <p class="about-text">
+        <strong>AC Liveries DB</strong> is a free, community-driven database of liveries for
+        <strong>Race Sim Studio</strong> mods on <strong>Assetto Corsa</strong>. The goal is simple:
+        make it easy for every sim racer to find the livery they're looking for, in one place,
+        without digging through forums and Discord servers.
+      </p>
+      <p class="about-text" style="margin-top:12px">
+        You can browse by category, championship, or mod, upvote your favourites,
+        and submit your own creations to share them with the community.
+        All liveries are reviewed before publication to keep the database clean and reliable.
+      </p>
+    </div>
+
+    <!-- Made with love -->
+    <div class="about-section">
+      <div class="about-section-title"><i class="ti ti-heart"></i>Made on free time</div>
+      <p class="about-text">
+        This project is built and maintained <strong>entirely for free</strong>, on personal time,
+        out of passion for sim racing. There are no ads, no subscriptions, no paywalls.
+        Everything here — the database, the search, the upvotes, the submission system —
+        is available to every member of the community at no cost.
+      </p>
+      <p class="about-text" style="margin-top:12px">
+        If you enjoy using this site, the best way to support it is to
+        <strong>submit liveries</strong>, share it with other sim racers, and
+        <strong>upvote the ones you love</strong>. That's all it takes to keep this going.
+      </p>
+    </div>
+
+    <!-- Submission guidelines -->
+    <div class="about-section">
+      <div class="about-section-title"><i class="ti ti-list-check"></i>Submission guidelines</div>
+      <ul class="rule-list">
+        <li><i class="ti ti-check"></i>Only submit liveries for <strong>Race Sim Studio mods on Assetto Corsa</strong>.</li>
+        <li><i class="ti ti-check"></i>Make sure the <strong>download link works</strong> and points to the actual livery file.</li>
+        <li><i class="ti ti-check"></i>Add a <strong>screenshot</strong> — liveries without images get less visibility.</li>
+        <li><i class="ti ti-check"></i>Mark your livery as <span class="badge-free"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span> or <span class="badge-paid"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span> honestly.</li>
+        <li><i class="ti ti-check"></i>Don't submit liveries you didn't create without the <strong>original creator's permission</strong>.</li>
+        <li><i class="ti ti-check"></i>All submissions go through <strong>moderation</strong> before appearing publicly.</li>
+      </ul>
+    </div>
+
+    <!-- Contact -->
+    <div class="about-section">
+      <div class="about-section-title"><i class="ti ti-brand-discord"></i>Contact</div>
+      <p class="about-text">
+        Found a bug? Want to report a bad submission? Have a suggestion?
+        Reach out directly on Discord — it's the fastest way to get a response.
+      </p>
+      <div class="discord-card">
+        <div class="discord-icon"><i class="ti ti-brand-discord"></i></div>
+        <div>
+          <div class="discord-label">Discord username</div>
+          <div class="discord-name">alexrim__</div>
+        </div>
+        <button class="copy-btn" id="copyDiscord">
+          <i class="ti ti-copy" style="font-size:13px"></i> Copy
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  // Copy Discord username
+  document.getElementById('copyDiscord').addEventListener('click', () => {
+    navigator.clipboard.writeText('alexrim__').then(() => {
+      const btn = document.getElementById('copyDiscord');
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="ti ti-check" style="font-size:13px"></i> Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="ti ti-copy" style="font-size:13px"></i> Copy';
+      }, 2000);
+    });
+  });
+</script>
+</body>
+</html>

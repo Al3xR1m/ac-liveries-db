@@ -180,7 +180,7 @@ async function upvoteLivery(id) {
 async function removeUpvoteLivery(id) {
   const fp = getFingerprint();
   if (!getVotedSet().has(id)) return false;
-  const { error } = await db.rpc('remove_upvote', { livery_id: id, browser_fp: fp });
+  const { error } = await db.rpc('remove_upvote', { p_livery_id: id, browser_fp: fp });
   if (!error) { removeVoted(id); return true; }
   return false;
 }
