@@ -9,22 +9,22 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <i class="ti ti-flag-3"></i>AC<span>Liveries</span>DB
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
   </a>
   <div class="nav-links">
     <a href="index.html">Gallery</a>
     <a href="mods.html">RSS Mods</a>
+    <a href="artists.html">Artists</a>
     <a href="submit.html">Submit</a>
     <a href="about.html">About</a>
   </div>
+  <div class="nav-divider"></div>
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-      <i class="ti ti-sun" id="themeIcon"></i>
-    </button>
-    <a href="submit.html" class="nav-submit">+ Submit a livery</a>
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
   </div>
 </nav>
 
@@ -53,24 +53,15 @@
   document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   document.getElementById('themeToggle').addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('acliveries_theme', next);
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  const CAT_COLORS = {
-    Formula:['#E82020','#003087','#006400','#FF8000'],
-    GT:['#C8A800','#E82020','#003087'],
-    Hillclimb:['#E87000','#E82020','#1D9E75'],
-    Touring:['#534AB7','#E82020','#185FA5']
-  };
+  const CAT_COLORS = { Formula:['#E82020','#003087','#006400','#FF8000'], GT:['#C8A800','#E82020','#003087'], Hillclimb:['#E87000','#E82020','#1D9E75'], Touring:['#534AB7','#E82020','#185FA5'] };
   const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
 
   function carSVGLarge(cat, seed) {
-    const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
-    const col = palette[seed % palette.length];
-    const num = (seed * 7 + 1) % 99 + 1;
-    const bg = CAT_BG[cat] || '#111';
+    const p = CAT_COLORS[cat]||CAT_COLORS.Formula; const col=p[seed%p.length]; const num=(seed*7+1)%99+1; const bg=CAT_BG[cat]||'#111';
     return `<svg viewBox="0 0 500 260" width="100%" style="display:block">
       <rect width="500" height="260" fill="${bg}"/>
       <ellipse cx="250" cy="180" rx="160" ry="25" fill="#000" opacity=".4"/>
@@ -88,16 +79,20 @@
   async function init() {
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
-    if (!id) { location.href = 'index.html'; return; }
+    if (!id) { location.href='index.html'; return; }
 
     const l = await fetchLivery(id);
-    if (!l) { document.getElementById('content').innerHTML = '<div class="empty" style="grid-column:1/-1"><i class="ti ti-alert-circle"></i><p>Livery not found.</p></div>'; return; }
+    if (!l) {
+      document.getElementById('content').innerHTML = '<div class="empty" style="grid-column:1/-1"><i class="ti ti-alert-circle"></i><p>Livery not found.</p></div>';
+      return;
+    }
 
     document.title = `${l.name} — AC Liveries DB`;
-
     const voted = getVotedSet();
-    const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6)) || 42;
+    const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||42;
+    const catName = l.categories?.name || '';
 
+    // Detail rows
     const rows = [
       ['ti-car',      'Mod',          l.mods?.name || '—'],
       ['ti-category', 'Category',     l.categories ? `<span class="cat-badge" style="background:${l.categories.color_bg};color:${l.categories.color_text}">${l.categories.name}</span>` : '—'],
@@ -105,24 +100,41 @@
       ['ti-flag',     'Team',         l.team   || '—'],
       ['ti-users',    'Drivers',      l.driver || '—'],
       ['ti-calendar', 'Season',       l.season || '—'],
-      ['ti-pencil',   'Creator',      l.author || '—'],
     ].map(([ico,k,v]) => `
       <div class="detail-row">
         <div class="detail-key"><i class="ti ${ico}"></i>${k}</div>
         <div class="detail-val">${v}</div>
       </div>`).join('');
 
+    // Paid badge
     const paidBadge = l.is_paid
       ? `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock" style="font-size:12px"></i>Paid livery</span>`
       : `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock-open" style="font-size:12px"></i>Free livery</span>`;
 
+    // Artist block
+    const creatorBlock = l.artists
+      ? `<a href="artists.html" class="artist-link-card">
+          ${l.artists.avatar_url
+            ? `<img src="${l.artists.avatar_url}" alt="${l.artists.name}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060">`
+            : `<div style="width:40px;height:40px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3);border:2px solid #FFD70060"><i class="ti ti-user"></i></div>`}
+          <div>
+            <div style="font-size:10px;color:#FFD700;font-weight:600;margin-bottom:2px">👑 Confirmed Artist</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text)">${l.artists.name}</div>
+          </div>
+          <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--text3)"></i>
+        </a>`
+      : `<div class="detail-row" style="border:none;padding:8px 0 0">
+          <div class="detail-key"><i class="ti ti-pencil"></i>Creator</div>
+          <div class="detail-val">${l.author || '—'}</div>
+        </div>`;
+
     document.getElementById('content').innerHTML = `
       <div class="detail-cover">
-        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(l.categories?.name || '', seed)}
+        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(catName, seed)}
       </div>
       <div class="detail-side">
         <div class="detail-card">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap">
             <div class="detail-title" style="margin:0">${l.name}</div>
             ${paidBadge}
           </div>
@@ -130,7 +142,11 @@
           ${rows}
           ${l.notes ? `<div class="detail-row"><div class="detail-key"><i class="ti ti-notes"></i>Notes</div><div class="detail-val">${l.notes}</div></div>` : ''}
         </div>
+
+        ${creatorBlock}
+
         ${l.download_url ? `<a href="${l.download_url}" target="_blank" class="dl-btn"><i class="ti ti-download"></i>Download livery</a>` : ''}
+
         <button class="upvote-big${voted.has(l.id)?' voted':''}" id="upvoteBtn">
           <i class="ti ti-thumb-up" style="font-size:20px"></i>
           <span id="upvoteCount">${l.upvotes}</span> upvotes
@@ -142,39 +158,31 @@
       const isVoted = getVotedSet().has(l.id);
       if (isVoted) {
         const ok = await removeUpvoteLivery(l.id);
-        if (ok) {
-          l.upvotes = Math.max(0, l.upvotes - 1);
-          document.getElementById('upvoteCount').textContent = l.upvotes;
-          document.getElementById('upvoteBtn').classList.remove('voted');
-          document.getElementById('upvoteHint').textContent = '(click to upvote)';
-        }
+        if (ok) { l.upvotes=Math.max(0,l.upvotes-1); document.getElementById('upvoteCount').textContent=l.upvotes; document.getElementById('upvoteBtn').classList.remove('voted'); document.getElementById('upvoteHint').textContent='(click to upvote)'; }
       } else {
         const ok = await upvoteLivery(l.id);
-        if (ok) {
-          l.upvotes++;
-          document.getElementById('upvoteCount').textContent = l.upvotes;
-          document.getElementById('upvoteBtn').classList.add('voted');
-          document.getElementById('upvoteHint').textContent = '(click to remove)';
-        }
+        if (ok) { l.upvotes++; document.getElementById('upvoteCount').textContent=l.upvotes; document.getElementById('upvoteBtn').classList.add('voted'); document.getElementById('upvoteHint').textContent='(click to remove)'; }
       }
     });
 
     // Similar liveries
-    const all = await fetchLiveries({ category: l.category, sort: 'votes' });
-    const similar = all.filter(x => x.id !== l.id).slice(0, 4);
+    const all = await fetchLiveries({ categoryId: l.category_id, sort:'votes' });
+    const similar = all.filter(x => x.id !== l.id).slice(0,4);
     if (similar.length) {
+      const seed2 = s => parseInt((s.id||'').replace(/\D/g,'').slice(0,6))||0;
       document.getElementById('similar').innerHTML = `
         <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:14px;color:var(--text)">Similar liveries</h2>
         <div class="gallery" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
           ${similar.map(s => {
-            const s2 = parseInt((s.id||'').replace(/\D/g,'').slice(0,6))||0;
+            const cn=s.categories?.name||''; const bg=s.categories?.color_bg||'#E6F1FB'; const tc=s.categories?.color_text||'#0C447C';
             return `<div class="livery-card" onclick="location.href='livery.html?id=${s.id}'">
-              <div class="card-cover">${s.image_url ? `<img src="${s.image_url}" alt="${s.name}" loading="lazy">` : carSVGLarge(s.category, s2).replace('viewBox="0 0 500 260"','viewBox="0 0 500 260" height="100"')}</div>
+              <div class="card-cover">${s.image_url?`<img src="${s.image_url}" alt="${s.name}" loading="lazy">`:carSVGLarge(cn,seed2(s)).replace('viewBox="0 0 500 260"','viewBox="0 0 500 260" height="100"')}</div>
+              ${s.artists?'<div class="crown-badge">👑</div>':''}
               <div class="card-body">
-                <div class="card-mod">${s.mod}</div>
+                <div class="card-mod">${s.mods?.name||'—'}</div>
                 <div class="card-name">${s.name}</div>
                 <div class="card-footer">
-                  <span class="cat-badge cat-${s.category}">${s.category}</span>
+                  <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
                   <span style="font-size:12px;color:var(--text3)"><i class="ti ti-thumb-up" style="font-size:11px"></i> ${s.upvotes}</span>
                 </div>
               </div>

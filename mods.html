@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
     <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
@@ -18,131 +17,104 @@
   <div class="nav-links">
     <a href="index.html">Gallery</a>
     <a href="mods.html" class="active">RSS Mods</a>
+    <a href="artists.html">Artists</a>
     <a href="submit.html">Submit</a>
     <a href="about.html">About</a>
   </div>
   <div class="nav-divider"></div>
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-      <i class="ti ti-sun" id="themeIcon"></i>
-    </button>
-    <a href="submit.html" class="nav-submit">
-      <i class="ti ti-plus" style="font-size:13px"></i> Submit a livery
-    </a>
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
   </div>
 </nav>
 
 <div class="container">
   <div class="page-header">
     <h1 class="page-title">RSS Mods</h1>
-    <p class="page-sub">Browse liveries by Race Sim Studio mod. Click a mod to filter the gallery.</p>
+    <p class="page-sub">Browse liveries by Race Sim Studio mod — click to filter the gallery.</p>
   </div>
-
   <div id="mods-root">
-    <!-- Skeletons while loading -->
-    <div class="mods-section">
-      <div class="mods-grid">
-        <div class="skeleton" style="height:110px"></div>
-        <div class="skeleton" style="height:110px"></div>
-        <div class="skeleton" style="height:110px"></div>
-        <div class="skeleton" style="height:110px"></div>
-        <div class="skeleton" style="height:110px"></div>
-        <div class="skeleton" style="height:110px"></div>
-      </div>
-    </div>
+    <div class="mods-section"><div class="mods-grid">
+      <div class="skeleton" style="height:180px"></div>
+      <div class="skeleton" style="height:180px"></div>
+      <div class="skeleton" style="height:180px"></div>
+      <div class="skeleton" style="height:180px"></div>
+    </div></div>
   </div>
 </div>
 
 <script src="supabase.js"></script>
 <script>
-  // ---- Theme ----
   const root = document.documentElement;
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
   document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   document.getElementById('themeToggle').addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('acliveries_theme', next);
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  // Icon per category name
   function catIcon(name) {
-    const n = (name || '').toLowerCase();
-    if (n.includes('formula')) return 'ti-steering-wheel';
-    if (n.includes('gt'))      return 'ti-car';
-    if (n.includes('hill'))    return 'ti-mountain';
-    if (n.includes('tour'))    return 'ti-car-suv';
+    const n=(name||'').toLowerCase();
+    if(n.includes('formula')) return 'ti-steering-wheel';
+    if(n.includes('gt'))      return 'ti-car';
+    if(n.includes('hill'))    return 'ti-mountain';
+    if(n.includes('tour'))    return 'ti-car-suv';
     return 'ti-car';
   }
 
   async function init() {
-    // Load mods with their category, and livery counts
-    const [mods, cats, liveries] = await Promise.all([
-      fetchMods(),
-      fetchCategories(),
-      fetchLiveries({ sort: 'votes' })
-    ]);
-
+    const [mods, cats, liveries] = await Promise.all([fetchMods(), fetchCategories(), fetchLiveries({ sort:'votes' })]);
     if (!mods.length) {
-      document.getElementById('mods-root').innerHTML = `
-        <div class="empty">
-          <i class="ti ti-car-off"></i>
-          <p>No mods yet. Add some from the <a href="admin.html" style="color:var(--accent)">admin panel</a>.</p>
-        </div>`;
+      document.getElementById('mods-root').innerHTML = `<div class="empty"><i class="ti ti-car-off"></i><p>No mods yet. Add some from the <a href="admin.html" style="color:var(--accent)">admin panel</a>.</p></div>`;
       return;
     }
-
-    // Count liveries per mod
     const liveryCount = {};
-    liveries.forEach(l => { liveryCount[l.mod_id] = (liveryCount[l.mod_id] || 0) + 1; });
+    liveries.forEach(l => { liveryCount[l.mod_id] = (liveryCount[l.mod_id]||0)+1; });
 
-    // Group mods by category
     const grouped = {};
-    // Preserve category order from DB
-    cats.forEach(c => { grouped[c.id] = { cat: c, mods: [] }; });
-    // Uncategorized fallback
-    const uncatKey = '__none__';
-
+    cats.forEach(c => { grouped[c.id] = { cat:c, mods:[] }; });
     mods.forEach(m => {
-      const key = m.category_id || uncatKey;
-      if (!grouped[key]) grouped[key] = { cat: { name: 'Other', color_bg: '#eee', color_text: '#555' }, mods: [] };
+      const key = m.category_id || '__none__';
+      if (!grouped[key]) grouped[key] = { cat:{ name:'Other', color_bg:'#eee', color_text:'#555' }, mods:[] };
       grouped[key].mods.push(m);
     });
 
     const container = document.getElementById('mods-root');
     container.innerHTML = '';
-
     Object.values(grouped).forEach(group => {
-      if (!group.mods.length) return; // skip empty categories
-
+      if (!group.mods.length) return;
       const section = document.createElement('div');
       section.className = 'mods-section';
       section.innerHTML = `
         <div class="mods-section-title">
           <span class="cat-dot" style="background:${group.cat.color_text}"></span>
           ${group.cat.name}
-          <span style="font-weight:400;color:var(--text3)">${group.mods.length} mod${group.mods.length > 1 ? 's' : ''}</span>
+          <span style="font-weight:400;color:var(--text3)">${group.mods.length} mod${group.mods.length>1?'s':''}</span>
         </div>
         <div class="mods-grid">
           ${group.mods.map(m => {
-            const count = liveryCount[m.id] || 0;
+            const count = liveryCount[m.id]||0;
+            const imgBlock = m.image_url
+              ? `<img src="${m.image_url}" alt="${m.name}">`
+              : `<i class="ti ${catIcon(group.cat.name)} mod-card-img-placeholder"></i>`;
             return `
               <div class="mod-card" onclick="location.href='index.html?mod_id=${m.id}'">
-                <div class="mod-card-top">
-                  <i class="ti ${catIcon(group.cat.name)} mod-icon"></i>
-                  <span class="cat-badge" style="background:${group.cat.color_bg};color:${group.cat.color_text}">${group.cat.name}</span>
+                <div class="mod-card-img">${imgBlock}</div>
+                <div class="mod-card-body">
+                  <div class="mod-card-top">
+                    <span class="cat-badge" style="background:${group.cat.color_bg};color:${group.cat.color_text}">${group.cat.name}</span>
+                  </div>
+                  <div class="mod-name">${m.name}</div>
+                  <div class="mod-count">${count} livery${count!==1?'ies':'y'} available</div>
                 </div>
-                <div class="mod-name">${m.name}</div>
-                <div class="mod-count">${count} livery${count !== 1 ? 'ies' : 'y'} available</div>
               </div>`;
           }).join('')}
         </div>`;
       container.appendChild(section);
     });
   }
-
   init();
 </script>
 </body>

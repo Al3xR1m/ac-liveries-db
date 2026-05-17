@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmed Artists — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="mods.html">RSS Mods</a>
+    <a href="artists.html" class="active">Artists</a>
+    <a href="submit.html">Submit</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">👑 Confirmed Artists</h1>
+    <p class="page-sub">Verified livery creators — click an artist to browse all their work</p>
+  </div>
+
+  <!-- Artist grid -->
+  <div class="artists-grid" id="artists-grid">
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+  </div>
+
+  <!-- Liveries section (shown after clicking an artist) -->
+  <div id="artist-liveries-section" style="display:none;margin-bottom:40px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-top:24px;border-top:1px solid var(--border)">
+      <button id="back-btn" style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
+        <i class="ti ti-arrow-left" style="font-size:15px"></i> All artists
+      </button>
+      <div id="artist-liveries-title" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)"></div>
+    </div>
+    <div class="gallery" id="artist-liveries-grid"></div>
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  // Car SVG placeholder
+  const CAT_COLORS = { Formula:['#E82020','#003087','#006400','#FF8000'], GT:['#C8A800','#E82020','#003087'], Hillclimb:['#E87000','#E82020'], Touring:['#534AB7','#E82020'] };
+  const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
+  function carSVG(cat, seed) {
+    const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
+    const col = palette[seed % palette.length];
+    const num = (seed * 7 + 1) % 99 + 1;
+    const bg = CAT_BG[cat] || '#111';
+    return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
+  }
+  function heatBars(v, max) {
+    const ratio = max > 0 ? v/max : 0;
+    const filled = Math.round(ratio*5);
+    return [5,8,11,14,17].map((h,i)=>`<div class="hs" style="height:${h}px;opacity:${i<filled?1:.15}"></div>`).join('');
+  }
+
+  let voted = getVotedSet();
+  let allLiveries = [];
+  let maxVotes = 1;
+
+  async function init() {
+    const [artists, stats] = await Promise.all([fetchArtists(), fetchArtistStats()]);
+    const grid = document.getElementById('artists-grid');
+
+    if (!artists.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><i class="ti ti-user-off"></i><p>No confirmed artists yet.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = artists.map(a => {
+      const s = stats[a.id] || { count: 0, upvotes: 0 };
+      const avatar = a.avatar_url
+        ? `<img src="${a.avatar_url}" alt="${a.name}" class="artist-avatar">`
+        : `<div class="artist-avatar-placeholder"><i class="ti ti-user"></i></div>`;
+      return `
+        <div class="artist-card" data-artist-id="${a.id}" data-artist-name="${a.name}">
+          ${avatar}
+          <div class="artist-badge">👑 Confirmed Artist</div>
+          <div class="artist-name">${a.name}</div>
+          <div class="artist-stats">
+            <div class="artist-stat">
+              <div class="artist-stat-n">${s.count}</div>
+              <div class="artist-stat-l">Liveries</div>
+            </div>
+            <div class="artist-stat">
+              <div class="artist-stat-n">${s.upvotes}</div>
+              <div class="artist-stat-l">Upvotes</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.artist-card').forEach(card => {
+      card.addEventListener('click', () => showArtistLiveries(card.dataset.artistId, card.dataset.artistName));
+    });
+  }
+
+  async function showArtistLiveries(artistId, artistName) {
+    document.getElementById('artists-grid').style.display = 'none';
+    const section = document.getElementById('artist-liveries-section');
+    section.style.display = 'block';
+    document.getElementById('artist-liveries-title').textContent = `${artistName}'s liveries`;
+
+    const liveries = await fetchLiveries({ artistId, sort: 'votes' });
+    allLiveries = liveries;
+    maxVotes = liveries.length ? Math.max(...liveries.map(l => l.upvotes), 1) : 1;
+
+    const g = document.getElementById('artist-liveries-grid');
+    if (!liveries.length) {
+      g.innerHTML = `<div class="empty"><i class="ti ti-photo-off"></i><p>No liveries yet.</p></div>`;
+      return;
+    }
+
+    const seed = l => parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
+    g.innerHTML = liveries.map(l => {
+      const cn = l.categories?.name || '';
+      const bg = l.categories?.color_bg || '#E6F1FB';
+      const tc = l.categories?.color_text || '#0C447C';
+      const paidBadge = l.is_paid
+        ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+        : `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+      return `
+        <div class="livery-card" onclick="location.href='livery.html?id=${l.id}'">
+          <div class="card-cover">
+            ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(cn, seed(l))}
+          </div>
+          <div class="crown-badge">👑</div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <div class="card-mod" style="margin:0">${l.mods?.name||'—'}</div>
+              ${paidBadge}
+            </div>
+            <div class="card-name">${l.name}</div>
+            <div class="card-footer">
+              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+              <button class="upvote-btn${voted.has(l.id)?' voted':''}" onclick="event.stopPropagation();handleVote('${l.id}',this)">
+                <i class="ti ti-thumb-up" style="font-size:12px"></i>
+                <span>${l.upvotes}</span>
+                <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  async function handleVote(id, btn) {
+    const isVoted = voted.has(id);
+    const liv = allLiveries.find(l => l.id === id);
+    if (isVoted) {
+      const ok = await removeUpvoteLivery(id);
+      if (ok && liv) { liv.upvotes = Math.max(0, liv.upvotes-1); voted = getVotedSet(); refreshVoteBtn(btn, liv.upvotes, false); }
+    } else {
+      const ok = await upvoteLivery(id);
+      if (ok && liv) { liv.upvotes++; voted = getVotedSet(); refreshVoteBtn(btn, liv.upvotes, true); }
+    }
+  }
+  function refreshVoteBtn(btn, count, isVoted) {
+    btn.className = 'upvote-btn' + (isVoted ? ' voted' : '');
+    btn.querySelector('span').textContent = count;
+  }
+
+  document.getElementById('back-btn').addEventListener('click', () => {
+    document.getElementById('artist-liveries-section').style.display = 'none';
+    document.getElementById('artists-grid').style.display = 'grid';
+  });
+
+  init();
+</script>
+</body>
+</html>

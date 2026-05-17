@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AC Liveries DB — Community livery database for RSS mods</title>
-  <meta name="description" content="Find and share liveries for Race Sim Studio mods on Assetto Corsa.">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
     <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
@@ -19,20 +17,16 @@
   <div class="nav-links">
     <a href="index.html" class="active">Gallery</a>
     <a href="mods.html">RSS Mods</a>
+    <a href="artists.html">Artists</a>
     <a href="submit.html">Submit</a>
     <a href="about.html">About</a>
   </div>
   <div class="nav-divider"></div>
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-      <i class="ti ti-sun" id="themeIcon"></i>
-    </button>
-    <a href="submit.html" class="nav-submit">
-      <i class="ti ti-plus" style="font-size:13px"></i> Submit a livery
-    </a>
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
   </div>
 </nav>
-
 
 <div class="container">
   <div class="page-header">
@@ -47,7 +41,6 @@
     <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
   </div>
 
-  <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-wrap">
       <i class="ti ti-search"></i>
@@ -58,18 +51,29 @@
       <option value="newest">Newest first</option>
       <option value="name">A → Z</option>
     </select>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-grid" title="Grid view"><i class="ti ti-layout-grid"></i></button>
+      <button class="view-btn" id="btn-list" title="List view"><i class="ti ti-list"></i></button>
+    </div>
   </div>
 
   <!-- Category filter -->
-  <div style="margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Category</div>
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Category</div>
   <div class="filter-pills" id="cat-pills">
     <button class="pill active" data-cat-id="all">All</button>
   </div>
 
   <!-- Championship filter -->
-  <div style="margin-bottom:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)">Championship</div>
+  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Championship</div>
   <div class="filter-pills" id="champ-pills">
     <button class="pill active" data-champ-id="all">All</button>
+  </div>
+
+  <!-- Free / Paid filter -->
+  <div class="filter-pills" style="margin-bottom:20px">
+    <button class="pill active" id="pill-all-pricing">All</button>
+    <button class="pill pill-free" id="pill-free"><i class="ti ti-lock-open" style="font-size:11px"></i> Free only</button>
+    <button class="pill pill-paid" id="pill-paid"><i class="ti ti-lock" style="font-size:11px"></i> Paid only</button>
   </div>
 
   <div class="gallery" id="gallery">
@@ -82,198 +86,198 @@
   </div>
 </div>
 
+<!-- Report modal -->
+<div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:360px;width:90%">
+    <div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)"><i class="ti ti-flag" style="color:var(--accent)"></i> Report a problem</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">What's wrong with this livery?</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px" id="report-reasons">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="broken_link" checked> Broken download link</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="wrong_info"> Wrong information</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="duplicate"> Duplicate entry</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="other"> Other</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="report-cancel" style="font-size:13px;padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);cursor:pointer">Cancel</button>
+      <button id="report-submit" style="font-size:13px;padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;cursor:pointer;font-weight:500">Send report</button>
+    </div>
+  </div>
+</div>
+
 <script src="supabase.js"></script>
 <script>
-  // ---- Theme ----
+  // Theme
   const root = document.documentElement;
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
   document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   document.getElementById('themeToggle').addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('acliveries_theme', next);
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  // ---- Car SVG ----
+  // Car SVG
   const CAT_COLORS = { Formula:['#E82020','#003087','#006400','#FF8000'], GT:['#C8A800','#E82020','#003087'], Hillclimb:['#E87000','#E82020','#1D9E75'], Touring:['#534AB7','#E82020','#185FA5'] };
   const CAT_BG = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
   function carSVG(cat, seed) {
-    const palette = CAT_COLORS[cat] || CAT_COLORS.Formula;
-    const col = palette[seed % palette.length];
-    const num = (seed * 7 + 1) % 99 + 1;
-    const bg = CAT_BG[cat] || '#111';
-    if (cat === 'Hillclimb') return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="72" rx="42" ry="7" fill="#000" opacity=".4"/><path d="M68 66 Q73 52 83 48 L100 43 L117 48 Q127 52 132 66Z" fill="${col}"/><path d="M83 48 L85 37 Q100 33 115 37 L117 48Z" fill="${col}" opacity=".75"/><rect x="90" y="35" width="20" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="76" cy="68" r="8" fill="#1a1a1a"/><circle cx="76" cy="68" r="4" fill="#333"/><circle cx="124" cy="68" r="8" fill="#1a1a1a"/><circle cx="124" cy="68" r="4" fill="#333"/><text x="100" y="61" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
-    return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><path d="M44 55 L60 53 L64 60 L42 62Z" fill="${col}" opacity=".7"/><path d="M156 55 L140 53 L136 60 L158 62Z" fill="${col}" opacity=".7"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
+    const p = CAT_COLORS[cat]||CAT_COLORS.Formula; const col=p[seed%p.length]; const num=(seed*7+1)%99+1; const bg=CAT_BG[cat]||'#111';
+    if(cat==='Hillclimb') return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="72" rx="42" ry="7" fill="#000" opacity=".4"/><path d="M68 66 Q73 52 83 48 L100 43 L117 48 Q127 52 132 66Z" fill="${col}"/><path d="M83 48 L85 37 Q100 33 115 37 L117 48Z" fill="${col}" opacity=".75"/><rect x="90" y="35" width="20" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="76" cy="68" r="8" fill="#1a1a1a"/><circle cx="76" cy="68" r="4" fill="#333"/><circle cx="124" cy="68" r="8" fill="#1a1a1a"/><circle cx="124" cy="68" r="4" fill="#333"/><text x="100" y="61" text-anchor="middle" fill="white" font-size="7" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
+    return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
-  function heatBars(votes, maxVotes) {
-    const ratio = maxVotes > 0 ? votes / maxVotes : 0;
-    const filled = Math.round(ratio * 5);
-    return [5,8,11,14,17].map((h,i) => `<div class="hs" style="height:${h}px;opacity:${i<filled?1:0.15}"></div>`).join('');
+  function heatBars(v, max) {
+    const ratio=max>0?v/max:0; const filled=Math.round(ratio*5);
+    return [5,8,11,14,17].map((h,i)=>`<div class="hs" style="height:${h}px;opacity:${i<filled?1:.15}"></div>`).join('');
   }
 
-  // ---- State ----
-  let allLiveries = [], activeCatId = 'all', activeChampId = 'all', maxVotes = 1;
-  let voted = getVotedSet();
+  // State
+  let allLiveries=[], activeCatId='all', activeChampId='all', activePricing=null, maxVotes=1, isListView=false;
+  let voted=getVotedSet();
+  let pendingReportId=null;
 
-  // ---- Build filter pills from DB ----
+  // View toggle
+  document.getElementById('btn-grid').addEventListener('click', () => { isListView=false; document.getElementById('btn-grid').classList.add('active'); document.getElementById('btn-list').classList.remove('active'); document.getElementById('gallery').classList.remove('list-view'); });
+  document.getElementById('btn-list').addEventListener('click', () => { isListView=true; document.getElementById('btn-list').classList.add('active'); document.getElementById('btn-grid').classList.remove('active'); document.getElementById('gallery').classList.add('list-view'); });
+
+  // Pricing filter
+  document.getElementById('pill-all-pricing').addEventListener('click', () => { activePricing=null; setPricingActive('all'); render(); });
+  document.getElementById('pill-free').addEventListener('click', () => { activePricing=false; setPricingActive('free'); render(); });
+  document.getElementById('pill-paid').addEventListener('click', () => { activePricing=true; setPricingActive('paid'); render(); });
+  function setPricingActive(which) {
+    ['pill-all-pricing','pill-free','pill-paid'].forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById(which==='all'?'pill-all-pricing':which==='free'?'pill-free':'pill-paid').classList.add('active');
+  }
+
+  // Report modal
+  document.getElementById('report-cancel').addEventListener('click', () => { document.getElementById('report-modal').style.display='none'; });
+  document.getElementById('report-submit').addEventListener('click', async () => {
+    if (!pendingReportId) return;
+    const reason = document.querySelector('input[name="report-reason"]:checked')?.value || 'broken_link';
+    await reportLivery(pendingReportId, reason);
+    document.getElementById('report-modal').style.display='none';
+    pendingReportId=null;
+    alert('Report sent. Thank you!');
+  });
+
+  // Filters
   async function buildFilters() {
     const [cats, champs] = await Promise.all([fetchCategories(), fetchChampionships()]);
-
     const catPills = document.getElementById('cat-pills');
     cats.forEach(c => {
       const btn = document.createElement('button');
-      btn.className = 'pill';
-      btn.dataset.catId = c.id;
-      btn.textContent = c.name;
+      btn.className='pill'; btn.dataset.catId=c.id; btn.textContent=c.name;
       btn.addEventListener('click', () => {
-        catPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        activeCatId = c.id;
-        activeChampId = 'all';
-        // reset champ pills
-        document.querySelectorAll('[data-champ-id]').forEach(p => p.classList.remove('active'));
+        catPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+        activeCatId=c.id; activeChampId='all';
+        document.querySelectorAll('[data-champ-id]').forEach(p=>p.classList.remove('active'));
         document.querySelector('[data-champ-id="all"]').classList.add('active');
         render();
       });
       catPills.appendChild(btn);
     });
-
     const champPills = document.getElementById('champ-pills');
     champs.forEach(ch => {
       const btn = document.createElement('button');
-      btn.className = 'pill';
-      btn.dataset.champId = ch.id;
-      btn.textContent = ch.short_name || ch.name;
+      btn.className='pill'; btn.dataset.champId=ch.id; btn.textContent=ch.short_name||ch.name;
       btn.addEventListener('click', () => {
-        champPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        activeChampId = ch.id;
-        activeCatId = 'all';
-        document.querySelectorAll('[data-cat-id]').forEach(p => p.classList.remove('active'));
+        champPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+        activeChampId=ch.id; activeCatId='all';
+        document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active'));
         document.querySelector('[data-cat-id="all"]').classList.add('active');
         render();
       });
       champPills.appendChild(btn);
     });
-
-    // "All" buttons
-    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => {
-      document.querySelectorAll('[data-cat-id]').forEach(p => p.classList.remove('active'));
-      document.querySelector('[data-cat-id="all"]').classList.add('active');
-      activeCatId = 'all'; render();
-    });
-    document.querySelector('[data-champ-id="all"]').addEventListener('click', () => {
-      document.querySelectorAll('[data-champ-id]').forEach(p => p.classList.remove('active'));
-      document.querySelector('[data-champ-id="all"]').classList.add('active');
-      activeChampId = 'all'; render();
-    });
+    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => { document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active')); document.querySelector('[data-cat-id="all"]').classList.add('active'); activeCatId='all'; render(); });
+    document.querySelector('[data-champ-id="all"]').addEventListener('click', () => { document.querySelectorAll('[data-champ-id]').forEach(p=>p.classList.remove('active')); document.querySelector('[data-champ-id="all"]').classList.add('active'); activeChampId='all'; render(); });
   }
 
-  // ---- Render ----
   function render() {
-    const q = document.getElementById('search').value.toLowerCase();
-    const sort = document.getElementById('sort').value;
-    let list = allLiveries.filter(l => {
-      const matchCat   = activeCatId   === 'all' || l.category_id === activeCatId;
-      const matchChamp = activeChampId === 'all' || l.championship_id === activeChampId;
-      const matchQ = !q || [l.name, l.team, l.author, l.driver, l.mods?.name].join(' ').toLowerCase().includes(q);
-      return matchCat && matchChamp && matchQ;
+    const q=document.getElementById('search').value.toLowerCase();
+    const sort=document.getElementById('sort').value;
+    let list=allLiveries.filter(l=>{
+      const matchCat=activeCatId==='all'||l.category_id===activeCatId;
+      const matchChamp=activeChampId==='all'||l.championship_id===activeChampId;
+      const matchPricing=activePricing===null||(activePricing===true&&l.is_paid===true)||(activePricing===false&&l.is_paid!==true);
+      const matchQ=!q||[l.name,l.team,l.author,l.driver,l.mods?.name,l.artists?.name].join(' ').toLowerCase().includes(q);
+      return matchCat&&matchChamp&&matchPricing&&matchQ;
     });
-    if (sort === 'votes')  list.sort((a,b) => b.upvotes - a.upvotes);
-    else if (sort === 'newest') list.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-    else list.sort((a,b) => a.name.localeCompare(b.name));
+    if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
+    else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    else list.sort((a,b)=>a.name.localeCompare(b.name));
 
-    const g = document.getElementById('gallery');
-    if (!list.length) {
-      g.innerHTML = `<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
-      return;
-    }
-    const seed = l => parseInt((l.id||'').replace(/\D/g,'').slice(0,6)) || 0;
-    const catName = l => l.categories?.name || '';
-    g.innerHTML = list.map(l => {
-      const bg = l.categories?.color_bg || '#E6F1FB';
-      const tc = l.categories?.color_text || '#0C447C';
-      const cn = catName(l);
-      const isVoted = voted.has(l.id);
-      const paidBadge = l.is_paid
+    const g=document.getElementById('gallery');
+    if(!list.length){g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;return;}
+
+    const seed=l=>parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
+    g.innerHTML=list.map(l=>{
+      const cn=l.categories?.name||'';
+      const bg=l.categories?.color_bg||'#E6F1FB';
+      const tc=l.categories?.color_text||'#0C447C';
+      const isVoted=voted.has(l.id);
+      const isArtist=!!l.artists;
+      const crownBadge=isArtist
+        ? `<div class="crown-badge">👑<span class="crown-text">${l.artists.name}</span></div>`
+        : '';
+      const paidBadge=l.is_paid
         ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
         : `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
-      return `<div class="livery-card" data-id="${l.id}">
-        <div class="card-cover">${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(cn, seed(l))}</div>
-        <div class="card-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-            <div class="card-mod" style="margin:0">${l.mods?.name || '—'}</div>
-            ${paidBadge}
+      return `
+        <div class="livery-card" data-id="${l.id}">
+          <div class="card-cover">
+            ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed(l))}
           </div>
-          <div class="card-name" title="${l.name}">${l.name}</div>
-          ${l.championships?.short_name ? `<div style="font-size:10px;color:var(--text3);margin-bottom:5px"><i class="ti ti-trophy" style="font-size:10px"></i> ${l.championships.short_name}</div>` : ''}
-          <div class="card-footer">
-            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
-            <button class="upvote-btn${isVoted?' voted':''}" data-vote="${l.id}" data-voted="${isVoted}" onclick="event.stopPropagation()" title="${isVoted?'Remove upvote':'Upvote'}">
-              <i class="ti ti-thumb-up" style="font-size:12px"></i>
-              <span id="vc-${l.id}">${l.upvotes}</span>
-              <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
-            </button>
+          ${crownBadge}
+          <button class="report-btn" data-report="${l.id}" onclick="event.stopPropagation();openReport('${l.id}')" title="Report a problem"><i class="ti ti-flag" style="font-size:12px"></i></button>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+              <div class="card-mod" style="margin:0">${l.mods?.name||'—'}</div>
+              ${paidBadge}
+            </div>
+            <div class="card-name" title="${l.name}">${l.name}</div>
+            ${l.championships?.short_name?`<div style="font-size:10px;color:var(--text3);margin-bottom:5px"><i class="ti ti-trophy" style="font-size:10px"></i> ${l.championships.short_name}</div>`:''}
+            <div class="card-footer">
+              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+              <button class="upvote-btn${isVoted?' voted':''}" data-vote="${l.id}" onclick="event.stopPropagation()">
+                <i class="ti ti-thumb-up" style="font-size:12px"></i>
+                <span id="vc-${l.id}">${l.upvotes}</span>
+                <div class="heat">${heatBars(l.upvotes,maxVotes)}</div>
+              </button>
+            </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
     }).join('');
 
-    g.querySelectorAll('.livery-card').forEach(card => {
-      card.addEventListener('click', () => location.href = `livery.html?id=${card.dataset.id}`);
-    });
-    g.querySelectorAll('[data-vote]').forEach(btn => {
-      btn.addEventListener('click', async e => {
-        e.stopPropagation();
-        const id = btn.dataset.vote;
-        const isVoted = voted.has(id);
-        const liv = allLiveries.find(l => l.id === id);
-        if (isVoted) {
-          const ok = await removeUpvoteLivery(id);
-          if (ok) {
-            voted = getVotedSet();
-            if (liv) liv.upvotes = Math.max(0, liv.upvotes - 1);
-            maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
-            render();
-          }
-        } else {
-          const ok = await upvoteLivery(id);
-          if (ok) {
-            voted = getVotedSet();
-            if (liv) liv.upvotes++;
-            maxVotes = Math.max(...allLiveries.map(l => l.upvotes), 1);
-            render();
-          }
-        }
+    g.querySelectorAll('.livery-card').forEach(card=>{card.addEventListener('click',()=>location.href=`livery.html?id=${card.dataset.id}`);});
+    g.querySelectorAll('[data-vote]').forEach(btn=>{
+      btn.addEventListener('click',async e=>{
+        e.stopPropagation(); const id=btn.dataset.vote; const isVoted=voted.has(id);
+        const liv=allLiveries.find(l=>l.id===id);
+        if(isVoted){const ok=await removeUpvoteLivery(id);if(ok&&liv){liv.upvotes=Math.max(0,liv.upvotes-1);voted=getVotedSet();maxVotes=Math.max(...allLiveries.map(l=>l.upvotes),1);render();}}
+        else{const ok=await upvoteLivery(id);if(ok&&liv){liv.upvotes++;voted=getVotedSet();maxVotes=Math.max(...allLiveries.map(l=>l.upvotes),1);render();}}
       });
     });
   }
 
-  // ---- Init ----
+  function openReport(id) { pendingReportId=id; document.getElementById('report-modal').style.display='flex'; }
+
   async function init() {
     await buildFilters();
-    const [liveries, stats] = await Promise.all([fetchLiveries({ sort: 'votes' }), fetchStats()]);
-    allLiveries = liveries;
-    maxVotes = allLiveries.length ? Math.max(...allLiveries.map(l => l.upvotes), 1) : 1;
-    document.getElementById('s-total').textContent = stats.total;
-    document.getElementById('s-mods').textContent  = stats.mods;
-    document.getElementById('s-votes').textContent = stats.votes;
-    document.getElementById('s-top').textContent   = stats.top;
-
-    // URL param: ?mod_id=… (from mods page)
-    const params = new URLSearchParams(location.search);
-    const modIdParam = params.get('mod_id');
-    if (modIdParam) {
-      const mod = allLiveries.find(l => l.mod_id === modIdParam);
-      if (mod) document.getElementById('search').value = mod.mods?.name || '';
-    }
+    const [liveries,stats]=await Promise.all([fetchLiveries({sort:'votes'}),fetchStats()]);
+    allLiveries=liveries;
+    maxVotes=allLiveries.length?Math.max(...allLiveries.map(l=>l.upvotes),1):1;
+    document.getElementById('s-total').textContent=stats.total;
+    document.getElementById('s-mods').textContent=stats.mods;
+    document.getElementById('s-votes').textContent=stats.votes;
+    document.getElementById('s-top').textContent=stats.top;
+    const params=new URLSearchParams(location.search);
+    const modIdParam=params.get('mod_id');
+    if(modIdParam){const mod=allLiveries.find(l=>l.mod_id===modIdParam);if(mod)document.getElementById('search').value=mod.mods?.name||'';}
     render();
   }
 
-  document.getElementById('search').addEventListener('input', render);
-  document.getElementById('sort').addEventListener('change', render);
+  document.getElementById('search').addEventListener('input',render);
+  document.getElementById('sort').addEventListener('change',render);
   init();
 </script>
 </body>

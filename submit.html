@@ -8,13 +8,22 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    .artist-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px,1fr)); gap: 8px; margin-top: 6px; }
+    .artist-pick-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 6px; text-align: center; cursor: pointer; transition: all .12s; background: var(--bg); }
+    .artist-pick-item:hover { border-color: #FFD700; }
+    .artist-pick-item.selected { border-color: #FFD700; background: rgba(255,215,0,.08); }
+    .artist-pick-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; margin: 0 auto 4px; background: var(--bg2); display: block; }
+    .artist-pick-avatar-ph { width: 36px; height: 36px; border-radius: 50%; margin: 0 auto 4px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--text3); }
+    .artist-pick-name { font-size: 11px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .artist-pick-crown { font-size: 10px; color: #FFD700; }
+    .or-divider { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 12px; color: var(--text3); }
+    .or-divider::before, .or-divider::after { content:''; flex:1; border-top:1px solid var(--border); }
     select:disabled { opacity: .45; cursor: not-allowed; }
-    .field-hint { font-size: 11px; color: var(--text3); margin-top: 3px; min-height: 16px; }
+    .field-hint { font-size: 11px; color: var(--text3); min-height: 16px; }
     .field-hint.ok { color: var(--green); }
   </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
     <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
@@ -23,17 +32,14 @@
   <div class="nav-links">
     <a href="index.html">Gallery</a>
     <a href="mods.html">RSS Mods</a>
+    <a href="artists.html">Artists</a>
     <a href="submit.html" class="active">Submit</a>
     <a href="about.html">About</a>
   </div>
   <div class="nav-divider"></div>
   <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-      <i class="ti ti-sun" id="themeIcon"></i>
-    </button>
-    <a href="submit.html" class="nav-submit">
-      <i class="ti ti-plus" style="font-size:13px"></i> Submit a livery
-    </a>
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
   </div>
 </nav>
 
@@ -51,30 +57,21 @@
         <input type="text" id="f-name" placeholder="e.g. Ferrari — C. Leclerc #16">
       </div>
 
-      <!-- Step 1: Category -->
       <div class="field">
         <label>Category *</label>
-        <select id="f-cat">
-          <option value="">Loading categories…</option>
-        </select>
+        <select id="f-cat"><option value="">Select a category first…</option></select>
         <div class="field-hint" id="cat-hint">Choose a category to unlock the other fields.</div>
       </div>
 
-      <!-- Step 2: Mod (filtered by category) -->
       <div class="field">
         <label>RSS Mod *</label>
-        <select id="f-mod" disabled>
-          <option value="">— Select a category first —</option>
-        </select>
+        <select id="f-mod" disabled><option value="">— Select a category first —</option></select>
         <div class="field-hint" id="mod-hint"></div>
       </div>
 
-      <!-- Step 3: Championship (filtered by category) -->
       <div class="field full">
         <label>Championship</label>
-        <select id="f-champ" disabled>
-          <option value="">— Select a category first —</option>
-        </select>
+        <select id="f-champ" disabled><option value="">— Select a category first —</option></select>
         <div class="field-hint" id="champ-hint"></div>
       </div>
 
@@ -82,40 +79,58 @@
         <label>Team / Livery name</label>
         <input type="text" id="f-team" placeholder="e.g. Scuderia Ferrari">
       </div>
+
       <div class="field">
         <label>Drivers</label>
         <input type="text" id="f-driver" placeholder="e.g. Charles Leclerc">
       </div>
+
       <div class="field">
         <label>Season / Year</label>
         <input type="text" id="f-season" placeholder="e.g. 2024">
       </div>
+
+      <!-- Pricing -->
       <div class="field">
-        <label>Creator name *</label>
-        <input type="text" id="f-author" placeholder="e.g. SimPainter_IT">
-      </div>
-      <div class="field full">
         <label>Pricing</label>
         <div style="display:flex;gap:10px;margin-top:4px">
-          <label style="display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-free">
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-free">
             <input type="radio" name="pricing" id="r-free" value="free" checked style="accent-color:var(--green)">
             <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free
           </label>
-          <label style="display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-paid">
+          <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg);transition:all .12s" id="lbl-paid">
             <input type="radio" name="pricing" id="r-paid" value="paid" style="accent-color:#92400E">
             <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid
           </label>
         </div>
       </div>
+
+      <!-- Creator section -->
+      <div class="field full">
+        <label>Creator *</label>
+        <!-- Confirmed artists picker -->
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+          <span style="color:#FFD700">👑</span> Select a confirmed artist, or type your name below
+        </div>
+        <div class="artist-picker" id="artist-picker">
+          <div style="font-size:12px;color:var(--text3);padding:8px">Loading…</div>
+        </div>
+        <div class="or-divider">or</div>
+        <input type="text" id="f-author" placeholder="Type your creator name / alias">
+        <div class="field-hint" id="author-hint">Leave empty if you selected a confirmed artist above.</div>
+      </div>
+
       <div class="field full">
         <label>Download URL *</label>
         <input type="url" id="f-url" placeholder="https://www.racedepartment.com/…">
       </div>
+
       <div class="field full">
         <label>Screenshot image URL</label>
         <input type="url" id="f-img" placeholder="https://… (direct link to an image)">
-        <div class="field-hint">Paste a direct image URL (imgur, Discord CDN…). Leave empty to use a generated car preview.</div>
+        <div class="field-hint">Paste a direct image URL. Leave empty to use a generated car preview.</div>
       </div>
+
       <div class="field full">
         <label>Notes / Description</label>
         <textarea id="f-notes" placeholder="Any extra info: number kit, template version, known issues…"></textarea>
@@ -133,80 +148,101 @@
 
 <script src="supabase.js"></script>
 <script>
-  // ---- Theme ----
+  // Theme
   const root = document.documentElement;
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
   document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   document.getElementById('themeToggle').addEventListener('click', () => {
     const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('acliveries_theme', next);
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
-  // ---- Load selects ----
+  let selectedArtistId = null;
+
+  // Load artist picker
+  async function loadArtistPicker() {
+    const artists = await fetchArtists();
+    const picker = document.getElementById('artist-picker');
+    if (!artists.length) { picker.innerHTML = '<div style="font-size:12px;color:var(--text3)">No confirmed artists yet.</div>'; return; }
+    picker.innerHTML = artists.map(a => `
+      <div class="artist-pick-item" data-artist-id="${a.id}" data-artist-name="${a.name}">
+        ${a.avatar_url
+          ? `<img src="${a.avatar_url}" alt="${a.name}" class="artist-pick-avatar">`
+          : `<div class="artist-pick-avatar-ph"><i class="ti ti-user"></i></div>`}
+        <div class="artist-pick-crown">👑</div>
+        <div class="artist-pick-name">${a.name}</div>
+      </div>`).join('');
+
+    picker.querySelectorAll('.artist-pick-item').forEach(item => {
+      item.addEventListener('click', () => {
+        picker.querySelectorAll('.artist-pick-item').forEach(i => i.classList.remove('selected'));
+        if (selectedArtistId === item.dataset.artistId) {
+          // Deselect
+          selectedArtistId = null;
+          document.getElementById('f-author').disabled = false;
+          document.getElementById('author-hint').textContent = 'Leave empty if you selected a confirmed artist above.';
+          document.getElementById('author-hint').className = 'field-hint';
+        } else {
+          item.classList.add('selected');
+          selectedArtistId = item.dataset.artistId;
+          document.getElementById('f-author').value = '';
+          document.getElementById('f-author').disabled = true;
+          document.getElementById('author-hint').textContent = `✓ ${item.dataset.artistName} selected as confirmed artist.`;
+          document.getElementById('author-hint').className = 'field-hint ok';
+        }
+      });
+    });
+  }
+
+  // Load category / mod / championship selects
   async function loadSelects() {
     const [allMods, cats, allChamps] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
-
-    const catSel   = document.getElementById('f-cat');
-    const modSel   = document.getElementById('f-mod');
+    const catSel = document.getElementById('f-cat');
+    const modSel = document.getElementById('f-mod');
     const champSel = document.getElementById('f-champ');
 
-    // Populate categories
-    catSel.innerHTML = '<option value="">Select a category first…</option>'
-      + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    catSel.innerHTML = '<option value="">Select a category first…</option>' + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
 
-    // When category changes
     catSel.addEventListener('change', () => {
       const catId = catSel.value;
-      modSel.value = '';
-      champSel.value = '';
-
+      modSel.value = ''; champSel.value = '';
       if (!catId) {
-        modSel.innerHTML   = '<option value="">— Select a category first —</option>';
-        champSel.innerHTML = '<option value="">— Select a category first —</option>';
-        modSel.disabled    = true;
-        champSel.disabled  = true;
-        setHint('cat-hint', 'Choose a category to unlock the other fields.', false);
-        setHint('mod-hint', '', false);
-        setHint('champ-hint', '', false);
-        return;
+        modSel.innerHTML = '<option value="">— Select a category first —</option>'; modSel.disabled = true;
+        champSel.innerHTML = '<option value="">— Select a category first —</option>'; champSel.disabled = true;
+        setHint('cat-hint','Choose a category to unlock the other fields.',false);
+        setHint('mod-hint','',false); setHint('champ-hint','',false); return;
       }
-
-      // Filter mods by category
       const filteredMods = allMods.filter(m => m.category_id === catId);
       modSel.disabled = false;
       modSel.innerHTML = filteredMods.length
         ? '<option value="">Select a mod…</option>' + filteredMods.map(m => `<option value="${m.id}">${m.name}</option>`).join('')
         : '<option value="">No mods for this category</option>';
-      setHint('mod-hint', filteredMods.length ? `${filteredMods.length} mod${filteredMods.length > 1 ? 's' : ''} available` : '', filteredMods.length > 0);
+      setHint('mod-hint', filteredMods.length ? `${filteredMods.length} mod${filteredMods.length>1?'s':''} available` : '', filteredMods.length>0);
 
-      // Filter championships by category (using linked_categories)
-      const filteredChamps = allChamps.filter(ch =>
-        ch.linked_categories && ch.linked_categories.some(lc => lc.id === catId)
-      );
+      const filteredChamps = allChamps.filter(ch => ch.linked_categories?.some(lc => lc.id === catId));
       champSel.disabled = false;
       champSel.innerHTML = '<option value="">— No specific championship —</option>'
-        + (filteredChamps.length ? filteredChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('') : '');
-      setHint('champ-hint',
-        filteredChamps.length
-          ? `${filteredChamps.length} championship${filteredChamps.length > 1 ? 's' : ''} available`
-          : 'No championships for this category yet.',
-        filteredChamps.length > 0
-      );
+        + filteredChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('');
+      setHint('champ-hint', filteredChamps.length ? `${filteredChamps.length} championship${filteredChamps.length>1?'s':''} available` : 'No championships for this category yet.', filteredChamps.length>0);
+      setHint('cat-hint','',false);
+    });
 
-      setHint('cat-hint', '', false);
+    modSel.addEventListener('change', () => {
+      const modId = modSel.value; if (!modId) return;
+      const catId = catSel.value;
+      const modChamps = allChamps.filter(ch => ch.linked_categories?.some(lc => lc.id === catId));
+      champSel.innerHTML = '<option value="">— No specific championship —</option>' + modChamps.map(ch => `<option value="${ch.id}">${ch.name}</option>`).join('');
     });
   }
 
   function setHint(id, text, isOk) {
-    const el = document.getElementById(id);
-    el.textContent = text;
+    const el = document.getElementById(id); el.textContent = text;
     el.className = 'field-hint' + (isOk ? ' ok' : '');
   }
 
-  // ---- Submit ----
+  // Submit
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const name   = document.getElementById('f-name').value.trim();
     const mod    = document.getElementById('f-mod').value;
@@ -215,9 +251,9 @@
     const url    = document.getElementById('f-url').value.trim();
     const errDiv = document.getElementById('error-msg');
 
-    if (!name || !mod || !cat || !author || !url) {
+    if (!name || !mod || !cat || (!author && !selectedArtistId) || !url) {
       errDiv.style.display = 'block';
-      errDiv.textContent = 'Please fill in all required fields (marked with *).';
+      errDiv.textContent = 'Please fill in all required fields (name, mod, category, creator, download URL).';
       return;
     }
     errDiv.style.display = 'none';
@@ -232,7 +268,8 @@
       team:            document.getElementById('f-team').value.trim(),
       driver:          document.getElementById('f-driver').value.trim(),
       season:          document.getElementById('f-season').value.trim(),
-      author,
+      author:          author || null,
+      artist_id:       selectedArtistId || null,
       download_url:    url,
       image_url:       document.getElementById('f-img').value.trim(),
       notes:           document.getElementById('f-notes').value.trim(),
@@ -256,6 +293,7 @@
     }
   });
 
+  loadArtistPicker();
   loadSelects();
 </script>
 </body>
