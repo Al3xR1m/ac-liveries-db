@@ -53,6 +53,19 @@
     /* Artist avatar in table */
     .tbl-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060;vertical-align:middle}
     .tbl-avatar-ph{width:32px;height:32px;border-radius:50%;background:var(--bg2);display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:var(--text3);border:2px solid #FFD70060;vertical-align:middle}
+
+    /* Upload widget */
+    .upload-widget { display: flex; flex-direction: column; gap: 6px; }
+    .upload-preview { width: 100%; height: 100px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border); display: none; }
+    .upload-preview.avatar { width: 64px; height: 64px; border-radius: 50%; }
+    .upload-preview.visible { display: block; }
+    .upload-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text2); font-size: 12px; cursor: pointer; transition: all .12s; width: 100%; justify-content: center; }
+    .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .upload-btn.uploading { opacity: .6; cursor: not-allowed; pointer-events: none; }
+    .upload-progress { font-size: 11px; color: var(--text3); display: none; }
+    .upload-progress.visible { display: block; }
+    .upload-existing { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+    .upload-existing a { color: var(--accent); }
     @media(max-width:700px){.admin-layout{grid-template-columns:1fr}.sidebar{display:flex;overflow-x:auto;padding:0}.sidebar-item{flex-shrink:0}}
   </style>
 </head>
@@ -390,7 +403,7 @@ async function editLiveryModal(id,isApproval){
       <div class="field"><label>Creator (text)</label><input id="el-author" value="${l.author||''}"></div>
       <div class="field full"><label>Confirmed Artist</label><select id="el-artist"><option value="">— None —</option>${artistOpts}</select></div>
       <div class="field full"><label>Download URL</label><input id="el-url" value="${l.download_url||''}"></div>
-      <div class="field full"><label>Image URL</label><input id="el-img" value="${l.image_url||''}"></div>
+      <div class="field full"><label>Livery screenshot</label><div id="el-img-widget"></div></div>
       <div class="field full"><label>Notes</label><textarea id="el-notes">${l.notes||''}</textarea></div>
       <div class="field full"><label>Pricing</label>
         <div style="display:flex;gap:10px;margin-top:4px">
@@ -410,7 +423,7 @@ async function editLiveryModal(id,isApproval){
       author:document.getElementById('el-author').value||null,
       artist_id:document.getElementById('el-artist').value||null,
       download_url:document.getElementById('el-url').value,
-      image_url:document.getElementById('el-img').value,
+      image_url: (window._getLiveryImg?.())||l.image_url||null,
       notes:document.getElementById('el-notes').value,
       is_paid:document.getElementById('el-paid')?.checked||false,
       approved:isApproval?true:l.approved,
@@ -418,6 +431,7 @@ async function editLiveryModal(id,isApproval){
     closeModal();
     if(isApproval){await loadPending();await loadDashboard();}else await loadLiveries();
   });
+  setTimeout(()=>{ window._getLiveryImg = buildUploadWidget('el-img-widget',{currentUrl:l.image_url||'',folder:'liveries',label:'Upload livery screenshot'}); },50);
 }
 
 // ARTISTS
@@ -425,15 +439,20 @@ async function loadArtists(){
   const stats=await fetchArtistStats();
   const t=document.getElementById('artists-table');
   if(!_artists.length){t.innerHTML='<tr><td style="color:var(--text3)">No confirmed artists yet.</td></tr>';return;}
-  t.innerHTML=`<thead><tr><th>Artist</th><th>Discord</th><th>Liveries</th><th>Upvotes</th><th>Actions</th></tr></thead>
+  t.innerHTML=`<thead><tr><th>Artist</th><th>Discord</th><th>Liveries</th><th>Upvotes</th><th>Edit link</th><th>Actions</th></tr></thead>
   <tbody>${_artists.map(a=>{
     const s=stats[a.id]||{count:0,upvotes:0};
     const avatar=a.avatar_url?`<img src="${a.avatar_url}" alt="${a.name}" class="tbl-avatar">`:`<span class="tbl-avatar-ph"><i class="ti ti-user"></i></span>`;
+    const tokenStatus = a.edit_token
+      ? `<button class="action-btn" onclick="copyArtistLink('${a.edit_token}')" title="Copy edit link"><i class="ti ti-link"></i> Copy link</button>
+         <button class="action-btn danger" onclick="doRevokeToken('${a.id}')" title="Revoke & regenerate"><i class="ti ti-refresh"></i></button>`
+      : `<button class="action-btn success" onclick="doGenerateToken('${a.id}')"><i class="ti ti-key"></i> Generate</button>`;
     return `<tr>
       <td>${avatar} <strong style="margin-left:8px">${a.name}</strong></td>
       <td style="color:var(--text2)">${a.discord||'—'}</td>
       <td>${s.count}</td>
       <td>${s.upvotes}</td>
+      <td>${tokenStatus}</td>
       <td>
         <button class="action-btn" onclick="editArtistModal('${a.id}')"><i class="ti ti-pencil"></i></button>
         <button class="action-btn danger" onclick="doDeleteArtist('${a.id}')"><i class="ti ti-trash"></i></button>
@@ -445,25 +464,59 @@ async function loadArtists(){
 function artistModalForm(a={}){
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
-    <div class="field"><label>Avatar image URL</label><input id="af-avatar" value="${a.avatar_url||''}" placeholder="https://… direct image link"></div>
+    <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
     <div class="field"><label>Discord username</label><input id="af-discord" value="${a.discord||''}" placeholder="e.g. simpai_it"></div>
     <div class="field"><label>Bio (optional)</label><textarea id="af-bio" style="min-height:60px">${a.bio||''}</textarea></div>
   </div>`;
 }
+let _getArtistAvatar = () => '';
 document.getElementById('addArtistBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-crown"></i> Add confirmed artist',artistModalForm(),async()=>{
-    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:document.getElementById('af-avatar').value.trim(),discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
+    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     if(ok){await reloadCache();closeModal();await loadArtists();}
   });
+  setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
 });
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:document.getElementById('af-avatar').value.trim(),discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
+    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     await reloadCache();closeModal();await loadArtists();
   });
+  setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
 }
 async function doDeleteArtist(id){if(!confirm('Remove this confirmed artist? Their liveries will keep the text author name.'))return;await deleteArtist(id);await reloadCache();await loadArtists();}
+
+async function doGenerateToken(id) {
+  if (!confirm('Generate an edit link for this artist? The old link (if any) will be replaced.')) return;
+  const token = await generateArtistToken(id);
+  if (token) {
+    await reloadCache();
+    await loadArtists();
+    const link = `${location.origin}/artist-edit.html?token=${token}`;
+    await navigator.clipboard.writeText(link);
+    alert(`✓ Link generated and copied to clipboard!\n\nSend this to the artist via Discord:\n${link}`);
+  } else {
+    alert('Failed to generate token. Try again.');
+  }
+}
+
+async function doRevokeToken(id) {
+  if (!confirm('Revoke the current link and generate a new one? The artist will need the new link.')) return;
+  const token = await generateArtistToken(id);
+  if (token) {
+    await reloadCache();
+    await loadArtists();
+    const link = `${location.origin}/artist-edit.html?token=${token}`;
+    await navigator.clipboard.writeText(link);
+    alert(`✓ New link generated and copied!\n\n${link}`);
+  }
+}
+
+function copyArtistLink(token) {
+  const link = `${location.origin}/artist-edit.html?token=${token}`;
+  navigator.clipboard.writeText(link).then(() => alert(`✓ Link copied to clipboard!\n\n${link}`));
+}
 
 // CHAMPIONSHIPS
 async function loadChampionships(){
@@ -537,22 +590,25 @@ function modModalForm(m={}){
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Mod name *</label><input id="mf-name" value="${m.name||''}" placeholder="e.g. RSS GT3"></div>
     <div class="field"><label>Category</label><select id="mf-cat"><option value="">— None —</option>${catOpts}</select></div>
-    <div class="field"><label>Cover image URL</label><input id="mf-img" value="${m.image_url||''}" placeholder="https://… screenshot of the mod car"></div>
+    <div class="field"><label>Cover image</label><div id="mf-img-widget"></div></div>
     <div class="field"><label>Official URL</label><input id="mf-url" value="${m.official_url||''}" placeholder="https://racesimstudio.com"></div>
   </div>`;
 }
+let _getModImg = () => '';
 document.getElementById('addModBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-car"></i> Add mod',modModalForm(),async()=>{
-    const ok=await createMod({name:document.getElementById('mf-name').value.trim(),category_id:document.getElementById('mf-cat').value||null,image_url:document.getElementById('mf-img').value.trim(),official_url:document.getElementById('mf-url').value.trim()});
+    const ok=await createMod({name:document.getElementById('mf-name').value.trim(),category_id:document.getElementById('mf-cat').value||null,image_url:_getModImg()||null,official_url:document.getElementById('mf-url').value.trim()});
     if(ok){await reloadCache();closeModal();await loadMods();}
   });
+  setTimeout(()=>{ _getModImg = buildUploadWidget('mf-img-widget',{folder:'mods',label:'Upload mod cover image'}); },50);
 });
 async function editModModal(id){
   const m=_mods.find(x=>x.id===id);if(!m)return;
   openModal('<i class="ti ti-pencil"></i> Edit mod',modModalForm(m),async()=>{
-    await updateMod(id,{name:document.getElementById('mf-name').value.trim(),category_id:document.getElementById('mf-cat').value||null,image_url:document.getElementById('mf-img').value.trim(),official_url:document.getElementById('mf-url').value.trim()});
+    await updateMod(id,{name:document.getElementById('mf-name').value.trim(),category_id:document.getElementById('mf-cat').value||null,image_url:_getModImg()||m.image_url||null,official_url:document.getElementById('mf-url').value.trim()});
     await reloadCache();closeModal();await loadMods();
   });
+  setTimeout(()=>{ _getModImg = buildUploadWidget('mf-img-widget',{currentUrl:m.image_url||'',folder:'mods',label:'Upload mod cover image'}); },50);
 }
 async function doDeleteMod(id){if(!confirm('Delete this mod?'))return;await deleteMod(id);await reloadCache();await loadMods();}
 
@@ -584,6 +640,106 @@ function bindCatPreview(){setTimeout(()=>{const update=()=>{const n=document.get
 document.getElementById('addCatBtn').addEventListener('click',()=>{openModal('<i class="ti ti-category"></i> Add category',catModalForm(),async()=>{const ok=await createCategory({name:document.getElementById('catf-name').value.trim(),color_bg:document.getElementById('catf-bg').value,color_text:document.getElementById('catf-text').value});if(ok){await reloadCache();closeModal();await loadCategories();}});bindCatPreview();});
 async function editCatModal(id){const c=_cats.find(x=>x.id===id);if(!c)return;openModal('<i class="ti ti-pencil"></i> Edit category',catModalForm(c),async()=>{await updateCategory(id,{name:document.getElementById('catf-name').value.trim(),color_bg:document.getElementById('catf-bg').value,color_text:document.getElementById('catf-text').value});await reloadCache();closeModal();await loadCategories();});bindCatPreview();}
 async function doDeleteCat(id){if(!confirm('Delete this category?'))return;await deleteCategory(id);await reloadCache();await loadCategories();}
+
+// ============================================
+// IMAGE UPLOAD + COMPRESSION
+// ============================================
+
+// Compress image via canvas before upload
+async function compressImage(file, opts = {}) {
+  const { maxW = 800, maxH = 600, quality = 0.82, isAvatar = false } = opts;
+  const w = isAvatar ? 200 : maxW;
+  const h = isAvatar ? 200 : maxH;
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { naturalWidth: iw, naturalHeight: ih } = img;
+      // Scale down keeping ratio
+      const ratio = Math.min(w / iw, h / ih, 1);
+      const cw = Math.round(iw * ratio);
+      const ch = Math.round(ih * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      if (isAvatar) {
+        // Circle crop for avatars
+        ctx.beginPath(); ctx.arc(cw/2, ch/2, Math.min(cw,ch)/2, 0, Math.PI*2);
+        ctx.clip();
+      }
+      ctx.drawImage(img, 0, 0, cw, ch);
+      canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// Upload to Supabase Storage, return public URL
+async function uploadToStorage(blob, folder, filename) {
+  const path = `${folder}/${Date.now()}_${filename.replace(/[^a-z0-9.]/gi,'_')}.jpg`;
+  const { data, error } = await db.storage.from('images').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+  if (error) { console.error('Upload error:', error); return null; }
+  const { data: urlData } = db.storage.from('images').getPublicUrl(path);
+  return urlData?.publicUrl || null;
+}
+
+// Build a reusable upload widget and inject it into a container
+// Returns a getter function that returns the current URL
+function buildUploadWidget(containerId, opts = {}) {
+  const { currentUrl = '', folder = 'misc', isAvatar = false, label = 'Upload image' } = opts;
+  const container = document.getElementById(containerId);
+  if (!container) return () => currentUrl;
+
+  let currentImageUrl = currentUrl;
+
+  const previewClass = `upload-preview${isAvatar ? ' avatar' : ''}${currentUrl ? ' visible' : ''}`;
+  container.innerHTML = `
+    <div class="upload-widget">
+      <img id="${containerId}-preview" class="${previewClass}" src="${currentUrl}" alt="preview">
+      ${currentUrl ? `<div class="upload-existing"><i class="ti ti-link" style="font-size:12px"></i> <a href="${currentUrl}" target="_blank">Current image</a> — upload below to replace</div>` : ''}
+      <label class="upload-btn" id="${containerId}-btn">
+        <i class="ti ti-upload" style="font-size:14px"></i> ${label}
+        <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none" id="${containerId}-input">
+      </label>
+      <div class="upload-progress" id="${containerId}-progress"></div>
+    </div>`;
+
+  const input = document.getElementById(`${containerId}-input`);
+  const btn = document.getElementById(`${containerId}-btn`);
+  const preview = document.getElementById(`${containerId}-preview`);
+  const progress = document.getElementById(`${containerId}-progress`);
+
+  input.addEventListener('change', async () => {
+    const file = input.files[0]; if (!file) return;
+    // Client-side size check (2MB)
+    if (file.size > 2 * 1024 * 1024) { alert('File too large. Max 2MB.'); return; }
+    btn.classList.add('uploading');
+    btn.innerHTML = `<i class="ti ti-loader" style="font-size:14px"></i> Compressing…`;
+    progress.textContent = 'Compressing image…'; progress.classList.add('visible');
+    try {
+      const blob = await compressImage(file, { isAvatar });
+      const sizeBefore = (file.size/1024).toFixed(0);
+      const sizeAfter = (blob.size/1024).toFixed(0);
+      progress.textContent = `Compressed: ${sizeBefore}KB → ${sizeAfter}KB. Uploading…`;
+      const url = await uploadToStorage(blob, folder, file.name);
+      if (url) {
+        currentImageUrl = url;
+        preview.src = url; preview.classList.add('visible');
+        progress.textContent = `✓ Uploaded successfully (${sizeAfter}KB)`;
+        btn.innerHTML = `<i class="ti ti-check" style="font-size:14px;color:var(--green)"></i> Image uploaded — click to replace`;
+      } else {
+        progress.textContent = '✗ Upload failed. Check Supabase Storage settings.';
+      }
+    } catch(e) {
+      progress.textContent = '✗ Error processing image.'; console.error(e);
+    }
+    btn.classList.remove('uploading');
+  });
+
+  return () => currentImageUrl;
+}
 
 if(checkLogin())initAdmin();
 </script>
