@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit your liveries — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .edit-wrap { max-width: 720px; margin: 0 auto; padding-bottom: 60px; }
+    .artist-header { display: flex; align-items: center; gap: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 24px; }
+    .artist-header img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid #FFD70060; }
+    .artist-header-ph { width: 56px; height: 56px; border-radius: 50%; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text3); border: 2px solid #FFD70060; flex-shrink: 0; }
+    .artist-header-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text); }
+    .artist-header-badge { font-size: 12px; color: #FFD700; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .livery-edit-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+    .livery-edit-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--border); }
+    .livery-edit-header:hover { background: var(--bg2); }
+    .livery-edit-thumb { width: 56px; height: 36px; border-radius: 6px; object-fit: cover; background: var(--bg2); flex-shrink: 0; }
+    .livery-edit-thumb-ph { width: 56px; height: 36px; border-radius: 6px; background: var(--bg2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text3); }
+    .livery-edit-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text); flex: 1; }
+    .livery-edit-meta { font-size: 12px; color: var(--text3); }
+    .livery-edit-body { padding: 20px; display: none; }
+    .livery-edit-body.open { display: block; }
+    .chevron { font-size: 16px; color: var(--text3); transition: transform .2s; }
+    .chevron.open { transform: rotate(180deg); }
+    .save-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+    .save-status { font-size: 13px; }
+    .save-status.ok { color: var(--green); }
+    .save-status.err { color: var(--accent); }
+    /* Upload widget (same as admin) */
+    .upload-widget { display: flex; flex-direction: column; gap: 6px; }
+    .upload-preview { width: 100%; height: 90px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border); display: none; }
+    .upload-preview.visible { display: block; }
+    .upload-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text2); font-size: 12px; cursor: pointer; transition: all .12s; width: 100%; justify-content: center; }
+    .upload-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .upload-btn.uploading { opacity: .6; cursor: not-allowed; pointer-events: none; }
+    .upload-progress { font-size: 11px; color: var(--text3); display: none; }
+    .upload-progress.visible { display: block; }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="artists.html">Artists</a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="edit-wrap">
+
+    <!-- Loading state -->
+    <div id="loading" style="text-align:center;padding:60px 20px;color:var(--text3)">
+      <i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px"></i>
+      Verifying your access…
+    </div>
+
+    <!-- Invalid token -->
+    <div id="invalid" style="display:none;text-align:center;padding:60px 20px">
+      <i class="ti ti-lock" style="font-size:40px;color:var(--accent);display:block;margin-bottom:16px"></i>
+      <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:8px;color:var(--text)">Invalid or expired link</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:20px">This link is no longer valid. Contact the admin on Discord to get a new one.</div>
+      <a href="about.html" style="color:var(--accent);font-size:13px;display:inline-flex;align-items:center;gap:6px"><i class="ti ti-brand-discord"></i> Contact on Discord</a>
+    </div>
+
+    <!-- Main content -->
+    <div id="main" style="display:none">
+      <div class="page-header">
+        <h1 class="page-title">My Liveries</h1>
+        <p class="page-sub">Edit your published liveries — changes are saved immediately.</p>
+      </div>
+
+      <div id="artist-header-wrap"></div>
+
+      <div style="background:var(--surface);border:1px solid #FFD70040;border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--text2);display:flex;align-items:flex-start;gap:10px">
+        <i class="ti ti-info-circle" style="color:#FFD700;font-size:16px;flex-shrink:0;margin-top:1px"></i>
+        <div>You can edit your <strong style="color:var(--text)">screenshot, download link, notes, pricing, drivers and team</strong> for each livery. Name, mod, category and championship can only be changed by the admin.</div>
+      </div>
+
+      <div id="liveries-list"></div>
+
+      <div id="no-liveries" style="display:none;text-align:center;padding:40px;color:var(--text3)">
+        <i class="ti ti-photo-off" style="font-size:32px;display:block;margin-bottom:12px"></i>
+        <p>No approved liveries found for your account yet.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  // Get token from URL
+  const token = new URLSearchParams(location.search).get('token');
+
+  // Image compression
+  async function compressImage(file, maxW = 800, maxH = 600, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+        const cw = Math.round(img.naturalWidth * ratio);
+        const ch = Math.round(img.naturalHeight * ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+        canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
+  async function uploadImage(blob, liveryId) {
+    const path = `liveries/${Date.now()}_${liveryId}.jpg`;
+    const { error } = await db.storage.from('images').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (error) return null;
+    const { data } = db.storage.from('images').getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
+  // Build upload widget for a livery
+  function buildUploadWidget(containerId, currentUrl, liveryId) {
+    const container = document.getElementById(containerId);
+    if (!container) return () => currentUrl;
+    let currentImageUrl = currentUrl;
+
+    container.innerHTML = `
+      <div class="upload-widget">
+        <img id="${containerId}-preview" class="upload-preview${currentUrl ? ' visible' : ''}" src="${currentUrl||''}" alt="preview">
+        ${currentUrl ? `<div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px"><i class="ti ti-photo" style="font-size:12px"></i> Current screenshot — upload below to replace</div>` : ''}
+        <label class="upload-btn" id="${containerId}-btn">
+          <i class="ti ti-upload" style="font-size:14px"></i> Upload screenshot
+          <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none" id="${containerId}-input">
+        </label>
+        <div class="upload-progress" id="${containerId}-progress"></div>
+      </div>`;
+
+    const input = document.getElementById(`${containerId}-input`);
+    const btn = document.getElementById(`${containerId}-btn`);
+    const preview = document.getElementById(`${containerId}-preview`);
+    const progress = document.getElementById(`${containerId}-progress`);
+
+    input.addEventListener('change', async () => {
+      const file = input.files[0]; if (!file) return;
+      if (file.size > 2 * 1024 * 1024) { alert('File too large. Max 2MB.'); return; }
+      btn.classList.add('uploading');
+      btn.innerHTML = `<i class="ti ti-loader"></i> Compressing…`;
+      progress.textContent = 'Compressing…'; progress.classList.add('visible');
+      try {
+        const blob = await compressImage(file);
+        progress.textContent = `Compressed to ${(blob.size/1024).toFixed(0)}KB. Uploading…`;
+        const url = await uploadImage(blob, liveryId);
+        if (url) {
+          currentImageUrl = url;
+          preview.src = url; preview.classList.add('visible');
+          progress.textContent = `✓ Uploaded — click Save to apply.`;
+          btn.innerHTML = `<i class="ti ti-check" style="color:var(--green)"></i> New screenshot ready`;
+        } else {
+          progress.textContent = '✗ Upload failed.';
+          btn.innerHTML = `<i class="ti ti-upload"></i> Upload screenshot`;
+        }
+      } catch(e) { progress.textContent = '✗ Error.'; btn.innerHTML = `<i class="ti ti-upload"></i> Upload screenshot`; }
+      btn.classList.remove('uploading');
+    });
+    return () => currentImageUrl;
+  }
+
+  // Render a livery edit card
+  function renderLiveryCard(l, index) {
+    const cn = l.categories?.name || '';
+    const bg = l.categories?.color_bg || '#E6F1FB';
+    const tc = l.categories?.color_text || '#0C447C';
+    return `
+      <div class="livery-edit-card" id="card-${l.id}">
+        <div class="livery-edit-header" onclick="toggleCard('${l.id}')">
+          ${l.image_url
+            ? `<img src="${l.image_url}" class="livery-edit-thumb" alt="${l.name}">`
+            : `<div class="livery-edit-thumb-ph"><i class="ti ti-photo"></i></div>`}
+          <div style="flex:1">
+            <div class="livery-edit-name">${l.name}</div>
+            <div class="livery-edit-meta">${l.mods?.name || '—'} &nbsp;·&nbsp; <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span></div>
+          </div>
+          <i class="ti ti-chevron-down chevron" id="chev-${l.id}"></i>
+        </div>
+        <div class="livery-edit-body" id="body-${l.id}">
+          <div class="form-grid">
+            <div class="field full">
+              <label>Screenshot</label>
+              <div id="upload-${l.id}"></div>
+            </div>
+            <div class="field full">
+              <label>Download URL</label>
+              <input type="url" id="url-${l.id}" value="${l.download_url || ''}" placeholder="https://…">
+            </div>
+            <div class="field">
+              <label>Team</label>
+              <input type="text" id="team-${l.id}" value="${l.team || ''}" placeholder="e.g. Scuderia Ferrari">
+            </div>
+            <div class="field">
+              <label>Drivers</label>
+              <input type="text" id="driver-${l.id}" value="${l.driver || ''}" placeholder="e.g. Charles Leclerc">
+            </div>
+            <div class="field full">
+              <label>Notes / Description</label>
+              <textarea id="notes-${l.id}" placeholder="Any extra info…">${l.notes || ''}</textarea>
+            </div>
+            <div class="field full">
+              <label>Pricing</label>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)">
+                  <input type="radio" name="pricing-${l.id}" id="free-${l.id}" ${!l.is_paid?'checked':''}>
+                  <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)">
+                  <input type="radio" name="pricing-${l.id}" id="paid-${l.id}" ${l.is_paid?'checked':''}>
+                  <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="save-row">
+            <button class="submit-btn" onclick="saveLivery('${l.id}')">
+              <i class="ti ti-device-floppy"></i> Save changes
+            </button>
+            <span class="save-status" id="status-${l.id}"></span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  const imgGetters = {};
+
+  function toggleCard(id) {
+    const body = document.getElementById(`body-${id}`);
+    const chev = document.getElementById(`chev-${id}`);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chev.classList.toggle('open', !isOpen);
+    // Init upload widget on first open
+    if (!isOpen && !imgGetters[id]) {
+      const l = liveries.find(x => x.id === id);
+      imgGetters[id] = buildUploadWidget(`upload-${id}`, l?.image_url || '', id);
+    }
+  }
+
+  async function saveLivery(id) {
+    const status = document.getElementById(`status-${id}`);
+    status.textContent = 'Saving…'; status.className = 'save-status';
+    const imageUrl = imgGetters[id] ? imgGetters[id]() : null;
+    const ok = await updateLiveryAsArtist(token, id, {
+      image_url:    imageUrl,
+      download_url: document.getElementById(`url-${id}`).value.trim(),
+      notes:        document.getElementById(`notes-${id}`).value.trim(),
+      is_paid:      document.getElementById(`paid-${id}`).checked,
+      driver:       document.getElementById(`driver-${id}`).value.trim(),
+      team:         document.getElementById(`team-${id}`).value.trim(),
+    });
+    if (ok) {
+      status.textContent = '✓ Saved!'; status.className = 'save-status ok';
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    } else {
+      status.textContent = '✗ Save failed. Try again.'; status.className = 'save-status err';
+    }
+  }
+
+  let liveries = [];
+
+  async function init() {
+    if (!token) { showInvalid(); return; }
+
+    const [artist, livs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token)]);
+
+    if (!artist) { showInvalid(); return; }
+
+    liveries = livs;
+
+    // Artist header
+    document.getElementById('artist-header-wrap').innerHTML = `
+      <div class="artist-header">
+        ${artist.avatar_url
+          ? `<img src="${artist.avatar_url}" alt="${artist.name}">`
+          : `<div class="artist-header-ph"><i class="ti ti-user"></i></div>`}
+        <div>
+          <div class="artist-header-badge">👑 Confirmed Artist</div>
+          <div class="artist-header-name">${artist.name}</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px">${liveries.length} published liveries</div>
+        </div>
+      </div>`;
+
+    if (!liveries.length) {
+      document.getElementById('no-liveries').style.display = 'block';
+    } else {
+      document.getElementById('liveries-list').innerHTML = liveries.map((l, i) => renderLiveryCard(l, i)).join('');
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  }
+
+  function showInvalid() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('invalid').style.display = 'block';
+  }
+
+  init();
+</script>
+</body>
+</html>

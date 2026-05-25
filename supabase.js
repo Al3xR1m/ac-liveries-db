@@ -93,6 +93,46 @@ async function createArtist(p) { const { error } = await db.from('artists').inse
 async function updateArtist(id, p) { const { error } = await db.from('artists').update(p).eq('id', id); return !error; }
 async function deleteArtist(id) { const { error } = await db.from('artists').delete().eq('id', id); return !error; }
 
+// Generate a random token and save it to the artist
+async function generateArtistToken(id) {
+  const token = 'art_' + Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(36)).join('').slice(0, 32);
+  const { error } = await db.from('artists').update({ edit_token: token }).eq('id', id);
+  return error ? null : token;
+}
+
+// Get artist + their liveries by token (for artist-edit page)
+async function fetchArtistByToken(token) {
+  const { data } = await db.from('artists').select('*').eq('edit_token', token).single();
+  return data || null;
+}
+async function fetchLiveriesByToken(token) {
+  // Get artist id from token first
+  const artist = await fetchArtistByToken(token);
+  if (!artist) return [];
+  const { data } = await db.from('liveries')
+    .select('*, mods(name), categories(name,color_bg,color_text), championships(name,short_name)')
+    .eq('artist_id', artist.id)
+    .eq('approved', true)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+// Update livery as artist (server validates token + ownership)
+async function updateLiveryAsArtist(token, liveryId, payload) {
+  const { data, error } = await db.rpc('update_livery_as_artist', {
+    p_token:        token,
+    p_livery_id:    liveryId,
+    p_image_url:    payload.image_url    || null,
+    p_download_url: payload.download_url || null,
+    p_notes:        payload.notes        || null,
+    p_is_paid:      payload.is_paid      || false,
+    p_driver:       payload.driver       || null,
+    p_team:         payload.team         || null,
+  });
+  if (error) { console.error(error); return false; }
+  return data === true;
+}
+
 async function fetchArtistStats() {
   // Returns artists with livery count and total upvotes
   const { data: liveries } = await db.from('liveries').select('artist_id, upvotes').eq('approved', true).not('artist_id', 'is', null);
