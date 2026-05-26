@@ -93,10 +93,10 @@ async function createArtist(p) { const { error } = await db.from('artists').inse
 async function updateArtist(id, p) { const { error } = await db.from('artists').update(p).eq('id', id); return !error; }
 async function deleteArtist(id) { const { error } = await db.from('artists').delete().eq('id', id); return !error; }
 
-// Generate a random token and save it to the artist
+// Generate a random token and save it to the artist via RPC (bypasses RLS)
 async function generateArtistToken(id) {
   const token = 'art_' + Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(36)).join('').slice(0, 32);
-  const { error } = await db.from('artists').update({ edit_token: token }).eq('id', id);
+  const { error } = await db.rpc('set_artist_token', { p_artist_id: id, p_token: token });
   return error ? null : token;
 }
 
