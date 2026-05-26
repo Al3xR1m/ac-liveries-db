@@ -487,13 +487,19 @@ async function editArtistModal(id){
 }
 async function doDeleteArtist(id){if(!confirm('Remove this confirmed artist? Their liveries will keep the text author name.'))return;await deleteArtist(id);await reloadCache();await loadArtists();}
 
+function getBaseUrl() {
+  // Gets the base path including subfolder (e.g. /ac-liveries-db/)
+  const path = location.pathname.replace(/\/[^/]*$/, '/');
+  return location.origin + path;
+}
+
 async function doGenerateToken(id) {
   if (!confirm('Generate an edit link for this artist? The old link (if any) will be replaced.')) return;
   const token = await generateArtistToken(id);
   if (token) {
     await reloadCache();
     await loadArtists();
-    const link = `${location.origin}/artist-edit.html?token=${token}`;
+    const link = `${getBaseUrl()}artist-edit.html?token=${token}`;
     await navigator.clipboard.writeText(link);
     alert(`✓ Link generated and copied to clipboard!\n\nSend this to the artist via Discord:\n${link}`);
   } else {
@@ -507,14 +513,14 @@ async function doRevokeToken(id) {
   if (token) {
     await reloadCache();
     await loadArtists();
-    const link = `${location.origin}/artist-edit.html?token=${token}`;
+    const link = `${getBaseUrl()}artist-edit.html?token=${token}`;
     await navigator.clipboard.writeText(link);
     alert(`✓ New link generated and copied!\n\n${link}`);
   }
 }
 
 function copyArtistLink(token) {
-  const link = `${location.origin}/artist-edit.html?token=${token}`;
+  const link = `${getBaseUrl()}artist-edit.html?token=${token}`;
   navigator.clipboard.writeText(link).then(() => alert(`✓ Link copied to clipboard!\n\n${link}`));
 }
 
