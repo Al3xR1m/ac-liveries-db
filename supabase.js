@@ -89,9 +89,23 @@ async function fetchArtists() {
 async function fetchArtist(id) {
   const { data } = await db.from('artists').select('*').eq('id', id).single(); return data || null;
 }
-async function createArtist(p) { const { error } = await db.from('artists').insert([p]); return !error; }
-async function updateArtist(id, p) { const { error } = await db.from('artists').update(p).eq('id', id); return !error; }
-async function deleteArtist(id) { const { error } = await db.from('artists').delete().eq('id', id); return !error; }
+async function createArtist(p) {
+  const { error } = await db.rpc('create_artist', {
+    p_name: p.name, p_avatar_url: p.avatar_url || null,
+    p_discord: p.discord || null, p_bio: p.bio || null
+  });
+  return !error;
+}
+async function updateArtist(id, p) {
+  const { error } = await db.rpc('update_artist', {
+    p_id: id, p_name: p.name, p_avatar_url: p.avatar_url || null,
+    p_discord: p.discord || null, p_bio: p.bio || null
+  });
+  return !error;
+}
+async function deleteArtist(id) {
+  const { error } = await db.rpc('delete_artist', { p_id: id }); return !error;
+}
 
 // Generate a random token and save it to the artist via RPC (bypasses RLS)
 async function generateArtistToken(id) {
