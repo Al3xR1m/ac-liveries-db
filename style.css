@@ -81,19 +81,20 @@ img{display:block;max-width:100%}
 .livery-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
 
 /* Cover */
-.card-cover{height:130px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
-.card-cover img{width:100%;height:100%;object-fit:cover}
+.card-cover{height:130px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;background:var(--bg2)}
+.card-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.card-cover svg{position:absolute;inset:0;width:100%;height:100%}
 
 /* Gradient overlay on image */
-.card-cover-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.2) 45%, transparent 100%)}
+.card-cover-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.25) 50%, transparent 100%);z-index:1}
 
 /* Name + mod overlaid on image */
-.card-name-overlay{position:absolute;bottom:0;left:0;right:0;padding:10px 11px 8px}
-.card-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-bottom:1px;text-shadow:0 1px 4px rgba(0,0,0,.8),0 0 12px rgba(0,0,0,.6)}
-.card-mod{font-size:10px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.card-name-overlay{position:absolute;bottom:0;left:0;right:0;padding:10px 11px 8px;z-index:3}
+.card-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-bottom:1px;text-shadow:0 1px 6px rgba(0,0,0,1),0 0 16px rgba(0,0,0,.8)}
+.card-mod{font-size:10px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,1)}
 
 /* Top badges on image */
-.card-top-badges{position:absolute;top:8px;left:8px;right:36px;display:flex;align-items:center;gap:6px}
+.card-top-badges{position:absolute;top:8px;left:8px;right:36px;display:flex;align-items:center;gap:6px;z-index:3}
 .card-paid-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;backdrop-filter:blur(4px)}
 
 /* Info row below image */
@@ -113,11 +114,11 @@ img{display:block;max-width:100%}
 .hs{width:3px;border-radius:2px;background:var(--green)}
 
 /* Crown badge */
-.crown-badge{background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px);flex-shrink:0}
+.crown-badge{background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px);flex-shrink:0;z-index:3}
 .crown-text{font-size:10px;font-weight:600;color:#FFD700;white-space:nowrap}
 
 /* Report button */
-.report-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,color .15s;backdrop-filter:blur(4px)}
+.report-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,color .15s;backdrop-filter:blur(4px);z-index:4}
 .livery-card:hover .report-btn{opacity:1}
 .report-btn:hover{color:#e63312}
 
