@@ -76,41 +76,59 @@ img{display:block;max-width:100%}
 .view-btn:hover,.view-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
 /* ---- Gallery grid ---- */
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:40px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:40px}
 .livery-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;position:relative}
 .livery-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
-.card-cover{height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+
+/* Cover */
+.card-cover{height:130px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
 .card-cover img{width:100%;height:100%;object-fit:cover}
-.card-body{padding:10px 12px}
-.card-mod{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-name{font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
-.card-footer{display:flex;align-items:center;justify-content:space-between}
-.cat-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px}
 
-/* ---- Crown badge (confirmed artist) ---- */
-.crown-badge{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.55);border-radius:6px;padding:2px 6px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px)}
-.crown-text{font-size:10px;font-weight:600;color:#FFD700;white-space:nowrap}
+/* Gradient overlay on image */
+.card-cover-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.2) 45%, transparent 100%)}
 
-/* ---- Upvote ---- */
-.upvote-btn{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:4px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .12s}
+/* Name + mod overlaid on image */
+.card-name-overlay{position:absolute;bottom:0;left:0;right:0;padding:10px 11px 8px}
+.card-name{font-size:13px;font-weight:500;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25;margin-bottom:1px;text-shadow:0 1px 4px rgba(0,0,0,.8),0 0 12px rgba(0,0,0,.6)}
+.card-mod{font-size:10px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+
+/* Top badges on image */
+.card-top-badges{position:absolute;top:8px;left:8px;right:36px;display:flex;align-items:center;gap:6px}
+.card-paid-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;backdrop-filter:blur(4px)}
+
+/* Info row below image */
+.card-body{padding:8px 10px 0}
+.card-info-row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:0}
+.card-champ{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;min-width:0;flex:1}
+.card-champ span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;flex-shrink:0}
+
+/* Upvote row */
+.card-upvote-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px 9px;border-top:1px solid var(--border);margin-top:7px}
+.card-upvote-count{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--text2)}
+.upvote-btn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .12s;flex-shrink:0}
 .upvote-btn:hover{background:var(--green-bg);border-color:var(--green);color:var(--green)}
 .upvote-btn.voted{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.heat{display:flex;gap:2px;align-items:flex-end;margin-left:3px}
+.heat{display:flex;gap:2px;align-items:flex-end}
 .hs{width:3px;border-radius:2px;background:var(--green)}
 
-/* ---- Report button ---- */
-.report-btn{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,color .15s;backdrop-filter:blur(4px)}
+/* Crown badge */
+.crown-badge{background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px);flex-shrink:0}
+.crown-text{font-size:10px;font-weight:600;color:#FFD700;white-space:nowrap}
+
+/* Report button */
+.report-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,color .15s;backdrop-filter:blur(4px)}
 .livery-card:hover .report-btn{opacity:1}
 .report-btn:hover{color:#e63312}
 
-/* ---- Gallery list view ---- */
+/* List view */
 .gallery.list-view{grid-template-columns:1fr}
-.gallery.list-view .livery-card{display:grid;grid-template-columns:120px 1fr}
-.gallery.list-view .card-cover{height:80px}
-.gallery.list-view .card-body{padding:10px 14px;display:flex;flex-direction:column;justify-content:center}
-.gallery.list-view .card-name{font-size:14px;margin-bottom:4px}
-.gallery.list-view .crown-badge{top:4px;left:4px}
-.gallery.list-view .report-btn{top:4px;right:4px}
+.gallery.list-view .livery-card{display:grid;grid-template-columns:140px 1fr}
+.gallery.list-view .card-cover{height:100%}
+.gallery.list-view .card-body{padding:10px 12px 0}
+.gallery.list-view .card-upvote-row{padding:7px 12px 9px}
+.gallery.list-view .crown-badge{top:6px;left:6px}
+.gallery.list-view .report-btn{top:6px;right:6px}
 
 /* ---- Empty / skeleton ---- */
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}
