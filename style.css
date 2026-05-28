@@ -123,13 +123,71 @@ img{display:block;max-width:100%}
 .report-btn:hover{color:#e63312}
 
 /* List view */
-.gallery.list-view{grid-template-columns:1fr}
-.gallery.list-view .livery-card{display:grid;grid-template-columns:140px 1fr}
-.gallery.list-view .card-cover{height:100%}
-.gallery.list-view .card-body{padding:10px 12px 0}
-.gallery.list-view .card-upvote-row{padding:7px 12px 9px}
-.gallery.list-view .crown-badge{top:6px;left:6px}
-.gallery.list-view .report-btn{top:6px;right:6px}
+.gallery.list-view {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+.gallery.list-view .livery-card {
+  display: flex;
+  height: 80px;
+  overflow: visible; /* pour le report-btn */
+}
+/* Thumbnail */
+.gallery.list-view .card-cover {
+  width: 120px;
+  flex-shrink: 0;
+  height: 100%;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+/* Masquer les overlays texte sur l'image (inutiles en list view) */
+.gallery.list-view .card-name-overlay,
+.gallery.list-view .card-cover-overlay {
+  display: none;
+}
+/* Corps de la card */
+.gallery.list-view .card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 12px;
+}
+/* Bloc nom + mod */
+.gallery.list-view .card-body .card-info-row {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  margin-bottom: 0;
+}
+/* Rangée votes repositionnée */
+.gallery.list-view .card-upvote-row {
+  flex-shrink: 0;
+  border-top: none;
+  border-left: 1px solid var(--border);
+  padding: 0 12px;
+  margin-top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+/* Report btn */
+.gallery.list-view .report-btn {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  top: auto;
+}
+/* Badges paid/crown : repositionnés */
+.gallery.list-view .card-top-badges {
+  top: 5px;
+  left: 5px;
+  right: auto;
+}
 
 /* ---- Empty / skeleton ---- */
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}
