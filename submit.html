@@ -126,9 +126,9 @@
       </div>
 
       <div class="field full">
-        <label>Screenshot image URL</label>
-        <input type="url" id="f-img" placeholder="https://… (direct link to an image)">
-        <div class="field-hint">Paste a direct image URL. Leave empty to use a generated car preview.</div>
+        <label>Preview image</label>
+        <div id="f-img-widget"></div>
+        <div class="field-hint">Upload a screenshot of your livery in-game. Leave empty to use a generated car preview.</div>
       </div>
 
       <div class="field full">
@@ -160,6 +160,79 @@
   });
 
   let selectedArtistId = null;
+  let getPreviewImageUrl = () => null;
+
+  // ---- Image compression + upload ----
+  async function compressImage(file, maxW=800, maxH=600, quality=0.82) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const ratio = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight, 1);
+        const cw = Math.round(img.naturalWidth*ratio);
+        const ch = Math.round(img.naturalHeight*ratio);
+        const canvas = document.createElement('canvas');
+        canvas.width=cw; canvas.height=ch;
+        canvas.getContext('2d').drawImage(img,0,0,cw,ch);
+        canvas.toBlob(blob=>resolve(blob),'image/jpeg',quality);
+      };
+      img.onerror=reject; img.src=url;
+    });
+  }
+
+  async function uploadImage(blob) {
+    const path = `liveries/${Date.now()}_submit.jpg`;
+    const { error } = await db.storage.from('images').upload(path, blob, { contentType:'image/jpeg', upsert:false });
+    if (error) { console.error(error); return null; }
+    const { data } = db.storage.from('images').getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
+  function initUploadWidget() {
+    const container = document.getElementById('f-img-widget');
+    let currentUrl = null;
+    container.innerHTML = `
+      <label class="upload-btn" id="submit-upload-btn" style="display:flex;align-items:center;gap:6px;padding:9px 12px;border:1px dashed var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);font-size:13px;cursor:pointer;transition:all .12s;width:100%;justify-content:center">
+        <i class="ti ti-upload" style="font-size:15px"></i> Upload preview image
+        <input type="file" accept="image/jpeg,image/png,image/webp" style="display:none" id="submit-img-input">
+      </label>
+      <img id="submit-img-preview" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border);margin-top:6px" alt="preview">
+      <div id="submit-img-progress" style="font-size:11px;color:var(--text3);margin-top:4px;display:none"></div>`;
+
+    const input = document.getElementById('submit-img-input');
+    const btn   = document.getElementById('submit-upload-btn');
+    const prev  = document.getElementById('submit-img-preview');
+    const prog  = document.getElementById('submit-img-progress');
+
+    input.addEventListener('change', async () => {
+      const file = input.files[0]; if (!file) return;
+      if (file.size > 2*1024*1024) { alert('File too large. Max 2MB.'); return; }
+      btn.style.opacity='.6'; btn.style.pointerEvents='none';
+      btn.innerHTML=`<i class="ti ti-loader" style="font-size:15px"></i> Compressing…`;
+      prog.style.display='block'; prog.textContent='Compressing image…';
+      try {
+        const blob = await compressImage(file);
+        prog.textContent=`Compressed to ${(blob.size/1024).toFixed(0)}KB. Uploading…`;
+        const url = await uploadImage(blob);
+        if (url) {
+          currentUrl=url;
+          prev.src=url; prev.style.display='block';
+          prog.textContent=`✓ Image uploaded successfully.`;
+          btn.innerHTML=`<i class="ti ti-check" style="font-size:15px;color:var(--green)"></i> Image uploaded — click to replace`;
+        } else {
+          prog.textContent='✗ Upload failed. Check your connection and try again.';
+          btn.innerHTML=`<i class="ti ti-upload" style="font-size:15px"></i> Upload preview image`;
+        }
+      } catch(e) {
+        prog.textContent='✗ Error processing image.';
+        btn.innerHTML=`<i class="ti ti-upload" style="font-size:15px"></i> Upload preview image`;
+      }
+      btn.style.opacity='1'; btn.style.pointerEvents='auto';
+    });
+
+    return () => currentUrl;
+  }
 
   // Load artist picker
   async function loadArtistPicker() {
@@ -271,7 +344,7 @@
       author:          author || null,
       artist_id:       selectedArtistId || null,
       download_url:    url,
-      image_url:       document.getElementById('f-img').value.trim(),
+      image_url:       getPreviewImageUrl() || null,
       notes:           document.getElementById('f-notes').value.trim(),
       is_paid:         document.getElementById('r-paid').checked,
     });
@@ -295,6 +368,7 @@
 
   loadArtistPicker();
   loadSelects();
+  getPreviewImageUrl = initUploadWidget();
 </script>
 </body>
 </html>
