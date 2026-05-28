@@ -237,11 +237,82 @@ async function fetchStats() {
   return { total: data.length, mods, votes, top: top ? top.upvotes + ' votes' : '—' };
 }
 async function fetchAdminStats() {
-  const [{ count: total }, { count: pending }, { count: totalVotes }, { count: openReports }] = await Promise.all([
+  const [{ count: total }, { count: pending }, { count: totalVotes }, { count: openReports }, { count: pendingAddons }] = await Promise.all([
     db.from('liveries').select('*', { count: 'exact', head: true }).eq('approved', true),
     db.from('liveries').select('*', { count: 'exact', head: true }).eq('approved', false),
     db.from('votes').select('*', { count: 'exact', head: true }),
     db.from('reports').select('*', { count: 'exact', head: true }).eq('resolved', false),
+    db.from('addons').select('*', { count: 'exact', head: true }).eq('approved', false),
   ]);
-  return { total: total || 0, pending: pending || 0, totalVotes: totalVotes || 0, openReports: openReports || 0 };
+  return { total: total || 0, pending: pending || 0, totalVotes: totalVotes || 0, openReports: openReports || 0, pendingAddons: pendingAddons || 0 };
+}
+
+// ============================================
+// ADDONS
+// ============================================
+async function fetchAddons({ modId, categoryId, search, sort, approvedOnly = true } = {}) {
+  let q = db.from('addons').select('*, mods(name), categories(name,color_bg,color_text), artists(id,name,avatar_url)');
+  if (approvedOnly) q = q.eq('approved', true);
+  if (modId)      q = q.eq('mod_id', modId);
+  if (categoryId) q = q.eq('category_id', categoryId);
+  if (search)     q = q.or(`name.ilike.%${search}%,author.ilike.%${search}%`);
+  if (sort === 'votes')       q = q.order('upvotes', { ascending: false });
+  else if (sort === 'newest') q = q.order('created_at', { ascending: false });
+  else                        q = q.order('name', { ascending: true });
+  const { data, error } = await q;
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+async function fetchPendingAddons() {
+  const { data } = await db.from('addons')
+    .select('*, mods(name), categories(name,color_bg,color_text), artists(name)')
+    .eq('approved', false).order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function submitAddon(payload) {
+  const { error } = await db.from('addons').insert([{ ...payload, approved: false }]); return !error;
+}
+async function updateAddon(id, payload) {
+  const { error } = await db.from('addons').update(payload).eq('id', id); return !error;
+}
+async function deleteAddon(id) {
+  const { error } = await db.from('addons').delete().eq('id', id); return !error;
+}
+async function approveAddon(id) { return updateAddon(id, { approved: true }); }
+
+async function upvoteAddon(id) {
+  const fp = getFingerprint();
+  const voted = getVotedSet('addon');
+  if (voted.has(id)) return false;
+  const { error } = await db.rpc('increment_addon_upvote', { addon_id: id, browser_fp: fp });
+  if (!error) { addVotedAddon(id); return true; }
+  return false;
+}
+async function removeUpvoteAddon(id) {
+  const fp = getFingerprint();
+  if (!getVotedSet('addon').has(id)) return false;
+  const { error } = await db.rpc('remove_addon_upvote', { p_addon_id: id, browser_fp: fp });
+  if (!error) { removeVotedAddon(id); return true; }
+  return false;
+}
+
+function getVotedSet(type = 'livery') {
+  const key = type === 'addon' ? 'acliveries_voted_addons' : 'acliveries_voted';
+  try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch { return new Set(); }
+}
+function addVotedAddon(id) {
+  const s = getVotedSet('addon'); s.add(id); localStorage.setItem('acliveries_voted_addons', JSON.stringify([...s]));
+}
+function removeVotedAddon(id) {
+  const s = getVotedSet('addon'); s.delete(id); localStorage.setItem('acliveries_voted_addons', JSON.stringify([...s]));
+}
+
+// ============================================
+// MOD DETAIL
+// ============================================
+async function fetchModDetail(id) {
+  const { data } = await db.from('mods').select('*, categories(name,color_bg,color_text)').eq('id', id).single();
+  return data || null;
 }

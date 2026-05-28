@@ -50,6 +50,17 @@
   </div>
 
   <div class="form-card" id="formCard">
+
+    <!-- Toggle Livery / Addon -->
+    <div class="submit-toggle" id="submit-toggle">
+      <button class="submit-toggle-btn active" id="toggle-livery" onclick="setMode('livery')">
+        <i class="ti ti-photo"></i> Livery
+      </button>
+      <button class="submit-toggle-btn" id="toggle-addon" onclick="setMode('addon')">
+        <i class="ti ti-puzzle"></i> Addon
+      </button>
+    </div>
+
     <div class="form-grid">
 
       <div class="field full">
@@ -75,17 +86,29 @@
         <div class="field-hint" id="champ-hint"></div>
       </div>
 
-      <div class="field">
+      <!-- Addon type (shown only in addon mode) -->
+      <div class="field" id="addon-type-field" style="display:none">
+        <label>Addon type *</label>
+        <select id="f-addon-type">
+          <option value="tyre_skin">Tyre skin</option>
+          <option value="3d_asset">3D asset</option>
+          <option value="shader">Shader / Visual</option>
+          <option value="ui">UI element</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field livery-only">
         <label>Team name</label>
         <input type="text" id="f-team" placeholder="e.g. RedBull Racing">
       </div>
 
-      <div class="field">
+      <div class="field livery-only">
         <label>Driver(s)</label>
         <input type="text" id="f-driver" placeholder="e.g. Max Verstappen">
       </div>
 
-      <div class="field">
+      <div class="field livery-only">
         <label>Season / Year</label>
         <input type="text" id="f-season" placeholder="e.g. 2023">
       </div>
@@ -162,6 +185,19 @@
 
   let selectedArtistId = null;
   let getPreviewImageUrl = () => null;
+  let currentMode = 'livery';
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('toggle-livery').classList.toggle('active', mode==='livery');
+    document.getElementById('toggle-addon').classList.toggle('active', mode==='addon');
+    document.getElementById('addon-type-field').style.display = mode==='addon' ? '' : 'none';
+    document.querySelectorAll('.livery-only').forEach(el => el.style.display = mode==='livery' ? '' : 'none');
+    // Update page subtitle
+    document.querySelector('.page-sub').textContent = mode==='livery'
+      ? 'Share your livery with the community. All submissions are reviewed before publication.'
+      : 'Share your addon (tyre skin, 3D asset, shader…) with the community.';
+  }
 
   // ---- Image compression + upload ----
   async function compressImage(file, maxW=800, maxH=600, quality=0.82) {
@@ -334,21 +370,30 @@
     const btn = document.getElementById('submitBtn');
     btn.disabled = true; btn.textContent = 'Submitting…';
 
-    const ok = await submitLivery({
-      name,
-      mod_id:          mod,
-      category_id:     cat,
-      championship_id: document.getElementById('f-champ').value || null,
-      team:            document.getElementById('f-team').value.trim(),
-      driver:          document.getElementById('f-driver').value.trim(),
-      season:          document.getElementById('f-season').value.trim(),
-      author:          author || null,
-      artist_id:       selectedArtistId || null,
-      download_url:    url,
-      image_url:       getPreviewImageUrl() || null,
-      notes:           document.getElementById('f-notes').value.trim(),
-      is_paid:         document.getElementById('r-paid').checked,
-    });
+    let ok = false;
+    const base = {
+      name, mod_id: mod, category_id: cat,
+      author: author || null, artist_id: selectedArtistId || null,
+      download_url: url,
+      image_url: getPreviewImageUrl() || null,
+      notes: document.getElementById('f-notes').value.trim(),
+      is_paid: document.getElementById('r-paid').checked,
+    };
+
+    if (currentMode === 'livery') {
+      ok = await submitLivery({
+        ...base,
+        championship_id: document.getElementById('f-champ').value || null,
+        team:   document.getElementById('f-team').value.trim(),
+        driver: document.getElementById('f-driver').value.trim(),
+        season: document.getElementById('f-season').value.trim(),
+      });
+    } else {
+      ok = await submitAddon({
+        ...base,
+        addon_type: document.getElementById('f-addon-type').value,
+      });
+    }
 
     if (ok) {
       document.getElementById('formCard').innerHTML = `

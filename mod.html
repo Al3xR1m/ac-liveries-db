@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mod — AC Liveries DB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Marked.js for markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
+    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Gallery</a>
+    <a href="mods.html" class="active">RSS Mods</a>
+    <a href="artists.html">Artists</a>
+    <a href="submit.html">Submit</a>
+    <a href="about.html">About</a>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
+    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  </div>
+</nav>
+
+<div class="container" style="padding-bottom:60px">
+
+  <div style="padding:16px 0 0">
+    <a href="mods.html" style="font-size:13px;color:var(--text2);display:inline-flex;align-items:center;gap:6px">
+      <i class="ti ti-arrow-left" style="font-size:15px"></i> All RSS Mods
+    </a>
+  </div>
+
+  <!-- Loading -->
+  <div id="loading" style="text-align:center;padding:60px 20px;color:var(--text3)">
+    <i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px"></i>
+    Loading mod…
+  </div>
+
+  <!-- Main content -->
+  <div id="main" style="display:none">
+
+    <!-- Mod header -->
+    <div class="mod-detail-header" id="mod-header"></div>
+
+    <!-- Tabs: Liveries / Addons / Patch Notes -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="liveries">
+        <i class="ti ti-photo"></i> Liveries <span class="tab-count" id="tab-count-liveries">0</span>
+      </button>
+      <button class="tab-btn" data-tab="addons">
+        <i class="ti ti-puzzle"></i> Addons <span class="tab-count" id="tab-count-addons">0</span>
+      </button>
+      <button class="tab-btn" data-tab="patchnotes">
+        <i class="ti ti-notes"></i> Patch Notes
+      </button>
+    </div>
+
+    <!-- Tab: Liveries -->
+    <div class="tab-panel active" id="tab-liveries">
+      <div class="gallery" id="liveries-grid"></div>
+    </div>
+
+    <!-- Tab: Addons -->
+    <div class="tab-panel" id="tab-addons">
+      <div class="gallery" id="addons-grid"></div>
+    </div>
+
+    <!-- Tab: Patch Notes -->
+    <div class="tab-panel" id="tab-patchnotes">
+      <div id="patchnotes-content" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:780px"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="supabase.js"></script>
+<script>
+  // Theme
+  const root = document.documentElement;
+  const saved = localStorage.getItem('acliveries_theme') || 'dark';
+  root.setAttribute('data-theme', saved);
+  document.getElementById('themeIcon').className = saved === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); localStorage.setItem('acliveries_theme', next);
+    document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Car SVG
+  const CAT_COLORS = { Formula:['#E82020','#003087','#006400','#FF8000'], GT:['#C8A800','#E82020','#003087'], Hillclimb:['#E87000','#E82020'], Touring:['#534AB7','#E82020'] };
+  const CAT_BG_MAP = { Formula:'#0d0d1f', GT:'#0d1a0d', Hillclimb:'#1a0d00', Touring:'#1a001a' };
+  function carSVG(cat, seed) {
+    const p = CAT_COLORS[cat]||CAT_COLORS.Formula; const col=p[seed%p.length]; const num=(seed*7+1)%99+1; const bg=CAT_BG_MAP[cat]||'#111';
+    return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
+  }
+  function heatBars(v, max) {
+    const ratio=max>0?v/max:0; const filled=Math.round(ratio*5);
+    return [5,8,11,14,17].map((h,i)=>`<div class="hs" style="height:${h}px;opacity:${i<filled?1:.15}"></div>`).join('');
+  }
+
+  // Render livery card
+  function renderLiveryCard(l, maxVotes) {
+    const voted = getVotedSet();
+    const cn = l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
+    const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
+    const isVoted = voted.has(l.id);
+    const isArtist = !!l.artists;
+    const crownBadge = isArtist ? `<div class="crown-badge">👑<span class="crown-text">${l.artists.name}</span></div>` : '';
+    const paidBadge = l.is_paid
+      ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+      : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+    return `
+      <div class="livery-card" onclick="location.href='livery.html?id=${l.id}'">
+        <div class="card-cover">
+          ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed)}
+          <div class="card-cover-overlay"></div>
+          <div class="card-top-badges">${crownBadge}${paidBadge}</div>
+          <div class="card-name-overlay">
+            <div class="card-name">${l.name}</div>
+            <div class="card-mod">${l.mods?.name||'—'}</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-info-row">
+            ${l.championships?.short_name?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`:`<div class="card-champ" style="color:var(--text3)">—</div>`}
+            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+          </div>
+        </div>
+        <div class="card-upvote-row">
+          <div class="card-upvote-count">
+            <div class="heat">${heatBars(l.upvotes,maxVotes)}</div>
+            ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
+          </div>
+          <button class="upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleLiveryVote('${l.id}',this,event)">
+            <i class="ti ti-thumb-up" style="font-size:12px"></i> ${isVoted?'Upvoted':'Upvote'}
+          </button>
+        </div>
+      </div>`;
+  }
+
+  // Render addon card
+  function renderAddonCard(a, maxVotes) {
+    const votedAddons = getVotedSet('addon');
+    const cn = a.categories?.name||''; const bg=a.categories?.color_bg||'#E6F1FB'; const tc=a.categories?.color_text||'#0C447C';
+    const isVoted = votedAddons.has(a.id);
+    const paidBadge = a.is_paid
+      ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+      : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+    const addonTypeBadge = `<span class="addon-type-badge">${a.addon_type||'Addon'}</span>`;
+    return `
+      <div class="livery-card">
+        <div class="card-cover" style="background:var(--bg2);cursor:default">
+          ${a.image_url?`<img src="${a.image_url}" alt="${a.name}" loading="lazy">`:`<i class="ti ti-puzzle" style="font-size:32px;color:var(--text3)"></i>`}
+          <div class="card-cover-overlay"></div>
+          <div class="card-top-badges">${addonTypeBadge}${paidBadge}</div>
+          <div class="card-name-overlay">
+            <div class="card-name">${a.name}</div>
+            <div class="card-mod">${a.author||a.artists?.name||'—'}</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-info-row">
+            <div class="card-champ" style="color:var(--text2)">${a.notes?a.notes.slice(0,40)+(a.notes.length>40?'…':''):'—'}</div>
+            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+          </div>
+        </div>
+        <div class="card-upvote-row">
+          <div class="card-upvote-count">
+            <div class="heat">${heatBars(a.upvotes,maxVotes)}</div>
+            ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${a.download_url?`<a href="${a.download_url}" target="_blank" onclick="event.stopPropagation()" class="upvote-btn" style="text-decoration:none"><i class="ti ti-download" style="font-size:12px"></i></a>`:''}
+            <button class="upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleAddonVote('${a.id}',this)">
+              <i class="ti ti-thumb-up" style="font-size:12px"></i> ${isVoted?'Upvoted':'Upvote'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  let liveries = [], addons = [];
+
+  async function handleLiveryVote(id, btn) {
+    const isVoted = getVotedSet().has(id);
+    const l = liveries.find(x=>x.id===id);
+    if (isVoted) { const ok=await removeUpvoteLivery(id); if(ok&&l){l.upvotes=Math.max(0,l.upvotes-1);btn.className='upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvote';} }
+    else { const ok=await upvoteLivery(id); if(ok&&l){l.upvotes++;btn.className='upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvoted';} }
+  }
+
+  async function handleAddonVote(id, btn) {
+    const isVoted = getVotedSet('addon').has(id);
+    const a = addons.find(x=>x.id===id);
+    if (isVoted) { const ok=await removeUpvoteAddon(id); if(ok&&a){a.upvotes=Math.max(0,a.upvotes-1);btn.className='upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvote';} }
+    else { const ok=await upvoteAddon(id); if(ok&&a){a.upvotes++;btn.className='upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvoted';} }
+  }
+
+  async function init() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if (!id) { location.href='mods.html'; return; }
+
+    const [mod, livs, adds] = await Promise.all([
+      fetchModDetail(id),
+      fetchLiveries({ modId: id, sort: 'votes' }),
+      fetchAddons({ modId: id, sort: 'votes' }),
+    ]);
+
+    if (!mod) { location.href='mods.html'; return; }
+
+    liveries = livs;
+    addons   = adds;
+    document.title = `${mod.name} — AC Liveries DB`;
+
+    // Update tab counts
+    document.getElementById('tab-count-liveries').textContent = livs.length;
+    document.getElementById('tab-count-addons').textContent   = adds.length;
+
+    // Mod header
+    const catBadge = mod.categories
+      ? `<span class="cat-badge" style="background:${mod.categories.color_bg};color:${mod.categories.color_text}">${mod.categories.name}</span>`
+      : '';
+    document.getElementById('mod-header').innerHTML = `
+      <div class="mod-detail-cover">
+        ${mod.image_url
+          ? `<img src="${mod.image_url}" alt="${mod.name}">`
+          : `<i class="ti ti-car" style="font-size:48px;color:var(--text3)"></i>`}
+      </div>
+      <div class="mod-detail-info">
+        <div>${catBadge}</div>
+        <div class="mod-detail-title">${mod.name}</div>
+        ${mod.version ? `<div class="mod-detail-version"><i class="ti ti-tag" style="font-size:12px"></i> Version ${mod.version}</div>` : ''}
+        ${mod.description ? `<div class="mod-detail-desc">${mod.description}</div>` : ''}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+          <span style="font-size:13px;color:var(--text2)"><i class="ti ti-photo" style="font-size:13px"></i> ${livs.length} liveries</span>
+          <span style="font-size:13px;color:var(--text2)"><i class="ti ti-puzzle" style="font-size:13px"></i> ${adds.length} addons</span>
+        </div>
+        ${mod.official_url ? `<a href="${mod.official_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);margin-top:4px"><i class="ti ti-external-link"></i> Official page</a>` : ''}
+      </div>`;
+
+    // Liveries tab
+    const maxLivVotes = livs.length ? Math.max(...livs.map(l=>l.upvotes),1) : 1;
+    const livGrid = document.getElementById('liveries-grid');
+    livGrid.innerHTML = livs.length
+      ? livs.map(l => renderLiveryCard(l, maxLivVotes)).join('')
+      : `<div class="empty"><i class="ti ti-photo-off"></i><p>No liveries yet for this mod. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+
+    // Addons tab
+    const maxAddVotes = adds.length ? Math.max(...adds.map(a=>a.upvotes),1) : 1;
+    const addGrid = document.getElementById('addons-grid');
+    addGrid.innerHTML = adds.length
+      ? adds.map(a => renderAddonCard(a, maxAddVotes)).join('')
+      : `<div class="empty"><i class="ti ti-puzzle-off"></i><p>No addons yet for this mod. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+
+    // Patch notes tab (markdown)
+    const pn = document.getElementById('patchnotes-content');
+    if (mod.changelog) {
+      pn.innerHTML = `<div class="md-content">${marked.parse(mod.changelog)}</div>`;
+    } else {
+      pn.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3)"><i class="ti ti-notes" style="font-size:32px;display:block;margin-bottom:12px"></i><p>No patch notes yet for this mod.</p></div>`;
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display    = 'block';
+  }
+
+  init();
+</script>
+</body>
+</html>
