@@ -105,7 +105,7 @@
       <div class="sidebar-item" data-panel="pending"><i class="ti ti-clock"></i>Pending <span class="badge-count" id="pendingCount">0</span></div>
       <div class="sidebar-item" data-panel="reports"><i class="ti ti-flag"></i>Reports <span class="badge-count orange" id="reportsCount">0</span></div>
       <div class="sidebar-item" data-panel="liveries"><i class="ti ti-photo"></i>All Liveries</div>
-      <div class="sidebar-item" data-panel="addons-pending"><i class="ti ti-puzzle"></i>Addons <span class="badge-count orange" id="addonsCount">0</span></div>
+      <div class="sidebar-item" data-panel="addons"><i class="ti ti-puzzle"></i>All Addons</div>
       <div class="sidebar-label">Manage</div>
       <div class="sidebar-item" data-panel="artists"><i class="ti ti-crown"></i>Artists</div>
       <div class="sidebar-item" data-panel="championships"><i class="ti ti-trophy"></i>Championships</div>
@@ -165,10 +165,13 @@
         <div style="overflow-x:auto"><table class="data-table" id="artists-table"></table></div>
       </div>
 
-      <!-- ADDONS PENDING -->
-      <div class="panel" id="panel-addons-pending">
-        <div class="admin-title"><i class="ti ti-puzzle" style="color:#534AB7"></i>Pending addons</div>
-        <div id="addons-pending-list"><div style="color:var(--text3);font-size:13px">Loading…</div></div>
+      <!-- ALL ADDONS -->
+      <div class="panel" id="panel-addons">
+        <div class="top-row">
+          <div class="admin-title" style="margin:0"><i class="ti ti-puzzle"></i>All Addons</div>
+          <input type="text" class="search-input" id="addon-search" placeholder="Search…" style="max-width:220px">
+        </div>
+        <div style="overflow-x:auto"><table class="data-table" id="addons-table"></table></div>
       </div>
       <div class="panel" id="panel-championships">
         <div class="top-row">
@@ -277,7 +280,7 @@ async function loadPanel(name){
   if(name==='pending')      await loadPending();
   if(name==='reports')      await loadReports();
   if(name==='liveries')     await loadLiveries();
-  if(name==='addons-pending') await loadAddonsPending();
+  if(name==='addons')         await loadAddons();
   if(name==='artists')      await loadArtists();
   if(name==='championships') await loadChampionships();
   if(name==='mods')         await loadMods();
@@ -293,7 +296,7 @@ async function loadDashboard(){
   document.getElementById('as-reports').textContent=stats.openReports;
   document.getElementById('pendingCount').textContent=stats.pending;
   document.getElementById('reportsCount').textContent=stats.openReports;
-  document.getElementById('addonsCount').textContent=stats.pendingAddons;
+  // addonsCount badge removed (addons now in All Addons panel)
 }
 
 // PENDING
@@ -608,32 +611,30 @@ async function editChampModal(id){
 }
 async function doDeleteChamp(id){if(!confirm('Delete this championship?'))return;await deleteChampionship(id);await reloadCache();await loadChampionships();}
 
-// ADDONS PENDING
-async function loadAddonsPending(){
-  const list=await fetchPendingAddons();
-  const el=document.getElementById('addons-pending-list');
-  if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending addon submissions 🎉</div>';return;}
-  el.innerHTML=list.map(a=>`
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-      <div style="flex:1;min-width:200px">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-          <div style="font-family:var(--font-display);font-size:16px;font-weight:700">${a.name}</div>
-          <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg2);color:var(--text2)">${a.addon_type||'addon'}</span>
-          ${a.is_paid?`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#FEF3C7;color:#92400E">Paid</span>`:`<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46">Free</span>`}
-        </div>
-        <div style="font-size:12px;color:var(--text2)"><i class="ti ti-car"></i> ${a.mods?.name||'—'} &nbsp;·&nbsp; Creator: ${a.author||a.artists?.name||'—'}</div>
-        ${a.notes?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${a.notes}</div>`:''}
-        ${a.download_url?`<a href="${a.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download</a>`:''}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;min-width:130px">
-        <button class="action-btn" onclick="editAddonModal('${a.id}',true)"><i class="ti ti-pencil"></i> Edit & approve</button>
-        <button class="action-btn success" onclick="doApproveAddon('${a.id}')"><i class="ti ti-check"></i> Approve</button>
-        <button class="action-btn danger" onclick="doRejectAddon('${a.id}')"><i class="ti ti-x"></i> Reject</button>
-      </div>
-    </div>`).join('');
+async function doApproveAddon(id){if(!confirm('Approve this addon?'))return;await approveAddon(id);await loadPending();await loadDashboard();}
+async function doRejectAddon(id){if(!confirm('Reject and delete this addon?'))return;await deleteAddon(id);await loadPending();await loadDashboard();}
+
+// ALL ADDONS panel (tableau, comme All Liveries)
+async function loadAddons(search=''){
+  const list = await fetchAddons({ search, sort:'newest', approvedOnly:false });
+  const t = document.getElementById('addons-table');
+  if(!list.length){ t.innerHTML='<tr><td style="color:var(--text3)">No addons found.</td></tr>'; return; }
+  t.innerHTML=`<thead><tr><th>Name</th><th>Mod</th><th>Type</th><th>Creator</th><th>Votes</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>${list.map(a=>`<tr>
+    <td><strong>${a.name}</strong></td>
+    <td style="color:var(--text2)">${a.mods?.name||'—'}</td>
+    <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg2);color:var(--text2)">${a.addon_type||'—'}</span></td>
+    <td style="color:var(--text2)">${a.artists?`<span style="color:#FFD700">👑</span> ${a.artists.name}`:a.author||'—'}</td>
+    <td>${a.upvotes||0}</td>
+    <td><span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${a.approved?'var(--green-bg)':'#FAEEDA'};color:${a.approved?'var(--green)':'#633806'}">${a.approved?'Published':'Pending'}</span></td>
+    <td>
+      <button class="action-btn" onclick="editAddonModal('${a.id}',false)"><i class="ti ti-pencil"></i></button>
+      <button class="action-btn danger" onclick="doDeleteAddon('${a.id}')"><i class="ti ti-trash"></i></button>
+    </td>
+  </tr>`).join('')}</tbody>`;
 }
-async function doApproveAddon(id){if(!confirm('Approve this addon?'))return;await approveAddon(id);await loadAddonsPending();await loadDashboard();}
-async function doRejectAddon(id){if(!confirm('Reject and delete this addon?'))return;await deleteAddon(id);await loadAddonsPending();await loadDashboard();}
+document.getElementById('addon-search')?.addEventListener('input', e=>loadAddons(e.target.value));
+async function doDeleteAddon(id){ if(!confirm('Delete this addon permanently?'))return; await deleteAddon(id); await loadAddons(); }
 
 async function editAddonModal(id, isApproval=false){
   const list = await fetchPendingAddons();
@@ -682,7 +683,7 @@ async function editAddonModal(id, isApproval=false){
       approved: isApproval ? true : a.approved,
     });
     closeModal();
-    if(isApproval){await loadAddonsPending();await loadDashboard();}
+    if(isApproval){await loadPending();await loadDashboard();}
   });
   setTimeout(()=>{ window._getAddonImg = buildUploadWidget('ae-img-widget',{currentUrl:a.image_url||'',folder:'addons',label:'Upload preview image'}); },50);
 }
