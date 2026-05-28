@@ -298,9 +298,9 @@ async function loadDashboard(){
 
 // PENDING
 async function loadPending(){
-  const list=await fetchPendingLiveries();
+  const [list, addonList]=await Promise.all([fetchPendingLiveries(), fetchPendingAddons()]);
   const el=document.getElementById('pending-list');
-  if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending submissions 🎉</div>';return;}
+  if(!list.length && !addonList.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending submissions 🎉</div>';return;}
   const CAT_BG_MAP={Formula:'#0d0d1f',GT:'#0d1a0d',Hillclimb:'#1a0d00',Touring:'#1a001a'};
   el.innerHTML=list.map(l=>{
     const catName=l.categories?.name||'';
@@ -339,6 +339,33 @@ async function loadPending(){
         <button class="action-btn danger" onclick="doReject('${l.id}')"><i class="ti ti-x"></i> Reject</button>
       </div>
     </div>`}).join('');
+
+  // Append pending addons
+  if(addonList.length){
+    el.innerHTML += `<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin:20px 0 10px;display:flex;align-items:center;gap:8px"><i class="ti ti-puzzle" style="color:#534AB7"></i> Pending addons (${addonList.length})</div>`;
+    el.innerHTML += addonList.map(a=>`
+    <div style="background:var(--surface);border:1px solid #534AB740;border-radius:var(--radius);padding:16px;margin-bottom:10px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#534AB720;color:#534AB7;border:1px solid #534AB740"><i class="ti ti-puzzle" style="font-size:10px"></i> Addon</span>
+          <div style="font-family:var(--font-display);font-size:17px;font-weight:700">${a.name}</div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg2);color:var(--text2)">${a.addon_type||'addon'}</span>
+          ${a.is_paid?'<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#FEF3C7;color:#92400E">Paid</span>':'<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46">Free</span>'}
+        </div>
+        <div style="font-size:12px;color:var(--text2)">
+          <i class="ti ti-car" style="font-size:11px"></i> ${a.mod_id ? (a.mods?.name||'—') : `<em>Entire category${a.categories?' — '+a.categories.name:''}</em>`}
+          &nbsp;·&nbsp; Creator: ${a.author||a.artists?.name||'—'}
+        </div>
+        ${a.notes?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${a.notes}</div>`:''}
+        ${a.download_url?`<a href="${a.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download</a>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:130px">
+        <button class="action-btn" onclick="editAddonModal('${a.id}',true)"><i class="ti ti-pencil"></i> Edit & approve</button>
+        <button class="action-btn success" onclick="doApproveAddon('${a.id}')"><i class="ti ti-check"></i> Approve</button>
+        <button class="action-btn danger" onclick="doRejectAddon('${a.id}')"><i class="ti ti-x"></i> Reject</button>
+      </div>
+    </div>`).join('');
+  }
 }
 async function doApprove(id){if(!confirm('Approve this livery?'))return;await approveLivery(id);await loadPending();await loadDashboard();}
 async function doReject(id){if(!confirm('Reject and delete this submission?'))return;await rejectLivery(id);await loadPending();await loadDashboard();}
@@ -598,7 +625,8 @@ async function loadAddonsPending(){
         ${a.notes?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${a.notes}</div>`:''}
         ${a.download_url?`<a href="${a.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:6px"><i class="ti ti-external-link"></i>View download</a>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;flex-direction:column;gap:8px;min-width:130px">
+        <button class="action-btn" onclick="editAddonModal('${a.id}',true)"><i class="ti ti-pencil"></i> Edit & approve</button>
         <button class="action-btn success" onclick="doApproveAddon('${a.id}')"><i class="ti ti-check"></i> Approve</button>
         <button class="action-btn danger" onclick="doRejectAddon('${a.id}')"><i class="ti ti-x"></i> Reject</button>
       </div>
@@ -606,6 +634,58 @@ async function loadAddonsPending(){
 }
 async function doApproveAddon(id){if(!confirm('Approve this addon?'))return;await approveAddon(id);await loadAddonsPending();await loadDashboard();}
 async function doRejectAddon(id){if(!confirm('Reject and delete this addon?'))return;await deleteAddon(id);await loadAddonsPending();await loadDashboard();}
+
+async function editAddonModal(id, isApproval=false){
+  const list = await fetchPendingAddons();
+  const a = list.find(x=>x.id===id) || (await (async()=>{ const {data}=await db.from('addons').select('*, mods(name), categories(name,color_bg,color_text), artists(name)').eq('id',id).single(); return data; })());
+  if(!a) return;
+  const catOpts = _cats.map(c=>`<option value="${c.id}" ${a.category_id===c.id?'selected':''}>${c.name}</option>`).join('');
+  const modOpts = _mods.map(m=>`<option value="${m.id}" ${a.mod_id===m.id?'selected':''}>${m.name}</option>`).join('');
+  const artistOpts = _artists.map(ar=>`<option value="${ar.id}" ${a.artist_id===ar.id?'selected':''}>${ar.name}</option>`).join('');
+  openModal(`<i class="ti ti-puzzle"></i> ${isApproval?'Edit & approve addon':'Edit addon'}`,`
+    <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field full"><label>Name</label><input id="ae-name" value="${(a.name||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field"><label>Category</label><select id="ae-cat"><option value="">—</option>${catOpts}</select></div>
+      <div class="field"><label>RSS Mod <span style="font-size:10px;color:var(--text3);font-weight:400">(optional — leave empty for entire category)</span></label><select id="ae-mod"><option value="">— Entire category —</option>${modOpts}</select></div>
+      <div class="field"><label>Addon type</label>
+        <select id="ae-type">
+          <option value="tyre_skin" ${a.addon_type==='tyre_skin'?'selected':''}>Tyre skin</option>
+          <option value="3d_asset" ${a.addon_type==='3d_asset'?'selected':''}>3D asset</option>
+          <option value="shader" ${a.addon_type==='shader'?'selected':''}>Shader / Visual</option>
+          <option value="ui" ${a.addon_type==='ui'?'selected':''}>UI element</option>
+          <option value="other" ${a.addon_type==='other'?'selected':''}>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Creator (text)</label><input id="ae-author" value="${(a.author||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field full"><label>Confirmed Artist</label><select id="ae-artist"><option value="">— None —</option>${artistOpts}</select></div>
+      <div class="field full"><label>Download URL</label><input id="ae-url" value="${(a.download_url||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field full"><label>Preview image</label><div id="ae-img-widget"></div></div>
+      <div class="field full"><label>Notes</label><textarea id="ae-notes">${a.notes||''}</textarea></div>
+      <div class="field full"><label>Pricing</label>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="ae-pricing" id="ae-free" ${!a.is_paid?'checked':''}> Free</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="ae-pricing" id="ae-paid" ${a.is_paid?'checked':''}> Paid</label>
+        </div>
+      </div>
+    </div>`, async()=>{
+    await updateAddon(id,{
+      name: document.getElementById('ae-name').value.trim(),
+      category_id: document.getElementById('ae-cat').value||null,
+      mod_id: document.getElementById('ae-mod').value||null,
+      addon_type: document.getElementById('ae-type').value,
+      author: document.getElementById('ae-author').value||null,
+      artist_id: document.getElementById('ae-artist').value||null,
+      download_url: document.getElementById('ae-url').value,
+      image_url: (window._getAddonImg?.())||a.image_url||null,
+      notes: document.getElementById('ae-notes').value,
+      is_paid: document.getElementById('ae-paid')?.checked||false,
+      approved: isApproval ? true : a.approved,
+    });
+    closeModal();
+    if(isApproval){await loadAddonsPending();await loadDashboard();}
+  });
+  setTimeout(()=>{ window._getAddonImg = buildUploadWidget('ae-img-widget',{currentUrl:a.image_url||'',folder:'addons',label:'Upload preview image'}); },50);
+}
 
 // MODS
 async function loadMods(){

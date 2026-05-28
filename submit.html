@@ -74,8 +74,8 @@
         <div class="field-hint" id="cat-hint">Choose a category to unlock the other fields.</div>
       </div>
 
-      <div class="field">
-        <label>RSS Mod *</label>
+      <div class="field" id="mod-field">
+        <label id="mod-label">RSS Mod *</label>
         <select id="f-mod" disabled><option value="">— Select a category first —</option></select>
         <div class="field-hint" id="mod-hint"></div>
       </div>
@@ -193,10 +193,27 @@
     document.getElementById('toggle-addon').classList.toggle('active', mode==='addon');
     document.getElementById('addon-type-field').style.display = mode==='addon' ? '' : 'none';
     document.querySelectorAll('.livery-only').forEach(el => el.style.display = mode==='livery' ? '' : 'none');
-    // Update page subtitle
+
+    // En mode addon, le mod est optionnel
+    const modLabel = document.getElementById('mod-label');
+    const modSel = document.getElementById('f-mod');
+    if (mode === 'addon') {
+      modLabel.textContent = 'RSS Mod (optional)';
+      if (modSel && modSel.options.length > 0 && modSel.options[0].value === '') {
+        modSel.options[0].textContent = '— Entire category (no specific mod) —';
+      }
+    } else {
+      modLabel.textContent = 'RSS Mod *';
+      if (modSel && modSel.options.length > 0 && modSel.options[0].value === '') {
+        modSel.options[0].textContent = 'Select a mod…';
+      }
+    }
+
+    // Update page subtitle + title
     document.querySelector('.page-sub').textContent = mode==='livery'
       ? 'Share your livery with the community. All submissions are reviewed before publication.'
       : 'Share your addon (tyre skin, 3D asset, shader…) with the community.';
+    document.querySelector('.page-title').textContent = mode==='livery' ? 'Submit a livery' : 'Submit an addon';
   }
 
   // ---- Image compression + upload ----
@@ -361,9 +378,12 @@
     const url    = document.getElementById('f-url').value.trim();
     const errDiv = document.getElementById('error-msg');
 
-    if (!name || !mod || !cat || (!author && !selectedArtistId) || !url) {
+    const modRequired = currentMode === 'livery';
+    if (!name || (modRequired && !mod) || !cat || (!author && !selectedArtistId) || !url) {
       errDiv.style.display = 'block';
-      errDiv.textContent = 'Please fill in all required fields (name, mod, category, creator, download URL).';
+      errDiv.textContent = currentMode === 'livery'
+        ? 'Please fill in all required fields (name, mod, category, creator, download URL).'
+        : 'Please fill in all required fields (name, category, creator, download URL).';
       return;
     }
     errDiv.style.display = 'none';
@@ -396,11 +416,12 @@
     }
 
     if (ok) {
+      const isAddon = currentMode === 'addon';
       document.getElementById('formCard').innerHTML = `
         <div class="success-msg">
           <i class="ti ti-circle-check"></i>
-          <h2>Livery submitted!</h2>
-          <p>Thank you! Your livery will appear in the gallery once approved.</p>
+          <h2>${isAddon ? 'Addon submitted!' : 'Livery submitted!'}</h2>
+          <p>Thank you! Your ${isAddon ? 'addon' : 'livery'} will appear once approved by the team.</p>
           <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;color:var(--accent);font-size:14px">
             <i class="ti ti-arrow-left"></i> Back to gallery
           </a>
