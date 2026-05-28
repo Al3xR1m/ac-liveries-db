@@ -136,8 +136,22 @@
   let pendingReportId=null;
 
   // View toggle
-  document.getElementById('btn-grid').addEventListener('click', () => { isListView=false; document.getElementById('btn-grid').classList.add('active'); document.getElementById('btn-list').classList.remove('active'); document.getElementById('gallery').classList.remove('list-view'); });
-  document.getElementById('btn-list').addEventListener('click', () => { isListView=true; document.getElementById('btn-list').classList.add('active'); document.getElementById('btn-grid').classList.remove('active'); document.getElementById('gallery').classList.add('list-view'); });
+  document.getElementById('btn-grid').addEventListener('click', () => {
+    isListView = false;
+    document.getElementById('btn-grid').classList.add('active');
+    document.getElementById('btn-list').classList.remove('active');
+    document.getElementById('gallery').classList.remove('list-view');
+    // Masquer les blocs nom/mod spécifiques à la list view
+    document.querySelectorAll('.list-name-block').forEach(el => el.style.display = 'none');
+  });
+  document.getElementById('btn-list').addEventListener('click', () => {
+    isListView = true;
+    document.getElementById('btn-list').classList.add('active');
+    document.getElementById('btn-grid').classList.remove('active');
+    document.getElementById('gallery').classList.add('list-view');
+    // Afficher les blocs nom/mod spécifiques à la list view
+    document.querySelectorAll('.list-name-block').forEach(el => el.style.display = 'flex');
+  });
 
   // Pricing filter
   document.getElementById('pill-all-pricing').addEventListener('click', () => { activePricing=null; setPricingActive('all'); render(); });
@@ -216,13 +230,25 @@
       const tc=l.categories?.color_text||'#0C447C';
       const isVoted=voted.has(l.id);
       const isArtist=!!l.artists;
-      const crownBadge=isArtist?`<div class="crown-badge">👑<span class="crown-text">${l.artists.name}</span></div>`:'';
+      const crownBadge=isArtist?`<div class="crown-badge"><i class="ti ti-crown" style="font-size:10px"></i><span class="crown-text">${l.artists.name}</span></div>`:'';
       const paidBadge=l.is_paid
         ?`<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
         :`<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
       const champLine=l.championships?.short_name
         ?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`
         :`<div class="card-champ" style="color:var(--text3)">—</div>`;
+
+      // Bloc nom+mod pour la list view (caché en grid view)
+      const artistLine=isArtist
+        ?`<div class="ln-artist"><i class="ti ti-crown" style="font-size:10px"></i>${l.artists.name}</div>`
+        :'';
+      const listNameBlock=`
+        <div class="list-name-block" style="display:${isListView?'flex':'none'}">
+          <div class="ln-name">${l.name}</div>
+          <div class="ln-mod">${l.mods?.name||'—'}</div>
+          ${artistLine}
+        </div>`;
+
       return `
         <div class="livery-card" data-id="${l.id}">
           <div class="card-cover">
@@ -236,6 +262,7 @@
           </div>
           <button class="report-btn" onclick="event.stopPropagation();openReport('${l.id}')" title="Report a problem"><i class="ti ti-flag" style="font-size:12px"></i></button>
           <div class="card-body">
+            ${listNameBlock}
             <div class="card-info-row">
               ${champLine}
               <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
