@@ -48,6 +48,10 @@
     select:disabled{opacity:.45;cursor:not-allowed}
     .field-hint{font-size:11px;color:var(--text3);min-height:16px}
     .field-hint.ok{color:var(--green)}
+    .rule-list{list-style:none;margin-top:6px;padding:0}
+    .rule-list li{font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+    .rule-list li:last-child{border-bottom:none}
+    .rule-list li i{color:var(--accent);font-size:12px;margin-top:1px;flex-shrink:0}
     @media(max-width:860px){.submit-layout{grid-template-columns:1fr}.submit-col-preview{position:static;order:-1}}
   </style>
 </head>
@@ -186,9 +190,10 @@
 
     </div><!-- /formCard -->
 
-    <!-- RIGHT: preview + checklist -->
+    <!-- RIGHT: 2x2 grid — preview + checklist/guidelines -->
     <div class="submit-col-preview">
 
+      <!-- Row 1: Live preview (full width) -->
       <div class="preview-card-wrap">
         <div class="preview-label"><i class="ti ti-eye" style="font-size:12px"></i> Live preview</div>
         <div class="preview-livery-card" id="preview-card">
@@ -230,27 +235,33 @@
         </div>
       </div>
 
-      <div class="submit-checklist">
-        <div class="checklist-title">Required fields</div>
-        <div class="check-item" id="chk-name"><i class="ti ti-circle"></i> Livery name</div>
-        <div class="check-item" id="chk-cat"><i class="ti ti-circle"></i> Category</div>
-        <div class="check-item" id="chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
-        <div class="check-item" id="chk-creator"><i class="ti ti-circle"></i> Creator</div>
-        <div class="check-item" id="chk-url"><i class="ti ti-circle"></i> Download URL</div>
-        <div class="check-item" id="chk-img"><i class="ti ti-circle"></i> Preview image</div>
-      </div>
+      <!-- Row 2: checklist + guidelines side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start">
 
-    <!-- Submission guidelines -->
-      <div class="submit-checklist" style="border-color:var(--border)">
-        <div class="checklist-title"><i class="ti ti-list-check" style="font-size:12px"></i> Submission guidelines</div>
-        <ul style="list-style:none;margin:0;padding:0">
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>Only submit liveries for RSS mods on Assetto Corsa.</span></li>
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>Download link must work and point to an official source.</span></li>
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>A preview image is required — no preview, no publication.</span></li>
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>Mark your livery as Free or Paid honestly.</span></li>
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>Don't submit liveries you didn't create — credit the original creator.</span></li>
-          <li style="font-size:12px;color:var(--text2);padding:6px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.6"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i><span>All submissions are moderated before appearing publicly.</span></li>
-        </ul>
+        <!-- Required fields -->
+        <div class="submit-checklist">
+          <div class="checklist-title">Required fields</div>
+          <div class="check-item" id="chk-name"><i class="ti ti-circle"></i> Livery name</div>
+          <div class="check-item" id="chk-cat"><i class="ti ti-circle"></i> Category</div>
+          <div class="check-item" id="chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
+          <div class="check-item" id="chk-creator"><i class="ti ti-circle"></i> Creator</div>
+          <div class="check-item" id="chk-url"><i class="ti ti-circle"></i> Download URL</div>
+          <div class="check-item" id="chk-img"><i class="ti ti-circle"></i> Preview image</div>
+        </div>
+
+        <!-- Submission guidelines -->
+        <div class="submit-checklist">
+          <div class="checklist-title"><i class="ti ti-list-check" style="font-size:11px"></i> Guidelines</div>
+          <ul class="rule-list" style="margin-top:0">
+            <li><i class="ti ti-check"></i>Only RSS mods on Assetto Corsa.</li>
+            <li><i class="ti ti-check"></i>Download link must work and be official.</li>
+            <li><i class="ti ti-check"></i>Preview image required — no preview, no publication.</li>
+            <li><i class="ti ti-check"></i>Mark Free or Paid honestly.</li>
+            <li><i class="ti ti-check"></i>Credit the original creator.</li>
+            <li><i class="ti ti-check"></i>All submissions go through moderation.</li>
+          </ul>
+        </div>
+
       </div>
 
     </div>
