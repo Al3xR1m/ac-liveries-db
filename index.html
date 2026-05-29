@@ -41,33 +41,30 @@
     <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
   </div>
 
-  <!-- Row 1 : search + sort -->
-  <div class="toolbar" style="margin-bottom:10px">
+  <!-- Single toolbar row -->
+  <div class="toolbar" style="margin-bottom:20px">
     <div class="search-wrap">
       <i class="ti ti-search"></i>
       <input type="text" class="search-input" id="search" placeholder="Search livery, driver, team, author…">
+    </div>
+    <select class="sort-select" id="cat-select" style="min-width:150px">
+      <option value="all">All categories</option>
+    </select>
+    <!-- cat-pills hidden, kept for JS compat -->
+    <div id="cat-pills" style="display:none"><button class="pill active" data-cat-id="all">All</button></div>
+    <select class="sort-select" id="champ-select" style="min-width:170px">
+      <option value="all">All championships</option>
+    </select>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <button class="pill active" id="pill-all-pricing" style="padding:6px 11px;font-size:12px">All</button>
+      <button class="pill pill-free" id="pill-free" style="padding:6px 11px;font-size:12px"><i class="ti ti-lock-open" style="font-size:11px"></i> Free</button>
+      <button class="pill pill-paid" id="pill-paid" style="padding:6px 11px;font-size:12px"><i class="ti ti-lock" style="font-size:11px"></i> Paid</button>
     </div>
     <select class="sort-select" id="sort">
       <option value="votes">Most popular</option>
       <option value="newest">Newest first</option>
       <option value="name">A → Z</option>
     </select>
-  </div>
-
-  <!-- Row 2 : categories + championship + pricing -->
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px">
-    <div class="filter-pills" id="cat-pills" style="margin-bottom:0;flex-wrap:nowrap;overflow-x:auto">
-      <button class="pill active" data-cat-id="all">All</button>
-    </div>
-    <div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div>
-    <select class="sort-select" id="champ-select" style="min-width:160px;flex-shrink:0">
-      <option value="all">All championships</option>
-    </select>
-    <div style="display:flex;gap:4px;flex-shrink:0">
-      <button class="pill active" id="pill-all-pricing" style="padding:5px 11px;font-size:12px">All</button>
-      <button class="pill pill-free" id="pill-free" style="padding:5px 11px;font-size:12px"><i class="ti ti-lock-open" style="font-size:11px"></i> Free</button>
-      <button class="pill pill-paid" id="pill-paid" style="padding:5px 11px;font-size:12px"><i class="ti ti-lock" style="font-size:11px"></i> Paid</button>
-    </div>
   </div>
 
   <div class="gallery" id="gallery">
@@ -170,27 +167,18 @@
     const [cats, champs] = await Promise.all([fetchCategories(), fetchChampionships()]);
     _allChamps = champs;
 
-    const catPills = document.getElementById('cat-pills');
-    cats.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className='pill'; btn.dataset.catId=cat.id; btn.textContent=cat.name;
-      btn.addEventListener('click', () => {
-        catPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-        btn.classList.add('active');
-        activeCatId = cat.id; activeChampId = 'all';
-        updateChampSelect(cat.id);
-        render();
-      });
-      catPills.appendChild(btn);
-    });
-    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => {
-      document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active'));
-      document.querySelector('[data-cat-id="all"]').classList.add('active');
-      activeCatId = 'all'; activeChampId = 'all';
-      updateChampSelect('all');
+    // Category dropdown
+    const catSel = document.getElementById('cat-select');
+    catSel.innerHTML = '<option value="all">All categories</option>'
+      + cats.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+    catSel.addEventListener('change', function() {
+      activeCatId = this.value;
+      activeChampId = 'all';
+      updateChampSelect(this.value);
       render();
     });
 
+    // Championship dropdown
     updateChampSelect('all');
     document.getElementById('champ-select').addEventListener('change', function() {
       activeChampId = this.value;
