@@ -60,9 +60,11 @@
   </div>
 
   <!-- Championship filter -->
-  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Championship</div>
-  <div class="filter-pills" id="champ-pills">
-    <button class="pill active" data-champ-id="all">All</button>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);flex-shrink:0">Championship</div>
+    <select class="sort-select" id="champ-select" style="flex:1;max-width:320px">
+      <option value="all">All championships</option>
+    </select>
   </div>
 
   <!-- Free / Paid filter -->
@@ -154,36 +156,58 @@
   });
 
   // Filters
+  let _allChamps = [];
+
+  function updateChampSelect(catId) {
+    const sel = document.getElementById('champ-select');
+    const prev = sel.value;
+    // Filtrer les championnats selon la catégorie sélectionnée
+    const filtered = catId === 'all'
+      ? _allChamps
+      : _allChamps.filter(ch => ch.linked_categories?.some(lc => lc.id === catId));
+    sel.innerHTML = '<option value="all">All championships</option>'
+      + filtered.map(ch => `<option value="${ch.id}">${ch.short_name||ch.name}</option>`).join('');
+    // Remettre la valeur précédente si elle existe encore
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+    else { sel.value = 'all'; activeChampId = 'all'; }
+  }
+
   async function buildFilters() {
     const [cats, champs] = await Promise.all([fetchCategories(), fetchChampionships()]);
+    _allChamps = champs;
+
+    // Category pills
     const catPills = document.getElementById('cat-pills');
-    cats.forEach(c => {
+    cats.forEach(cat => {
       const btn = document.createElement('button');
-      btn.className='pill'; btn.dataset.catId=c.id; btn.textContent=c.name;
+      btn.className='pill'; btn.dataset.catId=cat.id; btn.textContent=cat.name;
       btn.addEventListener('click', () => {
-        catPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
-        activeCatId=c.id; activeChampId='all';
-        document.querySelectorAll('[data-champ-id]').forEach(p=>p.classList.remove('active'));
-        document.querySelector('[data-champ-id="all"]').classList.add('active');
+        catPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+        btn.classList.add('active');
+        activeCatId = cat.id;
+        activeChampId = 'all';
+        updateChampSelect(cat.id);
         render();
       });
       catPills.appendChild(btn);
     });
-    const champPills = document.getElementById('champ-pills');
-    champs.forEach(ch => {
-      const btn = document.createElement('button');
-      btn.className='pill'; btn.dataset.champId=ch.id; btn.textContent=ch.short_name||ch.name;
-      btn.addEventListener('click', () => {
-        champPills.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
-        activeChampId=ch.id; activeCatId='all';
-        document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active'));
-        document.querySelector('[data-cat-id="all"]').classList.add('active');
-        render();
-      });
-      champPills.appendChild(btn);
+
+    // All categories pill
+    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => {
+      document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active'));
+      document.querySelector('[data-cat-id="all"]').classList.add('active');
+      activeCatId = 'all';
+      activeChampId = 'all';
+      updateChampSelect('all');
+      render();
     });
-    document.querySelector('[data-cat-id="all"]').addEventListener('click', () => { document.querySelectorAll('[data-cat-id]').forEach(p=>p.classList.remove('active')); document.querySelector('[data-cat-id="all"]').classList.add('active'); activeCatId='all'; render(); });
-    document.querySelector('[data-champ-id="all"]').addEventListener('click', () => { document.querySelectorAll('[data-champ-id]').forEach(p=>p.classList.remove('active')); document.querySelector('[data-champ-id="all"]').classList.add('active'); activeChampId='all'; render(); });
+
+    // Championship select
+    updateChampSelect('all');
+    document.getElementById('champ-select').addEventListener('change', function() {
+      activeChampId = this.value;
+      render();
+    });
   }
 
   function render() {
