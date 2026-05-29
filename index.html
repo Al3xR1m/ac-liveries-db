@@ -55,11 +55,11 @@
     <select class="sort-select" id="champ-select" style="min-width:170px">
       <option value="all">All championships</option>
     </select>
-    <div style="display:flex;gap:4px;flex-shrink:0">
-      <button class="pill active" id="pill-all-pricing" style="padding:6px 11px;font-size:12px">All</button>
-      <button class="pill pill-free" id="pill-free" style="padding:6px 11px;font-size:12px"><i class="ti ti-lock-open" style="font-size:11px"></i> Free</button>
-      <button class="pill pill-paid" id="pill-paid" style="padding:6px 11px;font-size:12px"><i class="ti ti-lock" style="font-size:11px"></i> Paid</button>
-    </div>
+    <select class="sort-select" id="pricing-select" style="min-width:130px">
+      <option value="all">All pricing</option>
+      <option value="free">Free only</option>
+      <option value="paid">Paid only</option>
+    </select>
     <select class="sort-select" id="sort">
       <option value="votes">Most popular</option>
       <option value="newest">Newest first</option>
@@ -127,13 +127,12 @@
   let pendingReportId=null;
 
   // Pricing filter
-  document.getElementById('pill-all-pricing').addEventListener('click', () => { activePricing=null; setPricingActive('all'); render(); });
-  document.getElementById('pill-free').addEventListener('click', () => { activePricing=false; setPricingActive('free'); render(); });
-  document.getElementById('pill-paid').addEventListener('click', () => { activePricing=true; setPricingActive('paid'); render(); });
-  function setPricingActive(which) {
-    ['pill-all-pricing','pill-free','pill-paid'].forEach(id => document.getElementById(id).classList.remove('active'));
-    document.getElementById(which==='all'?'pill-all-pricing':which==='free'?'pill-free':'pill-paid').classList.add('active');
-  }
+  document.getElementById('pricing-select').addEventListener('change', function() {
+    if(this.value==='free') activePricing=false;
+    else if(this.value==='paid') activePricing=true;
+    else activePricing=null;
+    render();
+  });
 
   // Report modal
   document.getElementById('report-cancel').addEventListener('click', () => { document.getElementById('report-modal').style.display='none'; document.getElementById('report-notes').value=''; });
