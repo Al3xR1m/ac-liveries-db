@@ -63,7 +63,7 @@
   </a>
   <div class="nav-links">
     <a href="index.html">Gallery</a>
-    <a href="mods.html">RSS Mods</a>
+    <a href="mods.html">Mods</a>
     <a href="artists.html">Artists</a>
     <a href="submit.html" class="active">Submit</a>
     <a href="about.html">About</a>
@@ -426,7 +426,7 @@
           currentUrl=url; _previewImgUrl=url;
           prev.src=url; prev.style.display='block';
           prog.textContent=`✓ Image uploaded successfully.`;
-          btn.innerHTML=`<i class="ti ti-check" style="font-size:15px;color:var(--green)"></i> Image uploaded with succes`;
+          btn.innerHTML=`<i class="ti ti-check" style="font-size:15px;color:var(--green)"></i> Image uploaded — click to replace`;
           // Show remove button
           let removeBtn = document.getElementById('submit-img-remove');
           if(!removeBtn){
