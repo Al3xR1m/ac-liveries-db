@@ -65,11 +65,51 @@
 
     <!-- Tab: Liveries -->
     <div class="tab-panel active" id="tab-liveries">
+      <div class="toolbar" style="margin-bottom:16px">
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input type="text" class="search-input" id="liv-search" placeholder="Search livery, driver, team…">
+        </div>
+        <select class="sort-select" id="liv-champ">
+          <option value="all">All championships</option>
+        </select>
+        <select class="sort-select" id="liv-pricing">
+          <option value="all">All pricing</option>
+          <option value="free">Free only</option>
+          <option value="paid">Paid only</option>
+        </select>
+        <select class="sort-select" id="liv-artist">
+          <option value="all">All creators</option>
+          <option value="confirmed">👑 Confirmed artists</option>
+          <option value="community">Community</option>
+        </select>
+        <select class="sort-select" id="liv-sort">
+          <option value="votes">Most popular</option>
+          <option value="newest">Newest first</option>
+          <option value="name">A → Z</option>
+        </select>
+      </div>
       <div class="gallery" id="liveries-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
     </div>
 
     <!-- Tab: Addons -->
     <div class="tab-panel" id="tab-addons">
+      <div class="toolbar" style="margin-bottom:16px">
+        <div class="search-wrap">
+          <i class="ti ti-search"></i>
+          <input type="text" class="search-input" id="add-search" placeholder="Search addon…">
+        </div>
+        <select class="sort-select" id="add-pricing">
+          <option value="all">All pricing</option>
+          <option value="free">Free only</option>
+          <option value="paid">Paid only</option>
+        </select>
+        <select class="sort-select" id="add-sort">
+          <option value="votes">Most popular</option>
+          <option value="newest">Newest first</option>
+          <option value="name">A → Z</option>
+        </select>
+      </div>
       <div class="gallery" id="addons-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
     </div>
 
@@ -249,19 +289,65 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
         ${mod.official_url ? `<a href="${mod.official_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);margin-top:4px"><i class="ti ti-external-link"></i> Official page</a>` : ''}
       </div>`;
 
-    // Liveries tab
-    const maxLivVotes = livs.length ? Math.max(...livs.map(l=>l.upvotes),1) : 1;
-    const livGrid = document.getElementById('liveries-grid');
-    livGrid.innerHTML = livs.length
-      ? livs.map(l => renderLiveryCard(l, maxLivVotes)).join('')
-      : `<div class="empty"><i class="ti ti-photo-off"></i><p>No liveries yet for this mod. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+    // Populate championship filter from liveries
+    const champMap = {};
+    livs.forEach(l => { if(l.championships) champMap[l.championship_id] = l.championships.short_name||l.championships.name; });
+    const livChampSel = document.getElementById('liv-champ');
+    Object.entries(champMap).forEach(([id,name]) => {
+      const o = document.createElement('option'); o.value=id; o.textContent=name; livChampSel.appendChild(o);
+    });
 
-    // Addons tab
-    const maxAddVotes = adds.length ? Math.max(...adds.map(a=>a.upvotes),1) : 1;
-    const addGrid = document.getElementById('addons-grid');
-    addGrid.innerHTML = adds.length
-      ? adds.map(a => renderAddonCard(a, maxAddVotes)).join('')
-      : `<div class="empty"><i class="ti ti-puzzle-off"></i><p>No addons yet for this mod. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+    function renderLiveries() {
+      const q = document.getElementById('liv-search').value.toLowerCase();
+      const champ = document.getElementById('liv-champ').value;
+      const pricing = document.getElementById('liv-pricing').value;
+      const sort = document.getElementById('liv-sort').value;
+      let list = liveries.filter(l => {
+        const mq = !q || [l.name,l.team,l.author,l.driver,l.artists?.name].join(' ').toLowerCase().includes(q);
+        const cq = champ==='all' || l.championship_id===champ;
+        const pq = pricing==='all' || (pricing==='free'&&!l.is_paid) || (pricing==='paid'&&l.is_paid);
+        const artist = document.getElementById('liv-artist').value;
+        const aq = artist==='all' || (artist==='confirmed'&&!!l.artist_id) || (artist==='community'&&!l.artist_id);
+        return mq&&cq&&pq&&aq;
+      });
+      if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
+      else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      else list.sort((a,b)=>a.name.localeCompare(b.name));
+      const maxV = list.length ? Math.max(...list.map(l=>l.upvotes),1) : 1;
+      document.getElementById('liveries-grid').innerHTML = list.length
+        ? list.map(l => renderLiveryCard(l, maxV)).join('')
+        : `<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.</p></div>`;
+    }
+
+    function renderAddons() {
+      const q = document.getElementById('add-search').value.toLowerCase();
+      const pricing = document.getElementById('add-pricing').value;
+      const sort = document.getElementById('add-sort').value;
+      let list = addons.filter(a => {
+        const mq = !q || [a.name,a.author,a.artists?.name,a.addon_type].join(' ').toLowerCase().includes(q);
+        const pq = pricing==='all' || (pricing==='free'&&!a.is_paid) || (pricing==='paid'&&a.is_paid);
+        return mq&&pq;
+      });
+      if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
+      else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      else list.sort((a,b)=>a.name.localeCompare(b.name));
+      const maxV = list.length ? Math.max(...list.map(a=>a.upvotes),1) : 1;
+      document.getElementById('addons-grid').innerHTML = list.length
+        ? list.map(a => renderAddonCard(a, maxV)).join('')
+        : `<div class="empty"><i class="ti ti-puzzle-off"></i><p>No addons match your filters.</p></div>`;
+    }
+
+    // Wire up livery filters
+    ['liv-search','liv-champ','liv-pricing','liv-artist','liv-sort'].forEach(id =>
+      document.getElementById(id).addEventListener(id==='liv-search'?'input':'change', renderLiveries)
+    );
+    // Wire up addon filters
+    ['add-search','add-pricing','add-sort'].forEach(id =>
+      document.getElementById(id).addEventListener(id==='add-search'?'input':'change', renderAddons)
+    );
+
+    renderLiveries();
+    renderAddons();
 
     // Patch notes tab (markdown)
     const pn = document.getElementById('patchnotes-content');

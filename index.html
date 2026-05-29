@@ -60,6 +60,11 @@
       <option value="free">Free only</option>
       <option value="paid">Paid only</option>
     </select>
+    <select class="sort-select" id="artist-select" style="min-width:150px">
+      <option value="all">All creators</option>
+      <option value="confirmed">👑 Confirmed artists</option>
+      <option value="community">Community</option>
+    </select>
     <select class="sort-select" id="sort">
       <option value="votes">Most popular</option>
       <option value="newest">Newest first</option>
@@ -122,7 +127,7 @@
   }
 
   // State
-  let allLiveries=[], activeCatId='all', activeChampId='all', activePricing=null, maxVotes=1;
+  let allLiveries=[], activeCatId='all', activeChampId='all', activePricing=null, activeArtist='all', maxVotes=1;
   let voted=getVotedSet();
   let pendingReportId=null;
 
@@ -131,6 +136,10 @@
     if(this.value==='free') activePricing=false;
     else if(this.value==='paid') activePricing=true;
     else activePricing=null;
+    render();
+  });
+  document.getElementById('artist-select').addEventListener('change', function() {
+    activeArtist = this.value;
     render();
   });
 
@@ -192,8 +201,9 @@
       const matchCat=activeCatId==='all'||l.category_id===activeCatId;
       const matchChamp=activeChampId==='all'||l.championship_id===activeChampId;
       const matchPricing=activePricing===null||(activePricing===true&&l.is_paid===true)||(activePricing===false&&l.is_paid!==true);
+      const matchArtist=activeArtist==='all'||(activeArtist==='confirmed'&&!!l.artist_id)||(activeArtist==='community'&&!l.artist_id);
       const matchQ=!q||[l.name,l.team,l.author,l.driver,l.mods?.name,l.artists?.name].join(' ').toLowerCase().includes(q);
-      return matchCat&&matchChamp&&matchPricing&&matchQ;
+      return matchCat&&matchChamp&&matchPricing&&matchArtist&&matchQ;
     });
     if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
     else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
@@ -281,6 +291,7 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
   document.getElementById('cat-select').value = 'all';
   document.getElementById('champ-select').value = 'all';
   document.getElementById('pricing-select').value = 'all';
+  document.getElementById('artist-select').value = 'all';
   document.getElementById('sort').value = 'votes';
   init();
 </script>
