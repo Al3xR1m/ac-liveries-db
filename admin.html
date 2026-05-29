@@ -395,6 +395,7 @@ async function loadReports(){
       <div style="flex:1;min-width:200px">
         <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${r.liveries?.name||'Unknown livery'}</div>
         <div style="font-size:12px;color:var(--text2)"><i class="ti ti-flag" style="font-size:11px"></i> ${r.reason.replace('_',' ')} &nbsp;·&nbsp; ${new Date(r.created_at).toLocaleDateString()}</div>
+        ${r.notes?`<div style="font-size:12px;color:var(--text2);margin-top:6px;padding:6px 10px;background:var(--bg);border-radius:var(--radius-sm);border-left:2px solid var(--accent);font-style:italic">${r.notes}</div>`:''}
         ${r.liveries?.download_url?`<a href="${r.liveries.download_url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;margin-top:4px"><i class="ti ti-external-link"></i>Check download link</a>`:''}
       </div>
       <div style="display:flex;gap:8px">

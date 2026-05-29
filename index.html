@@ -93,6 +93,10 @@
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="duplicate"> Duplicate entry</label>
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="other"> Other</label>
     </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);display:block;margin-bottom:5px">Additional context <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
+      <textarea id="report-notes" placeholder="Describe the issue in more detail…" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:12px;outline:none;resize:vertical;min-height:64px;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button id="report-cancel" style="font-size:13px;padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);cursor:pointer">Cancel</button>
       <button id="report-submit" style="font-size:13px;padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;cursor:pointer;font-weight:500">Send report</button>
@@ -141,12 +145,14 @@
   }
 
   // Report modal
-  document.getElementById('report-cancel').addEventListener('click', () => { document.getElementById('report-modal').style.display='none'; });
+  document.getElementById('report-cancel').addEventListener('click', () => { document.getElementById('report-modal').style.display='none'; document.getElementById('report-notes').value=''; });
   document.getElementById('report-submit').addEventListener('click', async () => {
     if (!pendingReportId) return;
     const reason = document.querySelector('input[name="report-reason"]:checked')?.value || 'broken_link';
-    await reportLivery(pendingReportId, reason);
+    const notes  = document.getElementById('report-notes').value.trim() || null;
+    await reportLivery(pendingReportId, reason, notes);
     document.getElementById('report-modal').style.display='none';
+    document.getElementById('report-notes').value = '';
     pendingReportId=null;
     alert('Report sent. Thank you!');
   });

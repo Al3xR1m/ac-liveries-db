@@ -214,8 +214,8 @@ async function removeUpvoteLivery(id) {
 // ============================================
 // REPORTS
 // ============================================
-async function reportLivery(liveryId, reason = 'broken_link') {
-  const { error } = await db.from('reports').insert([{ livery_id: liveryId, reason }]); return !error;
+async function reportLivery(liveryId, reason = 'broken_link', notes = null) {
+  const { error } = await db.from('reports').insert([{ livery_id: liveryId, reason, notes: notes||null }]); return !error;
 }
 async function fetchReports() {
   const { data } = await db.from('reports').select('*, liveries(id,name,download_url)').eq('resolved', false).order('created_at', { ascending: false });
