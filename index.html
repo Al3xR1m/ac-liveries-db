@@ -277,6 +277,11 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
 
   document.getElementById('search').addEventListener('input',render);
   document.getElementById('sort').addEventListener('change',render);
+  // Reset selects visuellement au chargement (le browser peut garder les valeurs précédentes)
+  document.getElementById('cat-select').value = 'all';
+  document.getElementById('champ-select').value = 'all';
+  document.getElementById('pricing-select').value = 'all';
+  document.getElementById('sort').value = 'votes';
   init();
 </script>
 </body>
