@@ -41,18 +41,11 @@
     <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
   </div>
 
-  <div class="toolbar">
+  <!-- Row 1 : search + sort -->
+  <div class="toolbar" style="margin-bottom:10px">
     <div class="search-wrap">
       <i class="ti ti-search"></i>
       <input type="text" class="search-input" id="search" placeholder="Search livery, driver, team, author…">
-    </div>
-    <select class="sort-select" id="champ-select" style="min-width:170px">
-      <option value="all">All championships</option>
-    </select>
-    <div style="display:flex;gap:4px;flex-shrink:0">
-      <button class="pill active" id="pill-all-pricing" style="padding:6px 12px;font-size:12px">All</button>
-      <button class="pill pill-free" id="pill-free" style="padding:6px 12px;font-size:12px"><i class="ti ti-lock-open" style="font-size:11px"></i> Free</button>
-      <button class="pill pill-paid" id="pill-paid" style="padding:6px 12px;font-size:12px"><i class="ti ti-lock" style="font-size:11px"></i> Paid</button>
     </div>
     <select class="sort-select" id="sort">
       <option value="votes">Most popular</option>
@@ -61,14 +54,21 @@
     </select>
   </div>
 
-  <!-- Category filter -->
-  <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Category</div>
-  <div class="filter-pills" id="cat-pills">
-    <button class="pill active" data-cat-id="all">All</button>
+  <!-- Row 2 : categories + championship + pricing -->
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+    <div class="filter-pills" id="cat-pills" style="margin-bottom:0;flex-wrap:nowrap;overflow-x:auto">
+      <button class="pill active" data-cat-id="all">All</button>
+    </div>
+    <div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div>
+    <select class="sort-select" id="champ-select" style="min-width:160px;flex-shrink:0">
+      <option value="all">All championships</option>
+    </select>
+    <div style="display:flex;gap:4px;flex-shrink:0">
+      <button class="pill active" id="pill-all-pricing" style="padding:5px 11px;font-size:12px">All</button>
+      <button class="pill pill-free" id="pill-free" style="padding:5px 11px;font-size:12px"><i class="ti ti-lock-open" style="font-size:11px"></i> Free</button>
+      <button class="pill pill-paid" id="pill-paid" style="padding:5px 11px;font-size:12px"><i class="ti ti-lock" style="font-size:11px"></i> Paid</button>
+    </div>
   </div>
-
-  <!-- margin between category pills and gallery -->
-  <div style="margin-bottom:16px"></div>
 
   <div class="gallery" id="gallery">
     <div class="skeleton" style="height:200px;border-radius:10px"></div>
