@@ -101,11 +101,14 @@
       if (!group.mods.length) return;
       const section = document.createElement('div');
       section.className = 'mods-section';
+      const totalLiveries = group.mods.reduce((s,m) => s+(liveryCount[m.id]||0), 0);
       section.innerHTML = `
         <div class="mods-section-title">
           <span class="cat-dot" style="background:${group.cat.color_text}"></span>
           ${group.cat.name}
           <span style="font-weight:400;color:var(--text3)">${group.mods.length} mod${group.mods.length>1?'s':''}</span>
+          <span style="font-weight:400;color:var(--text3)">·</span>
+          <span style="font-weight:400;color:var(--text3)"><i class="ti ti-photo" style="font-size:11px;vertical-align:-1px"></i> ${totalLiveries} liver${totalLiveries!==1?'ies':'y'}</span>
         </div>
         <div class="mods-grid">
           ${group.mods.map(m => {
