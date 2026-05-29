@@ -43,7 +43,7 @@
     .artist-pick-avatar-ph{width:36px;height:36px;border-radius:50%;margin:0 auto 4px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text3)}
     .artist-pick-name{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .artist-pick-crown{font-size:10px;color:#FFD700}
-    .or-divider{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:12px;color:var(--text3)}
+    .or-divider{display:flex;align-items:center;gap:10px;margin:10px auto;font-size:12px;color:var(--text3);width:180px}
     .or-divider::before,.or-divider::after{content:'';flex:1;border-top:1px solid var(--border)}
     select:disabled{opacity:.45;cursor:not-allowed}
     .field-hint{font-size:11px;color:var(--text3);min-height:16px}
@@ -237,7 +237,20 @@
         <div class="check-item" id="chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
         <div class="check-item" id="chk-creator"><i class="ti ti-circle"></i> Creator</div>
         <div class="check-item" id="chk-url"><i class="ti ti-circle"></i> Download URL</div>
-        <div class="check-item" id="chk-img"><i class="ti ti-circle"></i> Preview image <span style="font-size:10px;margin-left:2px">(optional)</span></div>
+        <div class="check-item" id="chk-img"><i class="ti ti-circle"></i> Preview image</div>
+      </div>
+
+    <!-- Submission guidelines -->
+      <div class="submit-checklist" style="border-color:var(--border)">
+        <div class="checklist-title"><i class="ti ti-list-check" style="font-size:12px"></i> Submission guidelines</div>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0">
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>Only submit liveries for <strong style="color:var(--text);font-weight:500">Race Sim Studio mods on Assetto Corsa</strong>.</li>
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>Make sure the <strong style="color:var(--text);font-weight:500">download link works</strong> and points to an official download.</li>
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>Add a <strong style="color:var(--text);font-weight:500">preview image</strong> — liveries without preview won't get published.</li>
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>Mark your livery as <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:9px"></i> Free</span> or <span style="font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:9px"></i> Paid</span> honestly.</li>
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>Don't submit liveries you didn't create — <strong style="color:var(--text);font-weight:500">credit the original creator</strong>.</li>
+          <li style="font-size:12px;color:var(--text2);padding:6px 0;display:flex;align-items:flex-start;gap:8px;line-height:1.5"><i class="ti ti-check" style="color:var(--accent);font-size:13px;margin-top:1px;flex-shrink:0"></i>All submissions go through <strong style="color:var(--text);font-weight:500">moderation</strong> before appearing publicly.</li>
+        </ul>
       </div>
 
     </div>
@@ -403,6 +416,25 @@
           prev.src=url; prev.style.display='block';
           prog.textContent=`✓ Image uploaded successfully.`;
           btn.innerHTML=`<i class="ti ti-check" style="font-size:15px;color:var(--green)"></i> Image uploaded — click to replace`;
+          // Show remove button
+          let removeBtn = document.getElementById('submit-img-remove');
+          if(!removeBtn){
+            removeBtn = document.createElement('button');
+            removeBtn.id='submit-img-remove';
+            removeBtn.type='button';
+            removeBtn.style.cssText='margin-top:6px;width:100%;padding:6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--accent);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px';
+            removeBtn.innerHTML='<i class="ti ti-trash" style="font-size:13px"></i> Remove image';
+            prog.parentNode.insertBefore(removeBtn, prog.nextSibling);
+            removeBtn.addEventListener('click', ()=>{
+              currentUrl=null; _previewImgUrl=null;
+              prev.src=''; prev.style.display='none';
+              prog.textContent=''; prog.style.display='none';
+              btn.innerHTML='<i class="ti ti-upload" style="font-size:15px"></i> Upload preview image';
+              input.value='';
+              removeBtn.remove();
+              updatePreview();
+            });
+          }
           updatePreview();
         } else {
           prog.textContent='✗ Upload failed.';
@@ -507,9 +539,12 @@
     const author=document.getElementById('f-author').value.trim();
     const url=document.getElementById('f-url').value.trim();
     const errDiv=document.getElementById('error-msg');
-    if(!name||!mod||!cat||(!author&&!selectedArtistId)||!url){
+    const urlValid = /^https?:\/\/.+/.test(url);
+    if(!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
       errDiv.style.display='block';
-      errDiv.textContent='Please fill in all required fields (name, mod, category, creator, download URL).';
+      if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
+      else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
+      else errDiv.textContent='Please fill in all required fields (name, mod, category, creator, download URL).';
       return;
     }
     errDiv.style.display='none';
