@@ -110,8 +110,6 @@ img{display:block;max-width:100%}
 .upvote-btn{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:4px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .12s;flex-shrink:0}
 .upvote-btn:hover{background:var(--green-bg);border-color:var(--green);color:var(--green)}
 .upvote-btn.voted{background:var(--green-bg);border-color:var(--green);color:var(--green)}
-.heat{display:flex;gap:2px;align-items:flex-end}
-.hs{width:3px;border-radius:2px;background:var(--green)}
 
 /* Crown badge */
 .crown-badge{background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px);flex-shrink:0;z-index:3}
