@@ -81,9 +81,23 @@
       grouped[key].mods.push(m);
     });
 
+    // Trier les mods dans chaque groupe par nombre de livrées décroissant
+    Object.values(grouped).forEach(group => {
+      group.mods.sort((a,b) => (liveryCount[b.id]||0) - (liveryCount[a.id]||0));
+    });
+
+    // Trier les groupes (catégories) par total de livrées décroissant
+    const sortedGroups = Object.values(grouped)
+      .filter(g => g.mods.length > 0)
+      .sort((a,b) => {
+        const totalA = a.mods.reduce((s,m) => s+(liveryCount[m.id]||0), 0);
+        const totalB = b.mods.reduce((s,m) => s+(liveryCount[m.id]||0), 0);
+        return totalB - totalA;
+      });
+
     const container = document.getElementById('mods-root');
     container.innerHTML = '';
-    Object.values(grouped).forEach(group => {
+    sortedGroups.forEach(group => {
       if (!group.mods.length) return;
       const section = document.createElement('div');
       section.className = 'mods-section';
