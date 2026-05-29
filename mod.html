@@ -111,11 +111,6 @@
     const p = CAT_COLORS[cat]||CAT_COLORS.Formula; const col=p[seed%p.length]; const num=(seed*7+1)%99+1; const bg=CAT_BG_MAP[cat]||'#111';
     return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
-  function heatBars(v, max) {
-    const ratio=max>0?v/max:0; const filled=Math.round(ratio*5);
-    return [5,8,11,14,17].map((h,i)=>`<div class="hs" style="height:${h}px;opacity:${i<filled?1:.15}"></div>`).join('');
-  }
-
   // Render livery card
   function renderLiveryCard(l, maxVotes) {
     const voted = getVotedSet();
@@ -146,8 +141,7 @@
         </div>
         <div class="card-upvote-row">
           <div class="card-upvote-count">
-            <div class="heat">${heatBars(l.upvotes,maxVotes)}</div>
-            ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
+${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
           </div>
           <button class="upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleLiveryVote('${l.id}',this,event)">
             <i class="ti ti-thumb-up" style="font-size:12px"></i> ${isVoted?'Upvoted':'Upvote'}
@@ -184,8 +178,7 @@
         </div>
         <div class="card-upvote-row">
           <div class="card-upvote-count">
-            <div class="heat">${heatBars(a.upvotes,maxVotes)}</div>
-            ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
+${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
           </div>
           <div style="display:flex;gap:6px;align-items:center">
             ${a.download_url?`<a href="${a.download_url}" target="_blank" onclick="event.stopPropagation()" class="upvote-btn" style="text-decoration:none"><i class="ti ti-download" style="font-size:12px"></i></a>`:''}
