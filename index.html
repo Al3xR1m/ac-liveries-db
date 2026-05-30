@@ -80,6 +80,8 @@
     <div class="skeleton" style="height:200px;border-radius:10px"></div>
     <div class="skeleton" style="height:200px;border-radius:10px"></div>
   </div>
+  <!-- Pagination -->
+  <div id="pagination" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:28px 0 40px;flex-wrap:wrap"></div>
 </div>
 
 <!-- Report modal -->
@@ -128,6 +130,8 @@
 
   // State
   let allLiveries=[], activeCatId='all', activeChampId='all', activePricing=null, activeArtist='all', maxVotes=1;
+  const PAGE_SIZE = 24;
+  let currentPage = 1;
   let voted=getVotedSet();
   let pendingReportId=null;
 
@@ -136,11 +140,11 @@
     if(this.value==='free') activePricing=false;
     else if(this.value==='paid') activePricing=true;
     else activePricing=null;
-    render();
+    resetAndRender();
   });
   document.getElementById('artist-select').addEventListener('change', function() {
     activeArtist = this.value;
-    render();
+    resetAndRender();
   });
 
   // Report modal
@@ -183,14 +187,14 @@
       activeCatId = this.value;
       activeChampId = 'all';
       updateChampSelect(this.value);
-      render();
+      resetAndRender();
     });
 
     // Championship dropdown
     updateChampSelect('all');
     document.getElementById('champ-select').addEventListener('change', function() {
       activeChampId = this.value;
-      render();
+      resetAndRender();
     });
   }
 
@@ -210,10 +214,20 @@
     else list.sort((a,b)=>a.name.localeCompare(b.name));
 
     const g=document.getElementById('gallery');
-    if(!list.length){g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;return;}
+    if(!list.length){
+      g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+      document.getElementById('pagination').innerHTML='';
+      return;
+    }
+
+    // Pagination
+    const totalPages = Math.ceil(list.length / PAGE_SIZE);
+    if(currentPage > totalPages) currentPage = 1;
+    const pageList = list.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+    renderPagination(list.length, totalPages);
 
     const seed=l=>parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
-    g.innerHTML=list.map(l=>{
+    g.innerHTML=pageList.map(l=>{
       const cn=l.categories?.name||'';
       const bg=l.categories?.color_bg||'#E6F1FB';
       const tc=l.categories?.color_text||'#0C447C';
@@ -271,6 +285,33 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     });
   }
 
+  function renderPagination(total, totalPages) {
+    const pg = document.getElementById('pagination');
+    if(totalPages <= 1){ pg.innerHTML=''; return; }
+    let html = '';
+    // Prev
+    html += `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} style="padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:${currentPage===1?'var(--text3)':'var(--text2)'};cursor:${currentPage===1?'default':'pointer'};font-size:13px"><i class="ti ti-chevron-left"></i></button>`;
+    // Pages
+    for(let i=1;i<=totalPages;i++){
+      if(i===1||i===totalPages||Math.abs(i-currentPage)<=1){
+        html += `<button onclick="goPage(${i})" style="padding:6px 12px;border:1px solid ${i===currentPage?'var(--accent)':'var(--border)'};border-radius:var(--radius-sm);background:${i===currentPage?'var(--accent)':'var(--surface)'};color:${i===currentPage?'#fff':'var(--text2)'};cursor:pointer;font-size:13px;min-width:36px">${i}</button>`;
+      } else if(Math.abs(i-currentPage)===2){
+        html += `<span style="color:var(--text3);font-size:13px">…</span>`;
+      }
+    }
+    // Next
+    html += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''} style="padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:${currentPage===totalPages?'var(--text3)':'var(--text2)'};cursor:${currentPage===totalPages?'default':'pointer'};font-size:13px"><i class="ti ti-chevron-right"></i></button>`;
+    // Count
+    html += `<span style="font-size:12px;color:var(--text3);margin-left:6px">${total} result${total!==1?'s':''}</span>`;
+    pg.innerHTML = html;
+  }
+
+  function goPage(n) {
+    currentPage = n;
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
   function openReport(id) { pendingReportId=id; document.getElementById('report-modal').style.display='flex'; }
 
   async function init() {
@@ -288,8 +329,9 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     render();
   }
 
-  document.getElementById('search').addEventListener('input',render);
-  document.getElementById('sort').addEventListener('change',render);
+  function resetAndRender(){ currentPage=1; render(); }
+  document.getElementById('search').addEventListener('input',resetAndRender);
+  document.getElementById('sort').addEventListener('change',resetAndRender);
   // Reset selects visuellement au chargement (le browser peut garder les valeurs précédentes)
   document.getElementById('cat-select').value = 'all';
   document.getElementById('champ-select').value = 'all';
