@@ -115,7 +115,7 @@
 
     // Artist block
     const creatorBlock = l.artists
-      ? `<a href="artists.html" class="artist-link-card">
+      ? `<a href="artists.html?id=${l.artists.id}" class="artist-link-card">
           ${l.artists.avatar_url
             ? `<img src="${l.artists.avatar_url}" alt="${l.artists.name}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060">`
             : `<div style="width:40px;height:40px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3);border:2px solid #FFD70060"><i class="ti ti-user"></i></div>`}

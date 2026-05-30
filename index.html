@@ -69,10 +69,10 @@
       <option value="newest">Newest first</option>
       <option value="name">A → Z</option>
     </select>
-    <button class="filters-btn" id="filters-toggle-btn" onclick="toggleFilters()">
+    <button class="filters-btn" id="filters-toggle-btn" onclick="toggleFilters()" style="background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600">
       <i class="ti ti-adjustments-horizontal" style="font-size:15px"></i>
       Filters
-      <span class="filter-badge" id="filter-badge" style="display:none">0</span>
+      <span class="filter-badge" id="filter-badge" style="display:none;background:#fff;color:var(--accent)">0</span>
     </button>
   </div>
 
@@ -431,9 +431,7 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
 
   function toggleFilters(){
     const panel = document.getElementById('filters-panel');
-    const btn   = document.getElementById('filters-toggle-btn');
     panel.classList.toggle('open');
-    btn.classList.toggle('active', panel.classList.contains('open'));
   }
 
   function updateFilterBadge(){

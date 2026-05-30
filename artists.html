@@ -44,13 +44,31 @@
 
   <!-- Liveries section (shown after clicking an artist) -->
   <div id="artist-liveries-section" style="display:none;margin-bottom:40px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-top:24px;border-top:1px solid var(--border)">
-      <button id="back-btn" style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-top:24px;border-top:1px solid var(--border)">
+      <button id="back-btn" style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0">
         <i class="ti ti-arrow-left" style="font-size:15px"></i> All artists
       </button>
       <div id="artist-liveries-title" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)"></div>
     </div>
-    <div class="gallery" id="artist-liveries-grid"></div>
+    <!-- Toolbar -->
+    <div class="toolbar" style="margin-bottom:16px">
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" class="search-input" id="artist-search" placeholder="Search livery, driver, team…">
+      </div>
+      <select class="sort-select" id="artist-pricing">
+        <option value="all">All pricing</option>
+        <option value="free">Free only</option>
+        <option value="paid">Paid only</option>
+      </select>
+      <select class="sort-select" id="artist-sort">
+        <option value="votes">Most popular</option>
+        <option value="newest">Newest first</option>
+        <option value="name">A → Z</option>
+      </select>
+    </div>
+    <div id="results-count-artist" style="font-size:12px;color:var(--text3);margin-bottom:10px"></div>
+    <div class="gallery" id="artist-liveries-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
   </div>
 </div>
 
@@ -77,12 +95,6 @@
     const bg = CAT_BG[cat] || '#111';
     return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
-  function heatBars(v, max) {
-    const ratio = max > 0 ? v/max : 0;
-    const filled = Math.round(ratio*5);
-    return [5,8,11,14,17].map((h,i)=>`<div class="hs" style="height:${h}px;opacity:${i<filled?1:.15}"></div>`).join('');
-  }
-
   let voted = getVotedSet();
   let allLiveries = [];
   let maxVotes = 1;
@@ -140,34 +152,68 @@
       return;
     }
 
+    renderArtistLiveries(liveries);
+
+    // Wire up filters
+    ['artist-search','artist-pricing','artist-sort'].forEach(id => {
+      document.getElementById(id).addEventListener(id==='artist-search'?'input':'change', ()=>renderArtistLiveries(liveries));
+    });
+  }
+
+  function renderArtistLiveries(liveries) {
+    const q       = document.getElementById('artist-search').value.toLowerCase();
+    const pricing = document.getElementById('artist-pricing').value;
+    const sort    = document.getElementById('artist-sort').value;
+
+    let list = liveries.filter(l => {
+      const mq = !q || [l.name,l.team,l.author,l.driver,l.car_number].join(' ').toLowerCase().includes(q);
+      const pq = pricing==='all'||(pricing==='free'&&!l.is_paid)||(pricing==='paid'&&l.is_paid);
+      return mq && pq;
+    });
+    if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
+    else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    else list.sort((a,b)=>a.name.localeCompare(b.name));
+
+    const countEl = document.getElementById('results-count-artist');
+    countEl.textContent = list.length ? `${list.length} liveri${list.length!==1?'es':'y'}` : '';
+
+    const g = document.getElementById('artist-liveries-grid');
+    if(!list.length){ g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.</p></div>`; return; }
+
     const seed = l => parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
-    g.innerHTML = liveries.map(l => {
-      const cn = l.categories?.name || '';
-      const bg = l.categories?.color_bg || '#E6F1FB';
-      const tc = l.categories?.color_text || '#0C447C';
+    g.innerHTML = list.map(l => {
+      const cn = l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
+      const isNew = l.created_at && (Date.now()-new Date(l.created_at).getTime()) < 7*24*60*60*1000;
+      const newDot = isNew ? '<div class="new-dot"></div>' : '';
       const paidBadge = l.is_paid
-        ? `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
-        : `<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+        ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
+        : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
       return `
         <div class="livery-card" onclick="location.href='livery.html?id=${l.id}'">
           <div class="card-cover">
-            ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">` : carSVG(cn, seed(l))}
-          </div>
-          <div class="crown-badge">👑</div>
-          <div class="card-body">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-              <div class="card-mod" style="margin:0">${l.mods?.name||'—'}</div>
+            ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed(l))}
+            <div class="card-cover-overlay"></div>
+            ${newDot}
+            <div class="card-top-badges">
+              <div class="crown-badge"><i class="ti ti-crown" style="font-size:10px"></i><span class="crown-text">${l.artists?.name||''}</span></div>
               ${paidBadge}
             </div>
-            <div class="card-name">${l.name}</div>
-            <div class="card-footer">
-              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
-              <button class="upvote-btn${voted.has(l.id)?' voted':''}" onclick="event.stopPropagation();handleVote('${l.id}',this)">
-                <i class="ti ti-thumb-up" style="font-size:12px"></i>
-                <span>${l.upvotes}</span>
-                <div class="heat">${heatBars(l.upvotes, maxVotes)}</div>
-              </button>
+            <div class="card-name-overlay">
+              <div class="card-name">${l.name}</div>
+              <div class="card-mod">${l.mods?.name||'—'}</div>
             </div>
+          </div>
+          <div class="card-body">
+            <div class="card-info-row">
+              ${l.championships?.short_name?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`:`<div class="card-champ" style="color:var(--text3)">—</div>`}
+              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+            </div>
+          </div>
+          <div class="card-upvote-row">
+            <div class="card-upvote-count">${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}</div>
+            <button class="upvote-btn${voted.has(l.id)?' voted':''}" onclick="event.stopPropagation();handleVote('${l.id}',this)">
+              <i class="ti ti-thumb-up" style="font-size:12px"></i> ${voted.has(l.id)?'Upvoted':'Upvote'}
+            </button>
           </div>
         </div>`;
     }).join('');
@@ -195,6 +241,18 @@
   });
 
   init();
+
+  // Si ?id= dans l'URL, ouvrir directement cet artiste
+  const urlParams = new URLSearchParams(location.search);
+  const artistIdParam = urlParams.get('id');
+  if(artistIdParam){
+    // Attendre que la grille soit chargée puis cliquer
+    const waitAndOpen = setInterval(()=>{
+      const card = document.querySelector(`.artist-card[data-artist-id="${artistIdParam}"]`);
+      if(card){ clearInterval(waitAndOpen); card.click(); }
+    }, 100);
+    setTimeout(()=>clearInterval(waitAndOpen), 3000);
+  }
 </script>
 </body>
 </html>
