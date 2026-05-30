@@ -121,6 +121,11 @@ img{display:block;max-width:100%}
 .report-btn:hover{color:#e63312}
 
 
+/* ---- New badge dot ---- */
+.new-dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#3DB88A;z-index:5;box-shadow:0 0 0 2px rgba(0,0,0,.5)}
+.new-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#3DB88A;animation:new-pulse 1.8s ease-out infinite}
+@keyframes new-pulse{0%{transform:scale(1);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}
+
 /* ---- Empty / skeleton ---- */
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}
 .empty i{font-size:36px;display:block;margin-bottom:12px}

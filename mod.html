@@ -158,6 +158,8 @@
     const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
     const isVoted = voted.has(l.id);
     const isArtist = !!l.artists;
+    const isNew = l.created_at && (Date.now()-new Date(l.created_at).getTime()) < 7*24*60*60*1000;
+    const newDot = isNew ? '<div class="new-dot"></div>' : '';
     const crownBadge = isArtist ? `<div class="crown-badge">👑<span class="crown-text">${l.artists.name}</span></div>` : '';
     const paidBadge = l.is_paid
       ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
@@ -167,6 +169,7 @@
         <div class="card-cover">
           ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed)}
           <div class="card-cover-overlay"></div>
+          ${newDot}
           <div class="card-top-badges">${crownBadge}${paidBadge}</div>
           <div class="card-name-overlay">
             <div class="card-name">${l.name}</div>
