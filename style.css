@@ -115,16 +115,13 @@ img{display:block;max-width:100%}
 .crown-badge{background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:11px;display:flex;align-items:center;gap:3px;color:#FFD700;backdrop-filter:blur(4px);flex-shrink:0;z-index:3}
 .crown-text{font-size:10px;font-weight:600;color:#FFD700;white-space:nowrap}
 
-/* Report button */
-.report-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,color .15s;backdrop-filter:blur(4px);z-index:4}
-.livery-card:hover .report-btn{opacity:1}
-.report-btn:hover{color:#e63312}
+/* Card action buttons (copy link + report) */
+.card-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:4px;z-index:4;opacity:0;transition:opacity .15s}
+.livery-card:hover .card-actions{opacity:1}
+.card-action-btn{width:26px;height:26px;border-radius:6px;background:rgba(0,0,0,.5);border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:color .15s;backdrop-filter:blur(4px)}
+.card-action-btn:hover{color:#fff}
+.card-action-btn:last-child:hover{color:#e63312}
 
-
-/* ---- New badge dot ---- */
-.new-dot{position:absolute;top:8px;right:8px;width:9px;height:9px;border-radius:50%;background:#3DB88A;z-index:5;box-shadow:0 0 0 2px rgba(0,0,0,.5)}
-.new-dot::after{content:'';position:absolute;inset:0;border-radius:50%;background:#3DB88A;animation:new-pulse 1.8s ease-out infinite}
-@keyframes new-pulse{0%{transform:scale(1);opacity:.8}70%{transform:scale(2.2);opacity:0}100%{transform:scale(2.2);opacity:0}}
 
 /* ---- Empty / skeleton ---- */
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text3)}

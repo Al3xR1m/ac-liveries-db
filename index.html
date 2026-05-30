@@ -255,7 +255,10 @@
               <div class="card-mod">${l.mods?.name||'—'}</div>
             </div>
           </div>
-          <button class="report-btn" onclick="event.stopPropagation();openReport('${l.id}')" title="Report a problem"><i class="ti ti-flag" style="font-size:12px"></i></button>
+          <div class="card-actions">
+            <button class="card-action-btn" onclick="event.stopPropagation();copyLiveryLink('${l.id}')" title="Copy link"><i class="ti ti-link" style="font-size:12px"></i></button>
+            <button class="card-action-btn" onclick="event.stopPropagation();openReport('${l.id}')" title="Report a problem"><i class="ti ti-flag" style="font-size:12px"></i></button>
+          </div>
           <div class="card-body">
             <div class="card-info-row">
               ${champLine}
@@ -310,6 +313,15 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     currentPage = n;
     render();
     window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function copyLiveryLink(id) {
+    const url = `${location.origin}${location.pathname.replace('index.html','')}livery.html?id=${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      // Feedback visuel sur le bouton
+      const btn = document.querySelector(`.card-action-btn[onclick*="copyLiveryLink('${id}')"]`);
+      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:12px"></i>',1500); }
+    });
   }
 
   function openReport(id) { pendingReportId=id; document.getElementById('report-modal').style.display='flex'; }

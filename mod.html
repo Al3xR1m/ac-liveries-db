@@ -176,6 +176,9 @@
             <div class="card-mod">${l.mods?.name||'—'}</div>
           </div>
         </div>
+        <div class="card-actions">
+          <button class="card-action-btn" onclick="event.stopPropagation();copyLiveryLink('${l.id}')" title="Copy link"><i class="ti ti-link" style="font-size:12px"></i></button>
+        </div>
         <div class="card-body">
           <div class="card-info-row">
             ${l.championships?.short_name?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`:`<div class="card-champ" style="color:var(--text3)">—</div>`}
@@ -234,6 +237,14 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
   }
 
   let liveries = [], addons = [];
+
+  function copyLiveryLink(id) {
+    const url = `${location.origin}${location.pathname.replace('mod.html','')}livery.html?id=${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector(`.card-action-btn[onclick*="copyLiveryLink('${id}')"]`);
+      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:12px"></i>',1500); }
+    });
+  }
 
   async function handleLiveryVote(id, btn) {
     const isVoted = getVotedSet().has(id);
