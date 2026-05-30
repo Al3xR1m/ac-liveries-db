@@ -171,7 +171,7 @@ async function fetchLiveries({ categoryId, championshipId, modId, artistId, sear
   if (artistId)       q = q.eq('artist_id', artistId);
   if (isPaid === true)  q = q.eq('is_paid', true);
   if (isPaid === false) q = q.eq('is_paid', false);
-  if (search) q = q.or(`name.ilike.%${search}%,team.ilike.%${search}%,author.ilike.%${search}%,driver.ilike.%${search}%`);
+  if (search) q = q.or(`name.ilike.%${search}%,team.ilike.%${search}%,author.ilike.%${search}%,driver.ilike.%${search}%,car_number.ilike.%${search}%`);
   if (sort === 'votes')       q = q.order('upvotes', { ascending: false });
   else if (sort === 'newest') q = q.order('created_at', { ascending: false });
   else                        q = q.order('name', { ascending: true });

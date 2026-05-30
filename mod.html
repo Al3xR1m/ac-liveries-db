@@ -6,6 +6,19 @@
   <title>Mod — AC Liveries DB</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <!-- Open Graph / Discord -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AC Liveries DB">
+  <meta property="og:title" content="Mod — AC Liveries DB">
+  <meta property="og:description" content="Browse liveries and addons for this Race Sim Studio mod on Assetto Corsa.">
+  <meta property="og:url" content="https://al3xr1m.github.io/ac-liveries-db/mods.html">
+  <meta property="og:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mod — AC Liveries DB">
+  <meta name="twitter:description" content="Browse liveries and addons for this Race Sim Studio mod on Assetto Corsa.">
+  <meta name="twitter:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Marked.js for markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -276,6 +289,9 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
     liveries = livs;
     addons   = adds;
     document.title = `${mod.name} — AC Liveries DB`;
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${mod.name} — AC Liveries DB`);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', `Browse ${livs.length} liveries for ${mod.name} on Assetto Corsa.`);
+    if(mod.image_url) document.querySelector('meta[property="og:image"]')?.setAttribute('content', mod.image_url);
 
     // Update tab counts
     document.getElementById('tab-count-liveries').textContent = livs.length;
@@ -317,7 +333,7 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
       const pricing = document.getElementById('liv-pricing').value;
       const sort = document.getElementById('liv-sort').value;
       let list = liveries.filter(l => {
-        const mq = !q || [l.name,l.team,l.author,l.driver,l.artists?.name].join(' ').toLowerCase().includes(q);
+        const mq = !q || [l.name,l.team,l.author,l.driver,l.car_number,l.artists?.name].join(' ').toLowerCase().includes(q);
         const cq = champ==='all' || l.championship_id===champ;
         const pq = pricing==='all' || (pricing==='free'&&!l.is_paid) || (pricing==='paid'&&l.is_paid);
         const artist = document.getElementById('liv-artist').value;

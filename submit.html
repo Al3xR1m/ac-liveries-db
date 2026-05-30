@@ -137,6 +137,11 @@
           <label>Season / Year</label>
           <input type="text" id="f-season" placeholder="e.g. 2023">
         </div>
+        <div class="field livery-only">
+          <label>Car number</label>
+          <input type="text" id="f-carnumber" placeholder="e.g. 63" maxlength="4">
+          <div class="field-hint">Used for search — e.g. "63", "001"</div>
+        </div>
         <div class="field">
           <label>Pricing</label>
           <div style="display:flex;gap:10px;margin-top:4px">
@@ -575,6 +580,7 @@
         team:document.getElementById('f-team').value.trim(),
         driver:document.getElementById('f-driver').value.trim(),
         season:document.getElementById('f-season').value.trim(),
+        car_number:document.getElementById('f-carnumber').value.trim()||null,
       });
     } else {
       ok=await submitAddon({...base, addon_type:document.getElementById('f-addon-type').value});

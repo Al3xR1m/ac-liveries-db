@@ -6,6 +6,19 @@
   <title>AC Liveries DB — Community livery database for RSS mods</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <!-- Open Graph / Discord -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AC Liveries DB">
+  <meta property="og:title" content="AC Liveries DB — Community livery database for RSS mods">
+  <meta property="og:description" content="Browse, discover and submit liveries for Race Sim Studio mods on Assetto Corsa. Free community database.">
+  <meta property="og:url" content="https://al3xr1m.github.io/ac-liveries-db/index.html">
+  <meta property="og:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AC Liveries DB — Community livery database for RSS mods">
+  <meta name="twitter:description" content="Browse, discover and submit liveries for Race Sim Studio mods on Assetto Corsa. Free community database.">
+  <meta name="twitter:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -206,7 +219,7 @@
       const matchChamp=activeChampId==='all'||l.championship_id===activeChampId;
       const matchPricing=activePricing===null||(activePricing===true&&l.is_paid===true)||(activePricing===false&&l.is_paid!==true);
       const matchArtist=activeArtist==='all'||(activeArtist==='confirmed'&&!!l.artist_id)||(activeArtist==='community'&&!l.artist_id);
-      const matchQ=!q||[l.name,l.team,l.author,l.driver,l.mods?.name,l.artists?.name].join(' ').toLowerCase().includes(q);
+      const matchQ=!q||[l.name,l.team,l.author,l.driver,l.car_number,l.mods?.name,l.artists?.name].join(' ').toLowerCase().includes(q);
       return matchCat&&matchChamp&&matchPricing&&matchArtist&&matchQ;
     });
     if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
