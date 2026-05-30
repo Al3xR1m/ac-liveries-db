@@ -50,6 +50,8 @@
       </button>
       <div id="artist-liveries-title" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)"></div>
     </div>
+    <!-- Artist profile card -->
+    <div id="artist-profile-card" style="display:none;background:var(--surface);border:1px solid #FFD70030;border-radius:var(--radius);padding:20px;margin-bottom:20px;gap:16px;align-items:flex-start"></div>
     <!-- Toolbar -->
     <div class="toolbar" style="margin-bottom:16px">
       <div class="search-wrap">
@@ -150,6 +152,29 @@
     const section = document.getElementById('artist-liveries-section');
     section.style.display = 'block';
     document.getElementById('artist-liveries-title').textContent = `${artistName}'s liveries`;
+
+    // Afficher profil artiste
+    const artistData = (await fetchArtists()).find(a=>a.id===artistId);
+    const profileEl = document.getElementById('artist-profile-card');
+    if(artistData && profileEl){
+      const links = (() => { try { return Array.isArray(artistData.links) ? artistData.links : JSON.parse(artistData.links||'[]'); } catch(e){ return []; } })();
+      profileEl.style.display = 'flex';
+      profileEl.innerHTML = `
+        <div style="flex-shrink:0">
+          ${artistData.avatar_url
+            ? `<img src="${artistData.avatar_url}" alt="${artistData.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060">`
+            : `<div style="width:72px;height:72px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text3);border:2px solid #FFD70060"><i class="ti ti-user"></i></div>`}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${artistData.name}</div>
+            <span style="font-size:11px;color:#FFD700;font-weight:600">👑 Confirmed Artist</span>
+          </div>
+          ${artistData.discord ? `<div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-bottom:6px"><i class="ti ti-brand-discord" style="font-size:13px;color:#5865F2"></i>${artistData.discord}</div>` : ''}
+          ${artistData.bio ? `<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">${artistData.bio}</div>` : ''}
+          ${links.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${links.map(l=>`<a href="${l.url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--border);border-radius:20px;text-decoration:none;transition:border-color .12s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'"><i class="ti ti-external-link" style="font-size:11px"></i>${l.label}</a>`).join('')}</div>` : ''}
+        </div>`;
+    }
 
     const liveries = await fetchLiveries({ artistId, sort: 'votes' });
     allLiveries = liveries;
@@ -299,6 +324,8 @@
   document.getElementById('back-btn').addEventListener('click', () => {
     document.getElementById('artist-liveries-section').style.display = 'none';
     document.getElementById('artists-grid').style.display = 'grid';
+    const profileEl = document.getElementById('artist-profile-card');
+    if(profileEl){ profileEl.style.display='none'; profileEl.innerHTML=''; }
   });
 
   init();
