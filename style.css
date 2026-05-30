@@ -45,10 +45,20 @@ img{display:block;max-width:100%}
 .nav-divider{width:1px;height:20px;background:var(--nav-border);margin:0 10px}
 
 /* ---- Layout ---- */
-.container{max-width:100%;margin:0 auto;padding:0 40px}
+.container{max-width:1400px;margin:0 auto;padding:0 28px}
 .page-header{padding:32px 0 24px;border-bottom:1px solid var(--border);margin-bottom:24px}
 .page-title{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:.02em;color:var(--text)}
 .page-sub{font-size:14px;color:var(--text2);margin-top:4px}
+
+/* ---- Filters panel ---- */
+.filters-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;display:none;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.filters-panel.open{display:flex}
+.filters-panel .filter-group{display:flex;flex-direction:column;gap:4px;min-width:160px;flex:1}
+.filters-panel .filter-group label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.filter-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;margin-left:4px;vertical-align:middle}
+.filters-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;transition:all .12s;white-space:nowrap;flex-shrink:0}
+.filters-btn:hover,.filters-btn.active{border-color:var(--accent);color:var(--accent)}
+.filters-btn.has-filters{border-color:var(--accent);color:var(--accent);background:rgba(230,51,18,.06)}
 
 /* ---- Stats ---- */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
