@@ -527,7 +527,7 @@ async function loadArtists(search=''){
 
 function artistModalForm(a={}){
   const links = Array.isArray(a.links) ? a.links : (a.links ? JSON.parse(a.links) : []);
-  const linksVal = links.map(l=>`${l.label}|${l.url}`).join('\n');
+  const linksVal = links.map(l=>l.label+'|'+l.url).join('\n');
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
     <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
@@ -1167,7 +1167,7 @@ async function loadArtists(search=''){
 
 function artistModalForm(a={}){
   const links = Array.isArray(a.links) ? a.links : (a.links ? JSON.parse(a.links) : []);
-  const linksVal = links.map(l=>`${l.label}|${l.url}`).join('\n');
+  const linksVal = links.map(l=>l.label+'|'+l.url).join('\n');
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
     <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
