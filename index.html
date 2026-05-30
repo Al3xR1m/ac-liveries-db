@@ -153,11 +153,14 @@
   }
 
   // State
-  let allLiveries=[], activeCatId='all', activeChampId='all', activePricing=null, activeArtist='all', maxVotes=1;
+  let activeCatId='all', activeChampId='all', activePricing=null, activeArtist='all';
+  let currentPageData=[], totalCount=0;
   const PAGE_SIZE = 24;
   let currentPage = 1;
+  let isLoading = false;
   let voted=getVotedSet();
   let pendingReportId=null;
+  let _renderDebounce=null;
 
   // Pricing filter
   document.getElementById('pricing-select').addEventListener('change', function() {
@@ -222,26 +225,47 @@
     });
   }
 
-  function render() {
-    const q=document.getElementById('search').value.toLowerCase();
-    const sort=document.getElementById('sort').value;
-    let list=allLiveries.filter(l=>{
-      const matchCat=activeCatId==='all'||l.category_id===activeCatId;
-      const matchChamp=activeChampId==='all'||l.championship_id===activeChampId;
-      const matchPricing=activePricing===null||(activePricing===true&&l.is_paid===true)||(activePricing===false&&l.is_paid!==true);
-      const matchArtist=activeArtist==='all'||(activeArtist==='confirmed'&&!!l.artist_id)||(activeArtist==='community'&&!l.artist_id);
-      const matchQ=!q||[l.name,l.team,l.author,l.driver,l.car_number,l.mods?.name,l.artists?.name].join(' ').toLowerCase().includes(q);
-      return matchCat&&matchChamp&&matchPricing&&matchArtist&&matchQ;
-    });
-    if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
-    else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-    else list.sort((a,b)=>a.name.localeCompare(b.name));
+  async function render() {
+    if(isLoading) return;
+    isLoading = true;
+    const search = document.getElementById('search').value.trim();
+    const sort   = document.getElementById('sort').value;
+    const g      = document.getElementById('gallery');
+    const countEl= document.getElementById('results-count');
 
-    const g=document.getElementById('gallery');
-    const countEl = document.getElementById('results-count');
+    // Paramètres Supabase
+    const params = {
+      categoryId:     activeCatId!=='all' ? activeCatId : undefined,
+      championshipId: activeChampId!=='all' ? activeChampId : undefined,
+      isPaid:         activePricing,
+      confirmedOnly:  activeArtist==='confirmed',
+      communityOnly:  activeArtist==='community',
+      search:         search||undefined,
+      sort,
+      page:           currentPage,
+      pageSize:       PAGE_SIZE,
+    };
+
+    // Fetch en parallèle : page courante + count total
+    const [list, total] = await Promise.all([
+      fetchLiveries(params),
+      fetchLiveriesCount({
+        categoryId:     params.categoryId,
+        championshipId: params.championshipId,
+        isPaid:         params.isPaid,
+        confirmedOnly:  params.confirmedOnly,
+        communityOnly:  params.communityOnly,
+        search:         params.search,
+      }),
+    ]);
+
+    currentPageData = list;
+    totalCount = total;
+    voted = getVotedSet();
+    isLoading = false;
 
     if(!list.length){
-      const hasFilters = activeCatId!=='all'||activeChampId!=='all'||activePricing!==null||activeArtist!=='all'||document.getElementById('search').value;
+      const hasFilters = activeCatId!=='all'||activeChampId!=='all'||activePricing!==null||activeArtist!=='all'||search;
       g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.${hasFilters?` <button onclick="resetFilters()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;text-decoration:underline">Reset filters</button>`:''}</p></div>`;
       document.getElementById('pagination').innerHTML='';
       countEl.style.display='none';
@@ -249,17 +273,16 @@
     }
 
     // Results count
+    const showing = Math.min(currentPage*PAGE_SIZE, total);
     countEl.style.display='block';
-    countEl.textContent=`Showing ${Math.min(currentPage*PAGE_SIZE, list.length)} of ${list.length} liveri${list.length!==1?'es':'y'}`;
+    countEl.textContent=`Showing ${(currentPage-1)*PAGE_SIZE+1}–${showing} of ${total} liveri${total!==1?'es':'y'}`;
 
     // Pagination
-    const totalPages = Math.ceil(list.length / PAGE_SIZE);
-    if(currentPage > totalPages) currentPage = 1;
-    const pageList = list.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
-    renderPagination(list.length, totalPages);
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    renderPagination(total, totalPages);
 
     const seed=l=>parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
-    g.innerHTML=pageList.map(l=>{
+    g.innerHTML=list.map(l=>{
       const cn=l.categories?.name||'';
       const bg=l.categories?.color_bg||'#E6F1FB';
       const tc=l.categories?.color_text||'#0C447C';
@@ -313,9 +336,9 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     g.querySelectorAll('[data-vote]').forEach(btn=>{
       btn.addEventListener('click',async e=>{
         e.stopPropagation(); const id=btn.dataset.vote; const isVoted=voted.has(id);
-        const liv=allLiveries.find(l=>l.id===id);
-        if(isVoted){const ok=await removeUpvoteLivery(id);if(ok&&liv){liv.upvotes=Math.max(0,liv.upvotes-1);voted=getVotedSet();maxVotes=Math.max(...allLiveries.map(l=>l.upvotes),1);render();}}
-        else{const ok=await upvoteLivery(id);if(ok&&liv){liv.upvotes++;voted=getVotedSet();maxVotes=Math.max(...allLiveries.map(l=>l.upvotes),1);render();}}
+        const liv=currentPageData.find(l=>l.id===id);
+        if(isVoted){const ok=await removeUpvoteLivery(id);if(ok&&liv){liv.upvotes=Math.max(0,liv.upvotes-1);voted=getVotedSet();render();}}
+        else{const ok=await upvoteLivery(id);if(ok&&liv){liv.upvotes++;voted=getVotedSet();render();}}
       });
     });
   }
@@ -360,21 +383,32 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
 
   async function init() {
     await buildFilters();
-    const [liveries,stats]=await Promise.all([fetchLiveries({sort:'votes'}),fetchStats()]);
-    allLiveries=liveries;
-    maxVotes=allLiveries.length?Math.max(...allLiveries.map(l=>l.upvotes),1):1;
-    checkNewLiveries(allLiveries);
+    const stats = await fetchStats();
     document.getElementById('s-total').textContent=stats.total;
     document.getElementById('s-mods').textContent=stats.mods;
     document.getElementById('s-votes').textContent=stats.votes;
     document.getElementById('s-top').textContent=stats.top;
+    // Check new liveries via Supabase count
+    const lastVisit = parseInt(localStorage.getItem('acliveries_last_visit')||'0');
+    if(lastVisit){
+      const newCount = await fetchNewLiveriesCount(lastVisit);
+      if(newCount > 0){
+        document.getElementById('new-banner-text').textContent = `${newCount} new liver${newCount!==1?'ies':'y'} since your last visit`;
+        document.getElementById('new-banner').style.display='flex';
+      }
+    }
+    localStorage.setItem('acliveries_last_visit', Date.now().toString());
     const params=new URLSearchParams(location.search);
     const modIdParam=params.get('mod_id');
-    if(modIdParam){const mod=allLiveries.find(l=>l.mod_id===modIdParam);if(mod)document.getElementById('search').value=mod.mods?.name||'';}
+    if(modIdParam) document.getElementById('search').value=modIdParam;
     render();
   }
 
   function resetAndRender(){ currentPage=1; render(); }
+  function resetAndRenderDebounced(){
+    clearTimeout(_renderDebounce);
+    _renderDebounce = setTimeout(()=>{ currentPage=1; render(); }, 300);
+  }
 
   function resetFilters(){
     activeCatId='all'; activeChampId='all'; activePricing=null; activeArtist='all';
@@ -401,18 +435,8 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     localStorage.setItem('acliveries_last_visit', Date.now().toString());
   }
 
-  function checkNewLiveries(liveries){
-    const lastVisit = parseInt(localStorage.getItem('acliveries_last_visit')||'0');
-    if(!lastVisit) { localStorage.setItem('acliveries_last_visit', Date.now().toString()); return; }
-    const newCount = liveries.filter(l => l.created_at && new Date(l.created_at).getTime() > lastVisit).length;
-    if(newCount > 0){
-      const banner = document.getElementById('new-banner');
-      document.getElementById('new-banner-text').textContent = `${newCount} new liver${newCount!==1?'ies':'y'} since your last visit`;
-      banner.style.display='flex';
-    }
-    localStorage.setItem('acliveries_last_visit', Date.now().toString());
-  }
-  document.getElementById('search').addEventListener('input',resetAndRender);
+
+  document.getElementById('search').addEventListener('input',resetAndRenderDebounced);
   document.getElementById('sort').addEventListener('change',resetAndRender);
   // Reset selects visuellement au chargement (le browser peut garder les valeurs précédentes)
   document.getElementById('cat-select').value = 'all';

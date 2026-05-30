@@ -162,13 +162,15 @@ async function fetchArtistStats() {
 // ============================================
 // LIVERIES
 // ============================================
-async function fetchLiveries({ categoryId, championshipId, modId, artistId, search, sort, approvedOnly = true, isPaid, page = 1, pageSize = null } = {}) {
+async function fetchLiveries({ categoryId, championshipId, modId, artistId, search, sort, approvedOnly = true, isPaid, page = 1, pageSize = null, confirmedOnly = false, communityOnly = false } = {}) {
   let q = db.from('liveries').select('*, categories(name,color_bg,color_text), mods(name), championships(name,short_name), artists(id,name,avatar_url)');
   if (approvedOnly) q = q.eq('approved', true);
   if (categoryId)     q = q.eq('category_id', categoryId);
   if (championshipId) q = q.eq('championship_id', championshipId);
   if (modId)          q = q.eq('mod_id', modId);
   if (artistId)       q = q.eq('artist_id', artistId);
+  if (confirmedOnly)  q = q.not('artist_id', 'is', null);
+  if (communityOnly)  q = q.is('artist_id', null);
   if (isPaid === true)  q = q.eq('is_paid', true);
   if (isPaid === false) q = q.eq('is_paid', false);
   if (search) {
@@ -182,6 +184,26 @@ async function fetchLiveries({ categoryId, championshipId, modId, artistId, sear
   const { data, error } = await q;
   if (error) { console.error(error); return []; }
   return data;
+}
+async function fetchLiveriesCount({ categoryId, championshipId, search, isPaid, confirmedOnly, communityOnly } = {}) {
+  let q = db.from('liveries').select('*', { count: 'exact', head: true }).eq('approved', true);
+  if (categoryId)     q = q.eq('category_id', categoryId);
+  if (championshipId) q = q.eq('championship_id', championshipId);
+  if (confirmedOnly)  q = q.not('artist_id', 'is', null);
+  if (communityOnly)  q = q.is('artist_id', null);
+  if (isPaid === true)  q = q.eq('is_paid', true);
+  if (isPaid === false) q = q.eq('is_paid', false);
+  if (search) {
+    const cleanSearch = search.replace(/^#+/, '');
+    q = q.or(`name.ilike.%${cleanSearch}%,team.ilike.%${cleanSearch}%,author.ilike.%${cleanSearch}%,driver.ilike.%${cleanSearch}%,car_number.ilike.%${cleanSearch}%`);
+  }
+  const { count } = await q;
+  return count || 0;
+}
+async function fetchNewLiveriesCount(sinceTs) {
+  const since = new Date(sinceTs).toISOString();
+  const { count } = await db.from('liveries').select('*', { count: 'exact', head: true }).eq('approved', true).gt('created_at', since);
+  return count || 0;
 }
 async function fetchLivery(id) {
   const { data } = await db.from('liveries').select('*, categories(name,color_bg,color_text), mods(name), championships(name,short_name), artists(id,name,avatar_url)').eq('id', id).single();
@@ -233,12 +255,16 @@ async function resolveReport(id) {
 // STATS
 // ============================================
 async function fetchStats() {
-  const { data } = await db.from('liveries').select('id, mod_id, upvotes, name').eq('approved', true);
-  if (!data) return { total: 0, mods: 0, votes: 0, top: '—' };
+  const [countRes, topRes, allRes] = await Promise.all([
+    db.from('liveries').select('*', { count:'exact', head:true }).eq('approved', true),
+    db.from('liveries').select('upvotes').eq('approved', true).order('upvotes', { ascending:false }).limit(1),
+    db.from('liveries').select('mod_id, upvotes').eq('approved', true),
+  ]);
+  const data = allRes.data || [];
   const mods  = new Set(data.map(l => l.mod_id)).size;
-  const votes = data.reduce((s, l) => s + (l.upvotes || 0), 0);
-  const top   = data.reduce((a, b) => (b.upvotes > a.upvotes ? b : a), data[0]);
-  return { total: data.length, mods, votes, top: top ? top.upvotes + ' votes' : '—' };
+  const votes = data.reduce((s,l) => s+(l.upvotes||0), 0);
+  const top   = topRes.data?.[0]?.upvotes;
+  return { total: countRes.count||0, mods, votes, top: top ? top+' votes' : '—' };
 }
 async function fetchAdminStats() {
   const [{ count: total }, { count: pending }, { count: totalVotes }, { count: openReports }, { count: pendingAddons }] = await Promise.all([
