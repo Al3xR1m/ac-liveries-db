@@ -86,6 +86,16 @@
     </select>
   </div>
 
+  <!-- New liveries banner -->
+  <div id="new-banner" style="display:none;align-items:center;gap:10px;background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green)">
+    <div class="new-dot" style="position:static;flex-shrink:0"></div>
+    <span id="new-banner-text"></span>
+    <button onclick="showNewOnly()" style="margin-left:4px;font-size:12px;font-weight:600;padding:3px 10px;border:1px solid var(--green);border-radius:20px;background:transparent;color:var(--green);cursor:pointer">Show</button>
+    <button onclick="dismissBanner()" style="margin-left:auto;background:none;border:none;color:var(--green);cursor:pointer;font-size:16px;line-height:1">×</button>
+  </div>
+  <!-- Results count -->
+  <div id="results-count" style="font-size:12px;color:var(--text3);margin-bottom:10px;display:none"></div>
+
   <div class="gallery" id="gallery">
     <div class="skeleton" style="height:200px;border-radius:10px"></div>
     <div class="skeleton" style="height:200px;border-radius:10px"></div>
@@ -228,11 +238,19 @@
     else list.sort((a,b)=>a.name.localeCompare(b.name));
 
     const g=document.getElementById('gallery');
+    const countEl = document.getElementById('results-count');
+
     if(!list.length){
-      g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries found. <a href="submit.html" style="color:var(--accent)">Submit one!</a></p></div>`;
+      const hasFilters = activeCatId!=='all'||activeChampId!=='all'||activePricing!==null||activeArtist!=='all'||document.getElementById('search').value;
+      g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.${hasFilters?` <button onclick="resetFilters()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;text-decoration:underline">Reset filters</button>`:''}</p></div>`;
       document.getElementById('pagination').innerHTML='';
+      countEl.style.display='none';
       return;
     }
+
+    // Results count
+    countEl.style.display='block';
+    countEl.textContent=`Showing ${Math.min(currentPage*PAGE_SIZE, list.length)} of ${list.length} liveri${list.length!==1?'es':'y'}`;
 
     // Pagination
     const totalPages = Math.ceil(list.length / PAGE_SIZE);
@@ -345,6 +363,7 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     const [liveries,stats]=await Promise.all([fetchLiveries({sort:'votes'}),fetchStats()]);
     allLiveries=liveries;
     maxVotes=allLiveries.length?Math.max(...allLiveries.map(l=>l.upvotes),1):1;
+    checkNewLiveries(allLiveries);
     document.getElementById('s-total').textContent=stats.total;
     document.getElementById('s-mods').textContent=stats.mods;
     document.getElementById('s-votes').textContent=stats.votes;
@@ -356,6 +375,43 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
   }
 
   function resetAndRender(){ currentPage=1; render(); }
+
+  function resetFilters(){
+    activeCatId='all'; activeChampId='all'; activePricing=null; activeArtist='all';
+    document.getElementById('cat-select').value='all';
+    document.getElementById('champ-select').value='all';
+    document.getElementById('pricing-select').value='all';
+    document.getElementById('artist-select').value='all';
+    document.getElementById('search').value='';
+    updateChampSelect('all');
+    resetAndRender();
+  }
+
+  function showNewOnly(){
+    // Filtre sur les 7 derniers jours via le sort "newest" + dismiss banner
+    document.getElementById('sort').value='newest';
+    dismissBanner();
+    resetAndRender();
+    // Scroll to first new card
+    setTimeout(()=>document.querySelector('.new-dot')?.closest('.livery-card')?.scrollIntoView({behavior:'smooth',block:'center'}),200);
+  }
+
+  function dismissBanner(){
+    document.getElementById('new-banner').style.display='none';
+    localStorage.setItem('acliveries_last_visit', Date.now().toString());
+  }
+
+  function checkNewLiveries(liveries){
+    const lastVisit = parseInt(localStorage.getItem('acliveries_last_visit')||'0');
+    if(!lastVisit) { localStorage.setItem('acliveries_last_visit', Date.now().toString()); return; }
+    const newCount = liveries.filter(l => l.created_at && new Date(l.created_at).getTime() > lastVisit).length;
+    if(newCount > 0){
+      const banner = document.getElementById('new-banner');
+      document.getElementById('new-banner-text').textContent = `${newCount} new liver${newCount!==1?'ies':'y'} since your last visit`;
+      banner.style.display='flex';
+    }
+    localStorage.setItem('acliveries_last_visit', Date.now().toString());
+  }
   document.getElementById('search').addEventListener('input',resetAndRender);
   document.getElementById('sort').addEventListener('change',resetAndRender);
   // Reset selects visuellement au chargement (le browser peut garder les valeurs précédentes)
