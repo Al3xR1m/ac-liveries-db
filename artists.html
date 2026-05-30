@@ -171,8 +171,25 @@
             <span style="font-size:11px;color:#FFD700;font-weight:600">👑 Confirmed Artist</span>
           </div>
           ${artistData.discord ? `<div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-bottom:6px"><i class="ti ti-brand-discord" style="font-size:13px;color:#5865F2"></i>${artistData.discord}</div>` : ''}
-          ${artistData.bio ? `<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">${artistData.bio}</div>` : ''}
-          ${links.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${links.map(l=>`<a href="${l.url}" target="_blank" style="font-size:12px;color:var(--accent);display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid var(--border);border-radius:20px;text-decoration:none;transition:border-color .12s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'"><i class="ti ti-external-link" style="font-size:11px"></i>${l.label}</a>`).join('')}</div>` : ''}
+          ${artistData.bio ? '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">'+artistData.bio+'</div>' : ''}
+          ${(()=>{
+            const lk = artistData.links && typeof artistData.links === 'object' ? artistData.links : {};
+            const btns = [
+              {key:'twitter',  icon:'ti-brand-twitter',  color:'#000',    label:'Twitter'},
+              {key:'discord',  icon:'ti-brand-discord',  color:'#5865F2', label:'Discord'},
+              {key:'patreon',  icon:'ti-brand-patreon',  color:'#FF424D', label:'Patreon'},
+              {key:'youtube',  icon:'ti-brand-youtube',  color:'#FF0000', label:'YouTube'},
+              {key:'overtake', icon:'ti-flag',            color:'#00D4AA', label:'Overtake'},
+              {key:'racedept', icon:'ti-steering-wheel', color:'#e63312', label:'RaceDept'},
+            ].filter(b=>lk[b.key]);
+            if(!btns.length) return '';
+            return '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+              + btns.map(b=>'<a href="'+lk[b.key]+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;text-decoration:none;transition:all .12s;background:var(--bg)">'
+                + '<div style="width:18px;height:18px;border-radius:4px;background:'+b.color+';display:flex;align-items:center;justify-content:center"><i class="ti '+b.icon+'" style="font-size:11px;color:#fff"></i></div>'
+                + '<span style="font-size:12px;color:var(--text2)">'+b.label+'</span>'
+                + '</a>').join('')
+              + '</div>';
+          })()}
         </div>`;
     }
 

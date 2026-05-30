@@ -515,16 +515,34 @@ async function loadArtists(){
 }
 
 function artistModalForm(a={}){
-  return `<div style="display:flex;flex-direction:column;gap:12px">
-    <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
-    <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
-    <div class="field"><label>Discord username</label><input id="af-discord" value="${a.discord||''}" placeholder="e.g. simpai_it"></div>
-    <div class="field"><label>Bio (optional)</label><textarea id="af-bio" style="min-height:60px">${a.bio||''}</textarea></div>
-  </div>`;
+  const lk = (a.links && typeof a.links === 'object') ? a.links : {};
+  return '<div style="display:flex;flex-direction:column;gap:12px">'
+    + '<div class="field"><label>Artist name *</label><input id="af-name" value="' + (a.name||'') + '" placeholder="e.g. SimPainter_IT"></div>'
+    + '<div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>'
+    + '<div class="field"><label>Discord username</label><input id="af-discord" value="' + (a.discord||'') + '" placeholder="e.g. simpai_it"></div>'
+    + '<div class="field"><label>Bio (optional)</label><textarea id="af-bio" style="min-height:60px">' + (a.bio||'') + '</textarea></div>'
+    + '<div class="field-hint" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-top:4px">Social links</div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#000;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-twitter" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">Twitter / X</label><input id="af-twitter" style="width:100%" placeholder="https://x.com/..." value="' + (lk.twitter||'') + '"></div></div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#5865F2;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-discord" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">Discord server</label><input id="af-discord-link" style="width:100%" placeholder="https://discord.gg/..." value="' + (lk.discord||'') + '"></div></div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#FF424D;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-patreon" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">Patreon</label><input id="af-patreon" style="width:100%" placeholder="https://patreon.com/..." value="' + (lk.patreon||'') + '"></div></div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#FF0000;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-brand-youtube" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">YouTube</label><input id="af-youtube" style="width:100%" placeholder="https://youtube.com/..." value="' + (lk.youtube||'') + '"></div></div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#00D4AA;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-flag" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">Overtake</label><input id="af-overtake" style="width:100%" placeholder="https://www.overtake.gg/..." value="' + (lk.overtake||'') + '"></div></div>'
+    + '<div class="field" style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:#e63312;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-steering-wheel" style="font-size:14px;color:#fff"></i></div><div style="flex:1"><label style="margin-bottom:4px;display:block">RaceDepartment</label><input id="af-racedept" style="width:100%" placeholder="https://www.racedepartment.com/..." value="' + (lk.racedept||'') + '"></div></div>'
+    + '</div>';
+}
+function getArtistLinks(){
+  return {
+    twitter:   document.getElementById('af-twitter').value.trim()||null,
+    discord:   document.getElementById('af-discord-link').value.trim()||null,
+    patreon:   document.getElementById('af-patreon').value.trim()||null,
+    youtube:   document.getElementById('af-youtube').value.trim()||null,
+    overtake:  document.getElementById('af-overtake').value.trim()||null,
+    racedept:  document.getElementById('af-racedept').value.trim()||null,
+  };
 }
 document.getElementById('addArtistBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-crown"></i> Add confirmed artist',artistModalForm(),async()=>{
-    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
+    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:getArtistLinks()});
     if(ok){await reloadCache();closeModal();await loadArtists();}
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
@@ -532,7 +550,7 @@ document.getElementById('addArtistBtn').addEventListener('click',()=>{
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
+    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:getArtistLinks()});
     await reloadCache();closeModal();await loadArtists();
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
