@@ -56,6 +56,15 @@
         <i class="ti ti-search"></i>
         <input type="text" class="search-input" id="artist-search" placeholder="Search livery, driver, team…">
       </div>
+      <select class="sort-select" id="artist-cat">
+        <option value="all">All categories</option>
+      </select>
+      <select class="sort-select" id="artist-champ">
+        <option value="all">All championships</option>
+      </select>
+      <select class="sort-select" id="artist-mod">
+        <option value="all">All mods</option>
+      </select>
       <select class="sort-select" id="artist-pricing">
         <option value="all">All pricing</option>
         <option value="free">Free only</option>
@@ -146,16 +155,36 @@
     allLiveries = liveries;
     maxVotes = liveries.length ? Math.max(...liveries.map(l => l.upvotes), 1) : 1;
 
+    // Reset tous les filtres
+    ['artist-search','artist-cat','artist-champ','artist-mod','artist-pricing'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value = el.tagName==='INPUT' ? '' : 'all';
+    });
+    document.getElementById('artist-sort').value = 'votes';
+
     const g = document.getElementById('artist-liveries-grid');
     if (!liveries.length) {
       g.innerHTML = `<div class="empty"><i class="ti ti-photo-off"></i><p>No liveries yet.</p></div>`;
       return;
     }
 
+    // Peupler les selects depuis les livrées de cet artiste
+    const cats   = [...new Map(liveries.filter(l=>l.categories).map(l=>[l.category_id,l.categories])).entries()].map(([id,cat])=>({id,...cat}));
+    const champs = [...new Map(liveries.filter(l=>l.championships).map(l=>[l.championship_id,l.championships])).entries()].map(([id,ch])=>({id,...ch}));
+    const mods   = [...new Map(liveries.filter(l=>l.mods).map(l=>[l.mod_id,l.mods])).entries()].map(([id,m])=>({id,...m}));
+
+    const catSel   = document.getElementById('artist-cat');
+    const champSel = document.getElementById('artist-champ');
+    const modSel   = document.getElementById('artist-mod');
+
+    catSel.innerHTML   = '<option value="all">All categories</option>'   + cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    champSel.innerHTML = '<option value="all">All championships</option>' + champs.map(c=>`<option value="${c.id}">${c.short_name||c.name}</option>`).join('');
+    modSel.innerHTML   = '<option value="all">All mods</option>'         + mods.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+
     renderArtistLiveries(liveries);
 
     // Wire up filters
-    ['artist-search','artist-pricing','artist-sort'].forEach(id => {
+    ['artist-search','artist-cat','artist-champ','artist-mod','artist-pricing','artist-sort'].forEach(id => {
       document.getElementById(id).addEventListener(id==='artist-search'?'input':'change', ()=>renderArtistLiveries(liveries));
     });
   }
@@ -165,10 +194,17 @@
     const pricing = document.getElementById('artist-pricing').value;
     const sort    = document.getElementById('artist-sort').value;
 
+    const cat    = document.getElementById('artist-cat').value;
+    const champ  = document.getElementById('artist-champ').value;
+    const mod    = document.getElementById('artist-mod').value;
+
     let list = liveries.filter(l => {
-      const mq = !q || [l.name,l.team,l.author,l.driver,l.car_number].join(' ').toLowerCase().includes(q);
-      const pq = pricing==='all'||(pricing==='free'&&!l.is_paid)||(pricing==='paid'&&l.is_paid);
-      return mq && pq;
+      const mq  = !q || [l.name,l.team,l.author,l.driver,l.car_number].join(' ').toLowerCase().includes(q);
+      const pq  = pricing==='all'||(pricing==='free'&&!l.is_paid)||(pricing==='paid'&&l.is_paid);
+      const cq  = cat==='all'   || l.category_id===cat;
+      const chq = champ==='all' || l.championship_id===champ;
+      const moq = mod==='all'   || l.mod_id===mod;
+      return mq && pq && cq && chq && moq;
     });
     if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
     else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
