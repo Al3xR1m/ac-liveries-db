@@ -501,7 +501,7 @@ async function loadArtists(){
          <button class="action-btn danger" onclick="doRevokeToken('${a.id}')" title="Revoke & regenerate"><i class="ti ti-refresh"></i></button>`
       : `<button class="action-btn success" onclick="doGenerateToken('${a.id}')"><i class="ti ti-key"></i> Generate</button>`;
     return `<tr>
-      <td>${avatar} <strong style="margin-left:8px">${a.name}</strong></td>
+      <td><div style="display:inline-flex;align-items:center;gap:8px">${avatar}<strong>${a.name}</strong></div></td>
       <td style="color:var(--text2)">${a.discord||'—'}</td>
       <td>${s.count}</td>
       <td>${s.upvotes}</td>
