@@ -157,7 +157,6 @@
     const artistData = (await fetchArtists()).find(a=>a.id===artistId);
     const profileEl = document.getElementById('artist-profile-card');
     if(artistData && profileEl){
-      const links = (() => { try { return Array.isArray(artistData.links) ? artistData.links : JSON.parse(artistData.links||'[]'); } catch(e){ return []; } })();
       profileEl.style.display = 'flex';
       profileEl.innerHTML = `
         <div style="flex-shrink:0">
@@ -173,7 +172,13 @@
           ${artistData.discord ? `<div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-bottom:6px"><i class="ti ti-brand-discord" style="font-size:13px;color:#5865F2"></i>${artistData.discord}</div>` : ''}
           ${artistData.bio ? '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">'+artistData.bio+'</div>' : ''}
           ${(()=>{
-            const lk = artistData.links && typeof artistData.links === 'object' ? artistData.links : {};
+            let lk = {};
+            try {
+              if(artistData.links) {
+                lk = typeof artistData.links === 'string' ? JSON.parse(artistData.links) : artistData.links;
+                if(Array.isArray(lk)) lk = {}; // ancien format tableau ignoré
+              }
+            } catch(e){ lk = {}; }
             const btns = [
               {key:'twitter',  icon:'ti-brand-twitter',  color:'#000',    label:'Twitter'},
               {key:'discord',  icon:'ti-brand-discord',  color:'#5865F2', label:'Discord'},
