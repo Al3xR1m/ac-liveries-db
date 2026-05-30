@@ -515,11 +515,10 @@ async function loadArtists(){
 }
 
 function artistModalForm(a={}){
-  const lk = (a.links && typeof a.links === 'object') ? a.links : {};
-  function lnk(id, icon, color, placeholder, val){
-    return '<div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px">'
+  function lnk(id, icon, color, label, val){
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;margin-bottom:6px">'
       + '<div style="width:24px;height:24px;border-radius:5px;background:'+color+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti '+icon+'" style="font-size:13px;color:#fff"></i></div>'
-      + '<input id="'+id+'" style="border:none;background:transparent;color:var(--text);font-family:var(--font-body);font-size:12px;outline:none;width:100%;min-width:0" placeholder="'+placeholder+'" value="'+val+'">'
+      + '<input id="'+id+'" style="border:none;background:transparent;color:var(--text);font-family:var(--font-body);font-size:12px;outline:none;width:100%;min-width:0" placeholder="'+label+'" value="'+val+'">'
       + '</div>';
   }
   return ''
@@ -531,27 +530,25 @@ function artistModalForm(a={}){
     +   '</div>'
     + '</div>'
     + '<div class="field" style="margin-bottom:12px"><label>Bio</label><textarea id="af-bio" style="min-height:60px;resize:vertical">' + (a.bio||'') + '</textarea></div>'
-    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Social links</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
-    + lnk('af-twitter',      'ti-brand-twitter',  '#111',    'Twitter / X',    lk.twitter||'')
-    + lnk('af-discord-link', 'ti-brand-discord',  '#5865F2', 'Discord server',  lk.discord||'')
-    + lnk('af-patreon',      'ti-brand-patreon',  '#FF424D', 'Patreon',         lk.patreon||'')
-    + lnk('af-youtube',      'ti-brand-youtube',  '#FF0000', 'YouTube',         lk.youtube||'')
-    + lnk('af-overtake',     'ti-flag',           '#00D4AA', 'Overtake',        lk.overtake||'')
-    + '</div>';
+    + '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">Social links</div>'
+    + lnk('af-url-twitter',  'ti-brand-twitter',  '#111',    'https://x.com/...',           a.url_twitter||'')
+    + lnk('af-url-discord',  'ti-brand-discord',  '#5865F2', 'https://discord.gg/...',      a.url_discord||'')
+    + lnk('af-url-patreon',  'ti-brand-patreon',  '#FF424D', 'https://patreon.com/...',     a.url_patreon||'')
+    + lnk('af-url-youtube',  'ti-brand-youtube',  '#FF0000', 'https://youtube.com/...',     a.url_youtube||'')
+    + lnk('af-url-overtake', 'ti-flag',           '#00D4AA', 'https://www.overtake.gg/...', a.url_overtake||'');
 }
-function getArtistLinks(){
+function getArtistUrls(){
   return {
-    twitter:  document.getElementById('af-twitter').value.trim()||null,
-    discord:  document.getElementById('af-discord-link').value.trim()||null,
-    patreon:  document.getElementById('af-patreon').value.trim()||null,
-    youtube:  document.getElementById('af-youtube').value.trim()||null,
-    overtake: document.getElementById('af-overtake').value.trim()||null,
+    url_twitter:  document.getElementById('af-url-twitter').value.trim()||null,
+    url_discord:  document.getElementById('af-url-discord').value.trim()||null,
+    url_patreon:  document.getElementById('af-url-patreon').value.trim()||null,
+    url_youtube:  document.getElementById('af-url-youtube').value.trim()||null,
+    url_overtake: document.getElementById('af-url-overtake').value.trim()||null,
   };
 }
 document.getElementById('addArtistBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-crown"></i> Add confirmed artist',artistModalForm(),async()=>{
-    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:getArtistLinks()});
+    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),...getArtistUrls()});
     if(ok){await reloadCache();closeModal();await loadArtists();}
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
@@ -559,7 +556,7 @@ document.getElementById('addArtistBtn').addEventListener('click',()=>{
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:getArtistLinks()});
+    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),...getArtistUrls()});
     await reloadCache();closeModal();await loadArtists();
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
