@@ -280,7 +280,7 @@ async function fetchAdminStats() {
 // ============================================
 // ADDONS
 // ============================================
-async function fetchAddons({ modId, categoryId, search, sort, approvedOnly = true } = {}) {
+async function fetchAddons({ modId, categoryId, search, sort, approvedOnly = true, page = 1, pageSize = null } = {}) {
   let q = db.from('addons').select('*, mods(name), categories(name,color_bg,color_text), artists(id,name,avatar_url)');
   if (approvedOnly) q = q.eq('approved', true);
   if (modId)      q = q.eq('mod_id', modId);
