@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Livery — AC Liveries DB</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -100,6 +101,7 @@
       ['ti-flag',     'Team',         l.team   || '—'],
       ['ti-users',    'Drivers',      l.driver || '—'],
       ['ti-calendar', 'Season',       l.season || '—'],
+      ...(l.car_number ? [['ti-hash', 'Car number', `#${l.car_number}`]] : []),
     ].map(([ico,k,v]) => `
       <div class="detail-row">
         <div class="detail-key"><i class="ti ${ico}"></i>${k}</div>
@@ -136,7 +138,10 @@
         <div class="detail-card">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap">
             <div class="detail-title" style="margin:0">${l.name}</div>
-            ${paidBadge}
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              ${paidBadge}
+              <button onclick="copyPageLink()" id="copyLinkBtn" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 10px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);cursor:pointer;transition:all .15s"><i class="ti ti-link" style="font-size:12px"></i> Copy link</button>
+            </div>
           </div>
           <div class="detail-mod">${l.mods?.name || '—'}</div>
           ${rows}
@@ -190,6 +195,18 @@
           }).join('')}
         </div>`;
     }
+  }
+
+  function copyPageLink() {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const btn = document.getElementById('copyLinkBtn');
+      btn.innerHTML = '<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i> Copied!';
+      btn.style.borderColor = 'var(--green)'; btn.style.color = 'var(--green)';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="ti ti-link" style="font-size:12px"></i> Copy link';
+        btn.style.borderColor = ''; btn.style.color = '';
+      }, 1800);
+    });
   }
 
   init();

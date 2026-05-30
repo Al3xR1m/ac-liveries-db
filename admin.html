@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — AC Liveries DB</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -450,6 +451,7 @@ async function editLiveryModal(id,isApproval){
       <div class="field"><label>Team</label><input id="el-team" value="${l.team||''}"></div>
       <div class="field"><label>Drivers</label><input id="el-driver" value="${l.driver||''}"></div>
       <div class="field"><label>Season</label><input id="el-season" value="${l.season||''}"></div>
+      <div class="field"><label>Car number</label><input id="el-carnumber" value="${l.car_number||''}" maxlength="4" placeholder="e.g. 63"></div>
       <div class="field"><label>Creator (text)</label><input id="el-author" value="${l.author||''}"></div>
       <div class="field full"><label>Confirmed Artist</label><select id="el-artist"><option value="">— None —</option>${artistOpts}</select></div>
       <div class="field full"><label>Download URL</label><input id="el-url" value="${l.download_url||''}"></div>
@@ -470,6 +472,7 @@ async function editLiveryModal(id,isApproval){
       team:document.getElementById('el-team').value,
       driver:document.getElementById('el-driver').value,
       season:document.getElementById('el-season').value,
+      car_number:document.getElementById('el-carnumber').value||null,
       author:document.getElementById('el-author').value||null,
       artist_id:document.getElementById('el-artist').value||null,
       download_url:document.getElementById('el-url').value,

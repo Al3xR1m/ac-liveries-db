@@ -162,7 +162,7 @@ async function fetchArtistStats() {
 // ============================================
 // LIVERIES
 // ============================================
-async function fetchLiveries({ categoryId, championshipId, modId, artistId, search, sort, approvedOnly = true, isPaid } = {}) {
+async function fetchLiveries({ categoryId, championshipId, modId, artistId, search, sort, approvedOnly = true, isPaid, page = 1, pageSize = null } = {}) {
   let q = db.from('liveries').select('*, categories(name,color_bg,color_text), mods(name), championships(name,short_name), artists(id,name,avatar_url)');
   if (approvedOnly) q = q.eq('approved', true);
   if (categoryId)     q = q.eq('category_id', categoryId);
@@ -171,10 +171,14 @@ async function fetchLiveries({ categoryId, championshipId, modId, artistId, sear
   if (artistId)       q = q.eq('artist_id', artistId);
   if (isPaid === true)  q = q.eq('is_paid', true);
   if (isPaid === false) q = q.eq('is_paid', false);
-  if (search) q = q.or(`name.ilike.%${search}%,team.ilike.%${search}%,author.ilike.%${search}%,driver.ilike.%${search}%,car_number.ilike.%${search}%`);
+  if (search) {
+    const cleanSearch = search.replace(/^#+/, '');
+    q = q.or(`name.ilike.%${cleanSearch}%,team.ilike.%${cleanSearch}%,author.ilike.%${cleanSearch}%,driver.ilike.%${cleanSearch}%,car_number.ilike.%${cleanSearch}%`);
+  }
   if (sort === 'votes')       q = q.order('upvotes', { ascending: false });
   else if (sort === 'newest') q = q.order('created_at', { ascending: false });
   else                        q = q.order('name', { ascending: true });
+  if (pageSize) q = q.range((page-1)*pageSize, page*pageSize-1);
   const { data, error } = await q;
   if (error) { console.error(error); return []; }
   return data;
@@ -259,6 +263,7 @@ async function fetchAddons({ modId, categoryId, search, sort, approvedOnly = tru
   if (sort === 'votes')       q = q.order('upvotes', { ascending: false });
   else if (sort === 'newest') q = q.order('created_at', { ascending: false });
   else                        q = q.order('name', { ascending: true });
+  if (pageSize) q = q.range((page-1)*pageSize, page*pageSize-1);
   const { data, error } = await q;
   if (error) { console.error(error); return []; }
   return data;
