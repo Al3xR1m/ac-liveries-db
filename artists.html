@@ -183,10 +183,35 @@
 
     renderArtistLiveries(liveries);
 
-    // Wire up filters
-    ['artist-search','artist-cat','artist-champ','artist-mod','artist-pricing','artist-sort'].forEach(id => {
-      document.getElementById(id).addEventListener(id==='artist-search'?'input':'change', ()=>renderArtistLiveries(liveries));
-    });
+    // Cascading filters
+    function updateArtistCascade(liveries) {
+      const cat   = document.getElementById('artist-cat').value;
+      const champ = document.getElementById('artist-champ').value;
+
+      // Filtrer selon cat courante
+      const afterCat = cat==='all' ? liveries : liveries.filter(l=>l.category_id===cat);
+
+      // Champs disponibles pour cette cat
+      const availChamps = [...new Map(afterCat.filter(l=>l.championships).map(l=>[l.championship_id,l.championships])).entries()].map(([id,ch])=>({id,...ch}));
+      const prevChamp = document.getElementById('artist-champ').value;
+      document.getElementById('artist-champ').innerHTML = '<option value="all">All championships</option>' + availChamps.map(ch=>`<option value="${ch.id}">${ch.short_name||ch.name}</option>`).join('');
+      if(availChamps.some(ch=>ch.id===prevChamp)) document.getElementById('artist-champ').value=prevChamp;
+
+      // Mods disponibles pour cat + champ
+      const effectiveChamp = document.getElementById('artist-champ').value;
+      const afterChamp = effectiveChamp==='all' ? afterCat : afterCat.filter(l=>l.championship_id===effectiveChamp);
+      const availMods = [...new Map(afterChamp.filter(l=>l.mods).map(l=>[l.mod_id,l.mods])).entries()].map(([id,m])=>({id,...m}));
+      const prevMod = document.getElementById('artist-mod').value;
+      document.getElementById('artist-mod').innerHTML = '<option value="all">All mods</option>' + availMods.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+      if(availMods.some(m=>m.id===prevMod)) document.getElementById('artist-mod').value=prevMod;
+    }
+
+    document.getElementById('artist-cat').addEventListener('change', ()=>{ updateArtistCascade(liveries); renderArtistLiveries(liveries); });
+    document.getElementById('artist-champ').addEventListener('change', ()=>{ updateArtistCascade(liveries); renderArtistLiveries(liveries); });
+    document.getElementById('artist-mod').addEventListener('change', ()=>renderArtistLiveries(liveries));
+    document.getElementById('artist-search').addEventListener('input', ()=>renderArtistLiveries(liveries));
+    document.getElementById('artist-pricing').addEventListener('change', ()=>renderArtistLiveries(liveries));
+    document.getElementById('artist-sort').addEventListener('change', ()=>renderArtistLiveries(liveries));
   }
 
   function renderArtistLiveries(liveries) {
