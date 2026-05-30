@@ -553,6 +553,10 @@ async function editArtistModal(id){
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
 }
 async function doDeleteArtist(id){if(!confirm('Remove this confirmed artist? Their liveries will keep the text author name.'))return;await deleteArtist(id);await reloadCache();await loadArtists();}
+document.getElementById('artist-search-admin')?.addEventListener('input',e=>loadArtists(e.target.value));
+document.getElementById('champ-search')?.addEventListener('input',e=>loadChampionships(e.target.value));
+document.getElementById('mods-search')?.addEventListener('input',e=>loadMods(e.target.value));
+document.getElementById('cat-search')?.addEventListener('input',e=>loadCategories(e.target.value));
 
 function getBaseUrl() {
   // Gets the base path including subfolder (e.g. /ac-liveries-db/)
@@ -765,11 +769,12 @@ async function editModModal(id){
 async function doDeleteMod(id){if(!confirm('Delete this mod?'))return;await deleteMod(id);await reloadCache();await loadMods();}
 
 // CATEGORIES
-async function loadCategories(){
+async function loadCategories(search=''){
   const t=document.getElementById('cat-table');
-  if(!_cats.length){t.innerHTML='<tr><td style="color:var(--text3)">No categories yet.</td></tr>';return;}
+  const list=_cats.filter(cat=>!search||cat.name.toLowerCase().includes(search.toLowerCase()));
+  if(!list.length){t.innerHTML='<tr><td style="color:var(--text3)">No categories found.</td></tr>';return;}
   t.innerHTML=`<thead><tr><th>Name</th><th>Badge preview</th><th>BG</th><th>Text</th><th>Actions</th></tr></thead>
-  <tbody>${_cats.map(c=>`<tr>
+  <tbody>${list.map(c=>`<tr>
     <td><strong>${c.name}</strong></td>
     <td><span class="cat-badge" style="background:${c.color_bg};color:${c.color_text}">${c.name}</span></td>
     <td><span class="swatch" style="background:${c.color_bg};border:1px solid #0005"></span>${c.color_bg}</td>
