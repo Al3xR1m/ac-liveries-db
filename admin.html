@@ -501,7 +501,7 @@ async function loadArtists(){
          <button class="action-btn danger" onclick="doRevokeToken('${a.id}')" title="Revoke & regenerate"><i class="ti ti-refresh"></i></button>`
       : `<button class="action-btn success" onclick="doGenerateToken('${a.id}')"><i class="ti ti-key"></i> Generate</button>`;
     return `<tr>
-      <td>${avatar} <strong style="margin-left:8px">${a.name}</strong></td>
+      <td><div style="display:inline-flex;align-items:center;gap:8px">${avatar}<strong>${a.name}</strong></div></td>
       <td style="color:var(--text2)">${a.discord||'—'}</td>
       <td>${s.count}</td>
       <td>${s.upvotes}</td>
@@ -546,7 +546,8 @@ document.getElementById('addArtistBtn').addEventListener('click',()=>{
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    const ok=await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    if(!ok){alert('Save failed — make sure the SQL for p_links has been applied in Supabase.');return;}
     await reloadCache();closeModal();await loadArtists();
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
