@@ -526,30 +526,16 @@ async function loadArtists(search=''){
 }
 
 function artistModalForm(a={}){
-  const links = Array.isArray(a.links) ? a.links : (a.links ? JSON.parse(a.links) : []);
-  const linksVal = links.map(l=>l.label+'|'+l.url).join('\n');
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
     <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
     <div class="field"><label>Discord username</label><input id="af-discord" value="${a.discord||''}" placeholder="e.g. simpai_it"></div>
     <div class="field"><label>Bio (optional)</label><textarea id="af-bio" style="min-height:60px">${a.bio||''}</textarea></div>
-    <div class="field">
-      <label>Links (one per line — format: <span style="font-family:monospace;font-size:11px">Label|URL</span>)</label>
-      <textarea id="af-links" style="min-height:80px;font-family:monospace;font-size:12px" placeholder="RaceDepartment|https://www.racedepartment.com/...&#10;Patreon|https://www.patreon.com/...">${linksVal}</textarea>
-      <div class="field-hint">e.g. RaceDepartment|https://... on one line, Patreon|https://... on next</div>
-    </div>
   </div>`;
 }
-function parseArtistLinks() {
-  return document.getElementById('af-links').value.trim().split('\n')
-    .map(l=>l.trim()).filter(Boolean)
-    .map(l=>{ const [label,...rest]=l.split('|'); return {label:label.trim(),url:rest.join('|').trim()}; })
-    .filter(l=>l.label&&l.url);
-}
-let _getArtistAvatar = () => '';
 document.getElementById('addArtistBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-crown"></i> Add confirmed artist',artistModalForm(),async()=>{
-    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     if(ok){await reloadCache();closeModal();await loadArtists();}
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
@@ -557,7 +543,7 @@ document.getElementById('addArtistBtn').addEventListener('click',()=>{
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    const ok=await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    const ok=await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     if(!ok){alert('Save failed — make sure the SQL for p_links has been applied in Supabase.');return;}
     await reloadCache();closeModal();await loadArtists();
   });
@@ -1166,30 +1152,16 @@ async function loadArtists(search=''){
 }
 
 function artistModalForm(a={}){
-  const links = Array.isArray(a.links) ? a.links : (a.links ? JSON.parse(a.links) : []);
-  const linksVal = links.map(l=>l.label+'|'+l.url).join('\n');
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div class="field"><label>Artist name *</label><input id="af-name" value="${a.name||''}" placeholder="e.g. SimPainter_IT"></div>
     <div class="field"><label>Avatar image</label><div id="af-avatar-widget"></div></div>
     <div class="field"><label>Discord username</label><input id="af-discord" value="${a.discord||''}" placeholder="e.g. simpai_it"></div>
     <div class="field"><label>Bio (optional)</label><textarea id="af-bio" style="min-height:60px">${a.bio||''}</textarea></div>
-    <div class="field">
-      <label>Links (one per line — format: <span style="font-family:monospace;font-size:11px">Label|URL</span>)</label>
-      <textarea id="af-links" style="min-height:80px;font-family:monospace;font-size:12px" placeholder="RaceDepartment|https://www.racedepartment.com/...&#10;Patreon|https://www.patreon.com/...">${linksVal}</textarea>
-      <div class="field-hint">e.g. RaceDepartment|https://... on one line, Patreon|https://... on next</div>
-    </div>
   </div>`;
 }
-function parseArtistLinks() {
-  return document.getElementById('af-links').value.trim().split('\n')
-    .map(l=>l.trim()).filter(Boolean)
-    .map(l=>{ const [label,...rest]=l.split('|'); return {label:label.trim(),url:rest.join('|').trim()}; })
-    .filter(l=>l.label&&l.url);
-}
-let _getArtistAvatar = () => '';
 document.getElementById('addArtistBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-crown"></i> Add confirmed artist',artistModalForm(),async()=>{
-    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    const ok=await createArtist({name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     if(ok){await reloadCache();closeModal();await loadArtists();}
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
@@ -1197,7 +1169,7 @@ document.getElementById('addArtistBtn').addEventListener('click',()=>{
 async function editArtistModal(id){
   const a=_artists.find(x=>x.id===id);if(!a)return;
   openModal('<i class="ti ti-pencil"></i> Edit artist',artistModalForm(a),async()=>{
-    const ok=await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim(),links:parseArtistLinks()});
+    const ok=await updateArtist(id,{name:document.getElementById('af-name').value.trim(),avatar_url:_getArtistAvatar()||a.avatar_url||null,discord:document.getElementById('af-discord').value.trim(),bio:document.getElementById('af-bio').value.trim()});
     if(!ok){alert('Save failed — make sure the SQL for p_links has been applied in Supabase.');return;}
     await reloadCache();closeModal();await loadArtists();
   });
