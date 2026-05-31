@@ -116,9 +116,9 @@
           <input type="hidden" id="f-champ">
           <div class="field-hint" id="champ-hint"></div>
         </div>
-        <div class="field" id="addon-type-field" style="display:none">
+        <div class="field full" id="addon-type-field" style="display:none">
           <label>Addon type * <span style="font-size:11px;color:var(--text3);font-weight:400">(multiple allowed)</span></label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <div style="display:flex;flex-wrap:nowrap;gap:8px;margin-top:4px;overflow-x:auto;padding-bottom:2px">
             <label class="addon-type-check"><input type="checkbox" name="addon-type" value="tyre_skin"> 🏎️ Tyre skin</label>
             <label class="addon-type-check"><input type="checkbox" name="addon-type" value="3d_asset"> 📦 3D asset</label>
             <label class="addon-type-check"><input type="checkbox" name="addon-type" value="shader"> ✨ Shader / Visual</label>
@@ -391,7 +391,7 @@
     document.getElementById('addon-type-field').style.display = mode==='addon' ? '' : 'none';
     const modLabel = document.getElementById('lbl-mod');
     if(modLabel) modLabel.innerHTML = mode==='addon'
-      ? 'RSS Mod <span style="font-size:11px;color:var(--text3);font-weight:400">(optional — leave empty to apply to all mods in category)</span>'
+      ? 'RSS Mod <span style="font-size:11px;color:var(--text3);font-weight:400">(optional)</span>'
       : 'RSS Mod *';
     document.querySelectorAll('.livery-only').forEach(el => el.style.display = mode==='livery' ? '' : 'none');
     document.getElementById('page-sub').textContent = mode==='livery'
@@ -655,22 +655,8 @@
     const isLivery = currentMode==='livery';
     const team=document.getElementById('f-team')?.value.trim();
     const addonTypes=[...document.querySelectorAll('input[name="addon-type"]:checked')].map(x=>x.value);
-    if(isLivery && (!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl())){
-      errDiv.style.display='block';
-      if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
-      else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
-      else errDiv.textContent='Please fill in all required fields.';
-      return;
-    }
-    if(!isLivery && (!name||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl())){
-      errDiv.style.display='block';
-      if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
-      else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
-      else errDiv.textContent='Please fill in all required fields (name, category, creator, download URL).';
-      return;
-    }
     if(!isLivery && addonTypes.length===0){ errDiv.style.display='block'; errDiv.textContent='Please select at least one addon type.'; return; }
-    if(false&&!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
+    if((isLivery?(!name||!mod):(!name))|| !cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
       errDiv.style.display='block';
       if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
       else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
