@@ -177,6 +177,43 @@ async function submitLiveryAsArtist(token, payload) {
   return !error;
 }
 
+async function submitEditRequest(token, liveryId, changes) {
+  const artist = await fetchArtistByToken(token);
+  if(!artist) return false;
+  const rows = Object.entries(changes).map(([field, vals]) => ({
+    livery_id: liveryId,
+    artist_id: artist.id,
+    field,
+    old_value: String(vals.old ?? ''),
+    new_value: String(vals.new ?? ''),
+    status: 'pending',
+  }));
+  if(!rows.length) return true;
+  const {error} = await db.from('livery_edit_requests').insert(rows);
+  return !error;
+}
+
+async function fetchEditRequests() {
+  const {data} = await db.from('livery_edit_requests')
+    .select('*, liveries(id,name), artists(id,name)')
+    .eq('status','pending')
+    .order('created_at', {ascending:false});
+  return data || [];
+}
+
+async function approveEditRequest(requestId, liveryId, field, newValue) {
+  const update = {};
+  update[field] = newValue || null;
+  await db.from('liveries').update(update).eq('id', liveryId);
+  await db.from('livery_edit_requests').update({status:'approved'}).eq('id', requestId);
+  return true;
+}
+
+async function rejectEditRequest(requestId) {
+  const {error} = await db.from('livery_edit_requests').update({status:'rejected'}).eq('id', requestId);
+  return !error;
+}
+
 async function fetchArtistStats() {
   // Returns artists with livery count and total upvotes
   const { data: liveries } = await db.from('liveries').select('artist_id, upvotes').eq('approved', true).not('artist_id', 'is', null);

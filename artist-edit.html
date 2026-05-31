@@ -9,60 +9,47 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .dash-wrap { max-width: 860px; margin: 0 auto; padding-bottom: 60px; }
-
-    /* Artist header */
-    .artist-header { display:flex; align-items:center; gap:16px; background:var(--surface); border:1px solid #FFD70030; border-radius:var(--radius); padding:20px 24px; margin-bottom:24px; }
-    .artist-header img { width:56px; height:56px; border-radius:50%; object-fit:cover; border:2px solid #FFD70060; }
-    .artist-header-ph { width:56px; height:56px; border-radius:50%; background:var(--bg2); display:flex; align-items:center; justify-content:center; font-size:22px; color:var(--text3); border:2px solid #FFD70060; flex-shrink:0; }
-    .artist-header-name { font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--text); }
-    .artist-header-badge { font-size:12px; color:#FFD700; font-weight:600; display:flex; align-items:center; gap:4px; margin-top:2px; }
-
-    /* Tabs */
-    .dash-tabs { display:flex; gap:0; border-bottom:1px solid var(--border); margin-bottom:24px; }
-    .dash-tab { font-size:13px; font-weight:500; padding:10px 20px; border:none; background:none; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:color .12s,border-color .12s; display:flex; align-items:center; gap:7px; }
-    .dash-tab:hover { color:var(--text); }
-    .dash-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
-    .dash-panel { display:none; }
-    .dash-panel.active { display:block; }
-
-    /* Livery edit cards */
-    .livery-edit-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:12px; overflow:hidden; }
-    .livery-edit-header { display:flex; align-items:center; gap:12px; padding:14px 18px; cursor:pointer; transition:background .12s; }
-    .livery-edit-header:hover { background:var(--bg2); }
-    .livery-edit-thumb { width:56px; height:36px; border-radius:6px; object-fit:cover; background:var(--bg2); flex-shrink:0; }
-    .livery-edit-thumb-ph { width:56px; height:36px; border-radius:6px; background:var(--bg2); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--text3); }
-    .livery-edit-name { font-family:var(--font-display); font-size:16px; font-weight:700; color:var(--text); flex:1; }
-    .livery-edit-meta { font-size:12px; color:var(--text3); }
-    .livery-edit-body { padding:20px; display:none; border-top:1px solid var(--border); }
-    .livery-edit-body.open { display:block; }
-    .chevron { font-size:16px; color:var(--text3); transition:transform .2s; }
-    .chevron.open { transform:rotate(180deg); }
-    .save-row { display:flex; align-items:center; gap:12px; margin-top:16px; }
-    .save-status { font-size:13px; }
-    .save-status.ok { color:var(--green); }
-    .save-status.err { color:var(--accent); }
-
-    /* Upload widget */
-    .upload-preview { width:100%; height:90px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border); display:none; }
-    .upload-preview.visible { display:block; }
-    .upload-btn { display:flex; align-items:center; gap:6px; padding:8px 12px; border:1px dashed var(--border); border-radius:var(--radius-sm); background:var(--bg); color:var(--text2); font-size:12px; cursor:pointer; transition:all .12s; width:100%; justify-content:center; margin-top:6px; }
-    .upload-btn:hover { border-color:var(--accent); color:var(--accent); }
-    .upload-progress { font-size:11px; color:var(--text3); margin-top:4px; display:none; }
-    .upload-progress.visible { display:block; }
-
-    /* Social link fields */
-    .social-field { display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-sm); padding:7px 10px; margin-bottom:6px; }
-    .social-field input { border:none; background:transparent; color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; width:100%; }
-    .social-icon { width:26px; height:26px; border-radius:5px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-
-    /* Submit form */
-    .submit-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
-    select:disabled { opacity:.45; cursor:not-allowed; }
-    .field-hint { font-size:11px; color:var(--text3); }
-    .field-hint.ok { color:var(--green); }
-    .or-divider { display:flex; align-items:center; gap:10px; margin:10px auto; font-size:12px; color:var(--text3); width:180px; }
-    .or-divider::before,.or-divider::after { content:''; flex:1; border-top:1px solid var(--border); }
+    .dash-wrap{max-width:860px;margin:0 auto;padding-bottom:60px}
+    .artist-header{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid #FFD70030;border-radius:var(--radius);padding:20px 24px;margin-bottom:24px}
+    .artist-header img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060}
+    .artist-header-ph{width:56px;height:56px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text3);border:2px solid #FFD70060;flex-shrink:0}
+    .artist-header-name{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)}
+    .artist-header-badge{font-size:12px;color:#FFD700;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px}
+    .dash-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+    .dash-tab{font-size:13px;font-weight:500;padding:10px 20px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s,border-color .12s;display:flex;align-items:center;gap:7px}
+    .dash-tab:hover{color:var(--text)}
+    .dash-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .dash-panel{display:none}
+    .dash-panel.active{display:block}
+    .livery-edit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+    .livery-edit-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;transition:background .12s}
+    .livery-edit-header:hover{background:var(--bg2)}
+    .livery-edit-thumb{width:56px;height:36px;border-radius:6px;object-fit:cover;background:var(--bg2);flex-shrink:0}
+    .livery-edit-thumb-ph{width:56px;height:36px;border-radius:6px;background:var(--bg2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3)}
+    .livery-edit-name{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);flex:1}
+    .livery-edit-body{padding:20px;display:none;border-top:1px solid var(--border)}
+    .livery-edit-body.open{display:block}
+    .chevron{font-size:16px;color:var(--text3);transition:transform .2s}
+    .chevron.open{transform:rotate(180deg)}
+    .save-row{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap}
+    .save-status{font-size:13px}
+    .save-status.ok{color:var(--green)}
+    .save-status.err{color:var(--accent)}
+    .section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin:20px 0 14px;display:flex;align-items:center;gap:7px}
+    .moderated-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;margin-left:6px}
+    .upload-preview{width:100%;height:90px;border-radius:var(--radius-sm);object-fit:cover;border:1px solid var(--border);display:none}
+    .upload-preview.visible{display:block}
+    .upload-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1px dashed var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);font-size:12px;cursor:pointer;transition:all .12s;width:100%;justify-content:center;margin-top:6px}
+    .upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .upload-progress{font-size:11px;color:var(--text3);margin-top:4px;display:none}
+    .upload-progress.visible{display:block}
+    .social-field{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;margin-bottom:6px}
+    .social-field input{border:none;background:transparent;color:var(--text);font-family:var(--font-body);font-size:13px;outline:none;width:100%}
+    .social-icon{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .submit-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px}
+    select:disabled{opacity:.45;cursor:not-allowed}
+    .field-hint{font-size:11px;color:var(--text3)}
+    .field-hint.ok{color:var(--green)}
   </style>
 </head>
 <body>
@@ -85,23 +72,17 @@
   <div class="dash-wrap">
 
     <div id="loading" style="text-align:center;padding:60px 20px;color:var(--text3)">
-      <i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px"></i>
-      Verifying your access…
+      <i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px"></i>Verifying your access…
     </div>
-
     <div id="invalid" style="display:none;text-align:center;padding:60px 20px">
       <i class="ti ti-lock" style="font-size:40px;color:var(--accent);display:block;margin-bottom:16px"></i>
       <div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:8px;color:var(--text)">Invalid or expired link</div>
-      <div style="font-size:14px;color:var(--text2);margin-bottom:20px">This link is no longer valid. Contact the admin on Discord to get a new one.</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:20px">Contact the admin on Discord to get a new one.</div>
       <a href="about.html" style="color:var(--accent);font-size:13px;display:inline-flex;align-items:center;gap:6px"><i class="ti ti-brand-discord"></i> Contact on Discord</a>
     </div>
 
     <div id="main" style="display:none">
-
-      <!-- Artist header -->
       <div id="artist-header-wrap"></div>
-
-      <!-- Tabs -->
       <div class="dash-tabs">
         <button class="dash-tab active" data-tab="liveries"><i class="ti ti-photo"></i> My Liveries <span id="tab-count" style="font-size:11px;background:var(--bg2);border-radius:20px;padding:1px 7px;color:var(--text3)">0</span></button>
         <button class="dash-tab" data-tab="submit"><i class="ti ti-plus"></i> Submit a livery</button>
@@ -112,12 +93,12 @@
       <div class="dash-panel active" id="panel-liveries">
         <div style="background:var(--surface);border:1px solid #FFD70040;border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text2);display:flex;align-items:flex-start;gap:10px">
           <i class="ti ti-info-circle" style="color:#FFD700;font-size:16px;flex-shrink:0;margin-top:1px"></i>
-          <div>You can edit the <strong style="color:var(--text)">screenshot, download link, notes, pricing, drivers and team</strong>. Name, mod, category and championship can only be changed by the admin.</div>
+          <div>Changes to <strong style="color:var(--text)">screenshot, URL, notes, pricing, team, driver, season, car number</strong> are saved instantly. Changes to <strong style="color:var(--text)">name, mod, category and championship</strong> <span class="moderated-badge">require admin approval</span></div>
         </div>
         <div id="liveries-list"></div>
         <div id="no-liveries" style="display:none;text-align:center;padding:40px;color:var(--text3)">
           <i class="ti ti-photo-off" style="font-size:32px;display:block;margin-bottom:12px"></i>
-          <p>No published liveries yet. Use the <strong>Submit</strong> tab to add your first one!</p>
+          <p>No published liveries yet. Use the <strong>Submit</strong> tab!</p>
         </div>
       </div>
 
@@ -126,77 +107,35 @@
         <div class="submit-card" id="submit-form-wrap">
           <div style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text)">Submit a livery</div>
           <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Your liveries are published <strong style="color:var(--green)">immediately</strong> — no moderation needed.</div>
-
-          <div class="form-section-title" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:14px;display:flex;align-items:center;gap:7px"><i class="ti ti-tag"></i> Classification</div>
+          <div class="section-label"><i class="ti ti-tag"></i> Classification</div>
           <div class="form-grid">
-            <div class="field">
-              <label>Category *</label>
-              <select id="s-cat"><option value="">Select a category…</option></select>
-            </div>
-            <div class="field">
-              <label>RSS Mod *</label>
-              <select id="s-mod" disabled><option value="">— Select a category first —</option></select>
-            </div>
-            <div class="field full">
-              <label>Championship</label>
-              <select id="s-champ" disabled><option value="">— Select a category first —</option></select>
-            </div>
+            <div class="field"><label>Category *</label><select id="s-cat"><option value="">Select a category…</option></select></div>
+            <div class="field"><label>RSS Mod *</label><select id="s-mod" disabled><option value="">— Select a category first —</option></select></div>
+            <div class="field full"><label>Championship</label><select id="s-champ" disabled><option value="">— Select a category first —</option></select></div>
           </div>
-
-          <div class="form-section-title" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin:20px 0 14px;display:flex;align-items:center;gap:7px"><i class="ti ti-info-circle"></i> Details</div>
+          <div class="section-label" style="margin-top:20px"><i class="ti ti-info-circle"></i> Details</div>
           <div class="form-grid">
-            <div class="field full">
-              <label>Livery name *</label>
-              <input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23">
-            </div>
-            <div class="field">
-              <label>Team</label>
-              <input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari">
-            </div>
-            <div class="field">
-              <label>Driver(s)</label>
-              <input type="text" id="s-driver" placeholder="e.g. Charles Leclerc">
-            </div>
-            <div class="field">
-              <label>Season / Year</label>
-              <input type="text" id="s-season" placeholder="e.g. 2023">
-            </div>
-            <div class="field">
-              <label>Car number</label>
-              <input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4">
-            </div>
-            <div class="field full">
-              <label>Pricing</label>
+            <div class="field full"><label>Livery name *</label><input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23"></div>
+            <div class="field"><label>Team</label><input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari"></div>
+            <div class="field"><label>Driver(s)</label><input type="text" id="s-driver" placeholder="e.g. Charles Leclerc"></div>
+            <div class="field"><label>Season / Year</label><input type="text" id="s-season" placeholder="e.g. 2023"></div>
+            <div class="field"><label>Car number</label><input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4"></div>
+            <div class="field full"><label>Pricing</label>
               <div style="display:flex;gap:10px;margin-top:4px">
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)">
-                  <input type="radio" name="s-pricing" id="s-free" value="free" checked> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free
-                </label>
-                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)">
-                  <input type="radio" name="s-pricing" id="s-paid" value="paid"> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid
-                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-free" checked> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-paid"> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>
               </div>
             </div>
           </div>
-
-          <div class="form-section-title" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);padding-bottom:8px;border-bottom:1px solid var(--border);margin:20px 0 14px;display:flex;align-items:center;gap:7px"><i class="ti ti-link"></i> Files & Links</div>
+          <div class="section-label" style="margin-top:20px"><i class="ti ti-link"></i> Files & Links</div>
           <div class="form-grid">
-            <div class="field full">
-              <label>Download URL *</label>
-              <input type="url" id="s-url" placeholder="https://www.racedepartment.com/…">
-            </div>
-            <div class="field full">
-              <label>Preview image *</label>
-              <div id="s-img-widget"></div>
-            </div>
-            <div class="field full">
-              <label>Notes</label>
-              <textarea id="s-notes" placeholder="Any extra info…"></textarea>
-            </div>
+            <div class="field full"><label>Download URL *</label><input type="url" id="s-url" placeholder="https://…"></div>
+            <div class="field full"><label>Preview image *</label><div id="s-img-widget"></div></div>
+            <div class="field full"><label>Notes</label><textarea id="s-notes" placeholder="Any extra info…"></textarea></div>
           </div>
-
           <div style="display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap">
             <button class="submit-btn" id="s-submit-btn">Publish livery</button>
-            <p class="form-note"><i class="ti ti-bolt" style="font-size:14px;vertical-align:-2px;color:var(--green)"></i> Published immediately as a confirmed artist.</p>
+            <p class="form-note"><i class="ti ti-bolt" style="font-size:14px;vertical-align:-2px;color:var(--green)"></i> Published immediately.</p>
           </div>
           <div id="s-error" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
         </div>
@@ -206,33 +145,19 @@
       <div class="dash-panel" id="panel-profile">
         <div class="submit-card">
           <div style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)">My Profile</div>
-
           <div class="form-grid">
-            <div class="field full">
-              <label>Profile picture</label>
-              <div id="profile-img-widget"></div>
-            </div>
-            <div class="field full">
-              <label>Bio</label>
-              <textarea id="p-bio" style="min-height:70px" placeholder="Tell the community about yourself…"></textarea>
-            </div>
-            <div class="field full">
-              <label>Discord handle</label>
-              <input type="text" id="p-discord" placeholder="e.g. simpai_it">
-              <div class="field-hint">Your Discord username (not server link)</div>
-            </div>
+            <div class="field full"><label>Profile picture</label><div id="profile-img-widget"></div></div>
+            <div class="field full"><label>Bio</label><textarea id="p-bio" style="min-height:70px" placeholder="Tell the community about yourself…"></textarea></div>
+            <div class="field full"><label>Discord handle</label><input type="text" id="p-discord" placeholder="e.g. simpai_it"><div class="field-hint">Your Discord username (not server link)</div></div>
           </div>
-
           <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:16px 0 8px">Social links</div>
           <div id="social-fields"></div>
-
           <div class="save-row" style="margin-top:20px">
             <button class="submit-btn" id="p-save-btn">Save profile</button>
             <span class="save-status" id="p-status"></span>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -250,8 +175,7 @@
   });
 
   const token = new URLSearchParams(location.search).get('token');
-  let artist = null;
-  let liveries = [];
+  let artist = null, liveries = [], allMods = [], allChamps = [];
   const imgGetters = {};
   let getProfileImg = () => null;
   let getSubmitImg  = () => null;
@@ -259,14 +183,14 @@
   // Tabs
   document.querySelectorAll('.dash-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     });
   });
 
-  // Image compression
+  // Image utils
   async function compressImage(file, maxW=800, maxH=600, quality=0.82) {
     return new Promise((resolve, reject) => {
       const img = new Image(); const url = URL.createObjectURL(file);
@@ -296,7 +220,7 @@
     let cur = currentUrl;
     container.innerHTML = ''
       + '<img id="'+containerId+'-prev" class="upload-preview'+(currentUrl?' visible':'')+'" src="'+(currentUrl||'')+'" alt="preview">'
-      + (currentUrl ? '<div style="font-size:11px;color:var(--text3);margin-top:4px;display:flex;align-items:center;gap:5px"><i class="ti ti-photo" style="font-size:12px"></i> Current image — upload below to replace</div>' : '')
+      + (currentUrl ? '<div style="font-size:11px;color:var(--text3);margin-top:4px"><i class="ti ti-photo" style="font-size:12px"></i> Current image — upload below to replace</div>' : '')
       + '<label class="upload-btn" id="'+containerId+'-btn"><i class="ti ti-upload" style="font-size:14px"></i> Upload image<input type="file" accept="image/jpeg,image/png,image/webp" style="display:none" id="'+containerId+'-input"></label>'
       + '<div class="upload-progress" id="'+containerId+'-prog"></div>';
     const input=document.getElementById(containerId+'-input');
@@ -324,30 +248,48 @@
     return () => cur;
   }
 
-  // Livery cards
+  // Livery edit card — tous les champs
   function renderLiveryCard(l) {
     const cn=l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
+    const modOptions = allMods.map(m=>'<option value="'+m.id+'"'+(m.id===l.mod_id?' selected':'')+'>'+m.name+'</option>').join('');
+    const champOptions = '<option value="">— None —</option>'+allChamps.map(ch=>'<option value="'+ch.id+'"'+(ch.id===l.championship_id?' selected':'')+'>'+ch.name+'</option>').join('');
     return '<div class="livery-edit-card" id="card-'+l.id+'">'
       + '<div class="livery-edit-header" onclick="toggleCard(\''+l.id+'\')">'
       + (l.image_url ? '<img src="'+l.image_url+'" class="livery-edit-thumb" alt="'+l.name+'">' : '<div class="livery-edit-thumb-ph"><i class="ti ti-photo"></i></div>')
       + '<div style="flex:1"><div class="livery-edit-name">'+l.name+'</div>'
-      + '<div class="livery-edit-meta">'+(l.mods?.name||'—')+'</div></div>'
+      + '<div style="font-size:12px;color:var(--text3)">'+(l.mods?.name||'—')+'</div></div>'
       + '<span class="cat-badge" style="background:'+bg+';color:'+tc+'">'+cn+'</span>'
       + '<i class="ti ti-chevron-down chevron" id="chev-'+l.id+'"></i>'
       + '</div>'
       + '<div class="livery-edit-body" id="body-'+l.id+'">'
+
+      // Section modérée
+      + '<div class="section-label"><i class="ti ti-lock"></i> Requires approval <span class="moderated-badge">Admin will review</span></div>'
+      + '<div class="form-grid">'
+      + '<div class="field full"><label>Livery name</label><input type="text" id="mod-name-'+l.id+'" value="'+(l.name||'')+'"></div>'
+      + '<div class="field"><label>RSS Mod</label><select id="mod-mod-'+l.id+'">'+modOptions+'</select></div>'
+      + '<div class="field"><label>Championship</label><select id="mod-champ-'+l.id+'">'+champOptions+'</select></div>'
+      + '</div>'
+
+      // Section directe
+      + '<div class="section-label" style="margin-top:20px"><i class="ti ti-bolt" style="color:var(--green)"></i> Saved instantly</div>'
       + '<div class="form-grid">'
       + '<div class="field full"><label>Screenshot</label><div id="upload-'+l.id+'"></div></div>'
       + '<div class="field full"><label>Download URL</label><input type="url" id="url-'+l.id+'" value="'+(l.download_url||'')+'" placeholder="https://…"></div>'
       + '<div class="field"><label>Team</label><input type="text" id="team-'+l.id+'" value="'+(l.team||'')+'" placeholder="e.g. Scuderia Ferrari"></div>'
-      + '<div class="field"><label>Drivers</label><input type="text" id="driver-'+l.id+'" value="'+(l.driver||'')+'" placeholder="e.g. Charles Leclerc"></div>'
+      + '<div class="field"><label>Driver(s)</label><input type="text" id="driver-'+l.id+'" value="'+(l.driver||'')+'" placeholder="e.g. Charles Leclerc"></div>'
+      + '<div class="field"><label>Season / Year</label><input type="text" id="season-'+l.id+'" value="'+(l.season||'')+'" placeholder="e.g. 2023"></div>'
+      + '<div class="field"><label>Car number</label><input type="text" id="carnumber-'+l.id+'" value="'+(l.car_number||'')+'" maxlength="4"></div>'
       + '<div class="field full"><label>Notes</label><textarea id="notes-'+l.id+'" placeholder="Any extra info…">'+(l.notes||'')+'</textarea></div>'
       + '<div class="field full"><label>Pricing</label><div style="display:flex;gap:10px;margin-top:4px">'
       + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="pricing-'+l.id+'" id="free-'+l.id+'" '+(l.is_paid?'':'checked')+'> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>'
       + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="pricing-'+l.id+'" id="paid-'+l.id+'" '+(l.is_paid?'checked':'')+'> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>'
       + '</div></div>'
       + '</div>'
-      + '<div class="save-row"><button class="submit-btn" onclick="saveLivery(\''+l.id+'\')"><i class="ti ti-device-floppy"></i> Save</button><span class="save-status" id="status-'+l.id+'"></span></div>'
+      + '<div class="save-row">'
+      + '<button class="submit-btn" onclick="saveLivery(\''+l.id+'\')"><i class="ti ti-device-floppy"></i> Save all</button>'
+      + '<span class="save-status" id="status-'+l.id+'"></span>'
+      + '</div>'
       + '</div></div>';
   }
 
@@ -364,30 +306,54 @@
   async function saveLivery(id) {
     const status=document.getElementById('status-'+id);
     status.textContent='Saving…'; status.className='save-status';
+    const l=liveries.find(x=>x.id===id);
+
+    // Champs directs
     const imageUrl=imgGetters[id]?imgGetters[id]():null;
-    const ok=await updateLiveryAsArtist(token, id, {
-      image_url:    imageUrl,
+    const directOk = await updateLiveryAsArtist(token, id, {
+      image_url:    imageUrl || l?.image_url || null,
       download_url: document.getElementById('url-'+id).value.trim(),
       notes:        document.getElementById('notes-'+id).value.trim(),
       is_paid:      document.getElementById('paid-'+id).checked,
       driver:       document.getElementById('driver-'+id).value.trim(),
       team:         document.getElementById('team-'+id).value.trim(),
+      season:       document.getElementById('season-'+id).value.trim(),
+      car_number:   document.getElementById('carnumber-'+id).value.trim()||null,
     });
-    if(ok){ status.textContent='✓ Saved!'; status.className='save-status ok'; setTimeout(()=>{status.textContent='';},3000); }
-    else { status.textContent='✗ Save failed.'; status.className='save-status err'; }
+
+    // Champs modérés — détecter changements
+    const changes = {};
+    const newName = document.getElementById('mod-name-'+id).value.trim();
+    const newMod  = document.getElementById('mod-mod-'+id).value;
+    const newChamp= document.getElementById('mod-champ-'+id).value;
+    if(newName && newName !== l?.name)        changes['name']           = {old: l?.name, new: newName};
+    if(newMod  && newMod  !== l?.mod_id)      changes['mod_id']         = {old: l?.mods?.name, new: allMods.find(m=>m.id===newMod)?.name + '|' + newMod};
+    if(newChamp !== (l?.championship_id||'')) changes['championship_id']= {old: l?.championships?.name||'', new: allChamps.find(c=>c.id===newChamp)?.name + '|' + newChamp};
+
+    let reqOk = true;
+    if(Object.keys(changes).length > 0){
+      reqOk = await submitEditRequest(token, id, changes);
+    }
+
+    if(directOk && reqOk){
+      status.textContent = Object.keys(changes).length ? '✓ Saved! Change requests sent for approval.' : '✓ Saved!';
+      status.className='save-status ok';
+      setTimeout(()=>{status.textContent='';},4000);
+    } else {
+      status.textContent='✗ Save failed. Try again.'; status.className='save-status err';
+    }
   }
 
-  // Profile section
+  // Profile
   function buildProfileSection(a) {
     document.getElementById('p-bio').value     = a.bio||'';
     document.getElementById('p-discord').value = a.discord||'';
-
     const socials = [
-      {id:'p-twitter',  icon:'ti-brand-twitter',  color:'#111',    label:'Twitter / X',   val:a.url_twitter||''},
-      {id:'p-discord-l',icon:'ti-brand-discord',  color:'#5865F2', label:'Discord server', val:a.url_discord||''},
-      {id:'p-patreon',  icon:'ti-brand-patreon',  color:'#FF424D', label:'Patreon',        val:a.url_patreon||''},
-      {id:'p-youtube',  icon:'ti-brand-youtube',  color:'#FF0000', label:'YouTube',        val:a.url_youtube||''},
-      {id:'p-overtake', icon:'ti-flag',           color:'#00D4AA', label:'Overtake',       val:a.url_overtake||''},
+      {id:'p-twitter',   icon:'ti-brand-twitter',  color:'#111',    label:'Twitter / X',   val:a.url_twitter||''},
+      {id:'p-discord-l', icon:'ti-brand-discord',  color:'#5865F2', label:'Discord server', val:a.url_discord||''},
+      {id:'p-patreon',   icon:'ti-brand-patreon',  color:'#FF424D', label:'Patreon',        val:a.url_patreon||''},
+      {id:'p-youtube',   icon:'ti-brand-youtube',  color:'#FF0000', label:'YouTube',        val:a.url_youtube||''},
+      {id:'p-overtake',  icon:'ti-flag',           color:'#00D4AA', label:'Overtake',       val:a.url_overtake||''},
     ];
     document.getElementById('social-fields').innerHTML = socials.map(s =>
       '<div class="social-field">'
@@ -395,7 +361,6 @@
       + '<input id="'+s.id+'" placeholder="'+s.label+'" value="'+s.val+'">'
       + '</div>'
     ).join('');
-
     getProfileImg = buildUploadWidget('profile-img-widget', a.avatar_url||'', 'avatars');
   }
 
@@ -416,23 +381,23 @@
     else { status.textContent='✗ Save failed.'; status.className='save-status err'; }
   });
 
-  // Submit form
+  // Submit selects
   async function loadSubmitSelects() {
-    const [allMods, cats, allChamps] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
+    const [mods, cats, champs] = await Promise.all([fetchMods(), fetchCategories(), fetchChampionships()]);
+    allMods = mods; allChamps = champs;
     const catSel=document.getElementById('s-cat');
     const modSel=document.getElementById('s-mod');
     const champSel=document.getElementById('s-champ');
-    catSel.innerHTML='<option value="">Select a category…</option>'+cats.map(c=>'<option value="'+c.id+'" data-bg="'+c.color_bg+'" data-tc="'+c.color_text+'">'+c.name+'</option>').join('');
+    catSel.innerHTML='<option value="">Select a category…</option>'+cats.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     catSel.addEventListener('change', ()=>{
       const catId=catSel.value;
-      modSel.value=''; champSel.value='';
       if(!catId){ modSel.disabled=true; champSel.disabled=true; return; }
-      const filteredMods=allMods.filter(m=>m.category_id===catId);
+      const fm=mods.filter(m=>m.category_id===catId);
       modSel.disabled=false;
-      modSel.innerHTML='<option value="">Select a mod…</option>'+filteredMods.map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join('');
-      const filteredChamps=allChamps.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
+      modSel.innerHTML='<option value="">Select a mod…</option>'+fm.map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join('');
+      const fc=champs.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
       champSel.disabled=false;
-      champSel.innerHTML='<option value="">— No specific championship —</option>'+filteredChamps.map(ch=>'<option value="'+ch.id+'">'+ch.name+'</option>').join('');
+      champSel.innerHTML='<option value="">— No specific championship —</option>'+fc.map(ch=>'<option value="'+ch.id+'">'+ch.name+'</option>').join('');
     });
     getSubmitImg = buildUploadWidget('s-img-widget', '');
   }
@@ -444,8 +409,8 @@
     const url=document.getElementById('s-url').value.trim();
     const imgUrl=getSubmitImg();
     const errDiv=document.getElementById('s-error');
-    if(!name||!mod||!cat||!url){ errDiv.style.display='block'; errDiv.textContent='Please fill in all required fields (name, mod, category, download URL).'; return; }
-    if(!/^https?:\/\/.+/.test(url)){ errDiv.style.display='block'; errDiv.textContent='Please enter a valid URL starting with https://'; return; }
+    if(!name||!mod||!cat||!url){ errDiv.style.display='block'; errDiv.textContent='Please fill in all required fields.'; return; }
+    if(!/^https?:\/\/.+/.test(url)){ errDiv.style.display='block'; errDiv.textContent='Please enter a valid URL.'; return; }
     if(!imgUrl){ errDiv.style.display='block'; errDiv.textContent='Please upload a preview image.'; return; }
     errDiv.style.display='none';
     const btn=document.getElementById('s-submit-btn');
@@ -453,7 +418,7 @@
     const ok = await submitLiveryAsArtist(token, {
       name, mod_id:mod, category_id:cat,
       championship_id: document.getElementById('s-champ').value||null,
-      download_url: url, image_url: imgUrl,
+      download_url:url, image_url:imgUrl,
       notes:      document.getElementById('s-notes').value.trim(),
       is_paid:    document.getElementById('s-paid').checked,
       team:       document.getElementById('s-team').value.trim(),
@@ -462,33 +427,24 @@
       car_number: document.getElementById('s-carnumber').value.trim()||null,
     });
     if(ok){
-      document.getElementById('submit-form-wrap').innerHTML = '<div class="success-msg" style="padding:40px 20px;text-align:center"><i class="ti ti-circle-check" style="font-size:40px;color:var(--green);display:block;margin-bottom:14px"></i><h2 style="font-family:var(--font-display);font-size:24px;margin-bottom:8px">Livery published!</h2><p style="font-size:14px;color:var(--text2)">Your livery is now live in the gallery.</p><button onclick="location.reload()" class="submit-btn" style="margin-top:20px">Go back to dashboard</button></div>';
-    } else {
-      btn.disabled=false; btn.textContent='Publish livery';
-      errDiv.style.display='block'; errDiv.textContent='Something went wrong. Please try again.';
-    }
+      document.getElementById('submit-form-wrap').innerHTML='<div style="text-align:center;padding:40px 20px"><i class="ti ti-circle-check" style="font-size:40px;color:var(--green);display:block;margin-bottom:14px"></i><div style="font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:8px">Livery published!</div><p style="font-size:14px;color:var(--text2)">Your livery is now live in the gallery.</p><button onclick="location.reload()" class="submit-btn" style="margin-top:20px">Back to dashboard</button></div>';
+    } else { btn.disabled=false; btn.textContent='Publish livery'; errDiv.style.display='block'; errDiv.textContent='Something went wrong. Please try again.'; }
   });
 
   async function init() {
     if(!token){ showInvalid(); return; }
-    const [a, livs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token)]);
+    const [a, livs, mods, champs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token), fetchMods(), fetchChampionships()]);
     if(!a){ showInvalid(); return; }
-    artist=a; liveries=livs;
-
-    document.getElementById('tab-count').textContent = livs.length;
-
-    document.getElementById('artist-header-wrap').innerHTML = '<div class="artist-header">'
-      + (a.avatar_url ? '<img src="'+a.avatar_url+'" alt="'+a.name+'">' : '<div class="artist-header-ph"><i class="ti ti-user"></i></div>')
-      + '<div><div class="artist-header-badge">👑 Confirmed Artist</div><div class="artist-header-name">'+a.name+'</div>'
-      + '<div style="font-size:13px;color:var(--text2);margin-top:2px">'+livs.length+' published liveries</div></div>'
-      + '</div>';
-
+    artist=a; liveries=livs; allMods=mods; allChamps=champs;
+    document.getElementById('tab-count').textContent=livs.length;
+    document.getElementById('artist-header-wrap').innerHTML='<div class="artist-header">'
+      +(a.avatar_url?'<img src="'+a.avatar_url+'" alt="'+a.name+'">':'<div class="artist-header-ph"><i class="ti ti-user"></i></div>')
+      +'<div><div class="artist-header-badge">👑 Confirmed Artist</div><div class="artist-header-name">'+a.name+'</div>'
+      +'<div style="font-size:13px;color:var(--text2);margin-top:2px">'+livs.length+' published liveries</div></div></div>';
     if(!livs.length){ document.getElementById('no-liveries').style.display='block'; }
-    else { document.getElementById('liveries-list').innerHTML = livs.map(l=>renderLiveryCard(l)).join(''); }
-
+    else { document.getElementById('liveries-list').innerHTML=livs.map(l=>renderLiveryCard(l)).join(''); }
     buildProfileSection(a);
     await loadSubmitSelects();
-
     document.getElementById('loading').style.display='none';
     document.getElementById('main').style.display='block';
   }
