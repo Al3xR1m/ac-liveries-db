@@ -100,12 +100,20 @@
         </div>
         <div class="field">
           <label>RSS Mod *</label>
-          <select id="f-mod" disabled><option value="">— Select a category first —</option></select>
+          <button type="button" class="picker-btn" id="f-mod-btn" disabled onclick="openModPicker()">
+            <div class="picker-btn-ph" id="f-mod-logo"><i class="ti ti-car"></i></div>
+            <span id="f-mod-text">— Select a category first —</span>
+          </button>
+          <input type="hidden" id="f-mod">
           <div class="field-hint" id="mod-hint"></div>
         </div>
         <div class="field full livery-only">
           <label>Championship</label>
-          <select id="f-champ" disabled><option value="">— Select a category first —</option></select>
+          <button type="button" class="picker-btn" id="f-champ-btn" disabled onclick="openChampPicker()">
+            <div class="picker-btn-ph" id="f-champ-logo"><i class="ti ti-trophy"></i></div>
+            <span id="f-champ-text">— Select a category first —</span>
+          </button>
+          <input type="hidden" id="f-champ">
           <div class="field-hint" id="champ-hint"></div>
         </div>
         <div class="field" id="addon-type-field" style="display:none">
@@ -315,6 +323,13 @@
     empty.style.display='none'; filled.style.display='';
 
     document.getElementById('preview-name').textContent = name || '—';
+    // Sync from hidden inputs
+    if(document.getElementById('f-mod')?.value && !_previewModName){
+      _previewModName=document.getElementById('f-mod-text')?.textContent||'';
+    }
+    if(document.getElementById('f-champ')?.value && !_previewChampName){
+      _previewChampName=document.getElementById('f-champ-text')?.textContent||'';
+    }
     document.getElementById('preview-mod').textContent  = _previewModName || '—';
 
     const catBadge = document.getElementById('preview-cat-badge');
@@ -350,7 +365,7 @@
     const name = document.getElementById('f-name').value.trim();
     setCheck('chk-name',      !!name);
     setCheck('chk-cat',       !!_previewCatName);
-    setCheck('chk-mod',       !!_previewModName);
+    setCheck('chk-mod',       !!document.getElementById('f-mod')?.value);
     setCheck('chk-creator',   !!(document.getElementById('f-author').value.trim() || selectedArtistId));
     setCheck('chk-team',      !!document.getElementById('f-team')?.value.trim());
     setCheck('chk-season',    !!document.getElementById('f-season')?.value.trim());
@@ -512,40 +527,36 @@
     catSel.innerHTML='<option value="">Select a category…</option>'+cats.map(c=>`<option value="${c.id}" data-bg="${c.color_bg}" data-tc="${c.color_text}">${c.name}</option>`).join('');
     catSel.addEventListener('change',()=>{
       const catId=catSel.value; const opt=catSel.selectedOptions[0];
-      modSel.value=''; champSel.value='';
       if(!catId){
         _previewCatName=''; _previewCatBg='#eee'; _previewCatTc='#555'; _previewModName=''; _previewChampName='';
-        modSel.innerHTML='<option value="">— Select a category first —</option>'; modSel.disabled=true;
-        champSel.innerHTML='<option value="">— Select a category first —</option>'; champSel.disabled=true;
+        _selectedModId=''; _selectedChampId=''; _availMods=[]; _availChamps=[];
+        document.getElementById('f-mod').value='';
+        document.getElementById('f-champ').value='';
+        document.getElementById('f-mod-text').textContent='— Select a category first —';
+        document.getElementById('f-champ-text').textContent='— Select a category first —';
+        document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>';
+        document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>';
+        document.getElementById('f-mod-btn').disabled=true;
+        document.getElementById('f-champ-btn').disabled=true;
         setHint('cat-hint','Choose a category to unlock the other fields.',false);
         setHint('mod-hint','',false); setHint('champ-hint','',false); updatePreview(); return;
       }
       _previewCatName=opt.textContent.trim(); _previewCatBg=opt.dataset.bg||'#eee'; _previewCatTc=opt.dataset.tc||'#555';
       _previewModName=''; _previewChampName='';
-      const filteredMods=allMods.filter(m=>m.category_id===catId);
-      modSel.disabled=false;
-      modSel.innerHTML=filteredMods.length
-        ?'<option value="">Select a mod…</option>'+filteredMods.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')
-        :'<option value="">No mods for this category</option>';
-      setHint('mod-hint',filteredMods.length?`${filteredMods.length} mod${filteredMods.length>1?'s':''} available`:'',filteredMods.length>0);
-      const filteredChamps=allChamps.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
-      champSel.disabled=false;
-      champSel.innerHTML='<option value="">— No specific championship —</option>'+filteredChamps.map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join('');
-      setHint('champ-hint',filteredChamps.length?`${filteredChamps.length} championship${filteredChamps.length>1?'s':''} available`:'No championships for this category yet.',filteredChamps.length>0);
+      _selectedModId=''; _selectedChampId='';
+      document.getElementById('f-mod').value='';
+      document.getElementById('f-champ').value='';
+      document.getElementById('f-mod-text').textContent='Select a mod…';
+      document.getElementById('f-champ-text').textContent='— No specific championship —';
+      document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>';
+      document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>';
+      _availMods=allMods.filter(m=>m.category_id===catId);
+      _availChamps=allChamps.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
+      document.getElementById('f-mod-btn').disabled=!_availMods.length;
+      document.getElementById('f-champ-btn').disabled=!_availChamps.length;
+      setHint('mod-hint',_availMods.length?`${_availMods.length} mod${_availMods.length>1?'s':''} available`:'No mods for this category',_availMods.length>0);
+      setHint('champ-hint',_availChamps.length?`${_availChamps.length} championship${_availChamps.length>1?'s':''} available`:'No championships for this category yet.',_availChamps.length>0);
       setHint('cat-hint','',false); updatePreview();
-    });
-    modSel.addEventListener('change',()=>{
-      _previewModName=modSel.value?(modSel.selectedOptions[0]?.textContent.trim()||''):'';
-      if(modSel.value){
-        const catId=catSel.value;
-        const modChamps=allChamps.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
-        champSel.innerHTML='<option value="">— No specific championship —</option>'+modChamps.map(ch=>`<option value="${ch.id}">${ch.name}</option>`).join('');
-      }
-      updatePreview();
-    });
-    champSel.addEventListener('change',()=>{
-      _previewChampName=champSel.value?(champSel.selectedOptions[0]?.textContent.trim()||''):'';
-      updatePreview();
     });
   }
 
@@ -633,5 +644,25 @@
   loadSelects();
   getPreviewImageUrl = initUploadWidget();
 </script>
+<!-- Mod picker modal -->
+<div class="picker-modal" id="mod-picker-modal" style="display:none" onclick="if(event.target===this)closeModPicker()">
+  <div class="picker-box">
+    <div class="picker-header">
+      <input class="picker-search" id="mod-picker-search" placeholder="Search mods…" oninput="filterModPicker(this.value)">
+      <button class="picker-close" onclick="closeModPicker()">×</button>
+    </div>
+    <div class="picker-grid" id="mod-picker-grid"></div>
+  </div>
+</div>
+<!-- Champ picker modal -->
+<div class="picker-modal" id="champ-picker-modal" style="display:none" onclick="if(event.target===this)closeChampPicker()">
+  <div class="picker-box">
+    <div class="picker-header">
+      <input class="picker-search" id="champ-picker-search" placeholder="Search championships…" oninput="filterChampPicker(this.value)">
+      <button class="picker-close" onclick="closeChampPicker()">×</button>
+    </div>
+    <div class="picker-grid" id="champ-picker-grid"></div>
+  </div>
+</div>
 </body>
 </html>

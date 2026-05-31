@@ -666,12 +666,43 @@ async function loadChampionships(){
     </td>
   </tr>`).join('')}</tbody>`;
 }
+function buildAdminUploadWidget(containerId, currentUrl){
+  const container=document.getElementById(containerId);
+  if(!container) return ()=>currentUrl;
+  let cur=currentUrl;
+  container.innerHTML='<label style="display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px dashed var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;color:var(--text2)">'
+    +'<i class="ti ti-upload" style="font-size:13px"></i> Upload logo'
+    +'<input type="file" accept="image/*" style="display:none" id="'+containerId+'-input"></label>'
+    +'<div id="'+containerId+'-prog" style="font-size:11px;color:var(--text3);margin-top:4px"></div>';
+  document.getElementById(containerId+'-input').addEventListener('change',async function(){
+    const file=this.files[0];if(!file)return;
+    const prog=document.getElementById(containerId+'-prog');
+    prog.textContent='Uploading…';
+    const path='logos/'+Date.now()+'_logo.'+file.name.split('.').pop();
+    const {error}=await db.storage.from('images').upload(path,file,{contentType:file.type,upsert:false});
+    if(!error){
+      const {data}=db.storage.from('images').getPublicUrl(path);
+      cur=data?.publicUrl||null;
+      prog.textContent='✓ Uploaded';
+    } else { prog.textContent='✗ Failed'; }
+  });
+  return ()=>cur;
+}
 function champModalForm(ch={}){
   const linkedIds=(ch.linked_categories||[]).map(c=>c.id);
   return `<div style="display:flex;flex-direction:column;gap:12px">
-    <div class="field"><label>Championship name *</label><input id="cf-name" value="${ch.name||''}"></div>
-    <div class="field"><label>Short name</label><input id="cf-short" value="${ch.short_name||''}" placeholder="e.g. F1 2024"></div>
-    <div class="field"><label>Season</label><input id="cf-season" value="${ch.season||''}" placeholder="e.g. 2024"></div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+        <div class="field" style="margin:0"><label>Championship name *</label><input id="cf-name" value="${ch.name||''}"></div>
+        <div class="field" style="margin:0"><label>Short name</label><input id="cf-short" value="${ch.short_name||''}" placeholder="e.g. F1 2024"></div>
+        <div class="field" style="margin:0"><label>Season</label><input id="cf-season" value="${ch.season||''}" placeholder="e.g. 2024"></div>
+      </div>
+      <div style="flex-shrink:0;width:120px">
+        <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);display:block;margin-bottom:6px">Logo</label>
+        ${ch.logo_url ? '<img src="'+ch.logo_url+'" style="width:80px;height:80px;object-fit:contain;border-radius:8px;border:1px solid var(--border);display:block;margin-bottom:6px">' : ''}
+        <div id="cf-logo-widget"></div>
+      </div>
+    </div>
     <div class="field"><label>Linked categories</label>
       <div class="cat-checks" id="cat-checks">${_cats.map(c=>`
         <label class="cat-check-item${linkedIds.includes(c.id)?' checked':''}" data-cat-id="${c.id}">
@@ -680,23 +711,26 @@ function champModalForm(ch={}){
     </div>
   </div>`;
 }
+let _getChampLogo = () => null;
 function bindCatChecks(){setTimeout(()=>{document.querySelectorAll('.cat-check-item').forEach(item=>{item.addEventListener('click',()=>{const cb=item.querySelector('input');cb.checked=!cb.checked;item.classList.toggle('checked',cb.checked);});});},50);}
 function getCheckedCatIds(){return[...document.querySelectorAll('.cat-check-item input:checked')].map(cb=>cb.value);}
 document.getElementById('addChampBtn').addEventListener('click',()=>{
   openModal('<i class="ti ti-trophy"></i> Add championship',champModalForm(),async()=>{
     const name=document.getElementById('cf-name').value.trim();if(!name)return;
-    const ok=await createChampionship({name,short_name:document.getElementById('cf-short').value.trim(),season:document.getElementById('cf-season').value.trim()},getCheckedCatIds());
+    const ok=await createChampionship({name,short_name:document.getElementById('cf-short').value.trim(),season:document.getElementById('cf-season').value.trim(),logo_url:_getChampLogo()||null},getCheckedCatIds());
     if(ok){await reloadCache();closeModal();await loadChampionships();}
   });
   bindCatChecks();
+  setTimeout(()=>{_getChampLogo=buildAdminUploadWidget('cf-logo-widget','');},100);
 });
 async function editChampModal(id){
   const ch=_champs.find(c=>c.id===id);if(!ch)return;
   openModal('<i class="ti ti-pencil"></i> Edit championship',champModalForm(ch),async()=>{
-    await updateChampionship(id,{name:document.getElementById('cf-name').value.trim(),short_name:document.getElementById('cf-short').value.trim(),season:document.getElementById('cf-season').value.trim()},getCheckedCatIds());
+    await updateChampionship(id,{name:document.getElementById('cf-name').value.trim(),short_name:document.getElementById('cf-short').value.trim(),season:document.getElementById('cf-season').value.trim(),logo_url:_getChampLogo()||ch.logo_url||null},getCheckedCatIds());
     await reloadCache();closeModal();await loadChampionships();
   });
   bindCatChecks();
+  setTimeout(()=>{_getChampLogo=buildAdminUploadWidget('cf-logo-widget',ch.logo_url||'');},100);
 }
 async function doDeleteChamp(id){if(!confirm('Delete this championship?'))return;await deleteChampionship(id);await reloadCache();await loadChampionships();}
 
