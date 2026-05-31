@@ -569,7 +569,8 @@
         +logo+'<div class="picker-item-name">'+m.name+'</div></div>';
     }).join('');
   }
-  function selectMod(id, el){
+  function selectMod(el){
+    const id=el.dataset.id;
     const m=_availMods.find(x=>x.id===id); if(!m) return;
     _selectedModId=id;
     _previewModName=m.name;
