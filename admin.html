@@ -306,6 +306,7 @@ async function loadDashboard(){
   document.getElementById('reportsCount').textContent=stats.openReports;
   fetchEditRequests().then(reqs=>{
     const b=document.getElementById('editRequestsCount');
+    if(!b) return;
     if(reqs.length){b.style.display='inline-flex';b.textContent=reqs.length;}
     else b.style.display='none';
   });
