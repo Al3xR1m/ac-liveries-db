@@ -522,20 +522,12 @@
   async function loadSelects() {
     const [allMods,cats,allChamps]=await Promise.all([fetchMods(),fetchCategories(),fetchChampionships()]);
     const catSel=document.getElementById('f-cat');
-    const modSel=document.getElementById('f-mod');
-    const champSel=document.getElementById('f-champ');
     catSel.innerHTML='<option value="">Select a category…</option>'+cats.map(c=>`<option value="${c.id}" data-bg="${c.color_bg}" data-tc="${c.color_text}">${c.name}</option>`).join('');
     catSel.addEventListener('change',()=>{
       const catId=catSel.value; const opt=catSel.selectedOptions[0];
       if(!catId){
         _previewCatName=''; _previewCatBg='#eee'; _previewCatTc='#555'; _previewModName=''; _previewChampName='';
-        _selectedModId=''; _selectedChampId=''; _availMods=[]; _availChamps=[];
-        document.getElementById('f-mod').value='';
-        document.getElementById('f-champ').value='';
-        document.getElementById('f-mod-text').textContent='— Select a category first —';
-        document.getElementById('f-champ-text').textContent='— Select a category first —';
-        document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>';
-        document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>';
+        resetModPicker(); resetChampPicker(); _availMods=[]; _availChamps=[];
         document.getElementById('f-mod-btn').disabled=true;
         document.getElementById('f-champ-btn').disabled=true;
         setHint('cat-hint','Choose a category to unlock the other fields.',false);
@@ -543,21 +535,95 @@
       }
       _previewCatName=opt.textContent.trim(); _previewCatBg=opt.dataset.bg||'#eee'; _previewCatTc=opt.dataset.tc||'#555';
       _previewModName=''; _previewChampName='';
-      _selectedModId=''; _selectedChampId='';
-      document.getElementById('f-mod').value='';
-      document.getElementById('f-champ').value='';
-      document.getElementById('f-mod-text').textContent='Select a mod…';
-      document.getElementById('f-champ-text').textContent='— No specific championship —';
-      document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>';
-      document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>';
+      resetModPicker(); resetChampPicker();
       _availMods=allMods.filter(m=>m.category_id===catId);
       _availChamps=allChamps.filter(ch=>ch.linked_categories?.some(lc=>lc.id===catId));
       document.getElementById('f-mod-btn').disabled=!_availMods.length;
       document.getElementById('f-champ-btn').disabled=!_availChamps.length;
+      document.getElementById('f-mod-text').textContent=_availMods.length?'Select a mod…':'No mods for this category';
+      document.getElementById('f-champ-text').textContent=_availChamps.length?'Select a championship…':'No championships for this category';
       setHint('mod-hint',_availMods.length?`${_availMods.length} mod${_availMods.length>1?'s':''} available`:'No mods for this category',_availMods.length>0);
       setHint('champ-hint',_availChamps.length?`${_availChamps.length} championship${_availChamps.length>1?'s':''} available`:'No championships for this category yet.',_availChamps.length>0);
       setHint('cat-hint','',false); updatePreview();
     });
+  }
+
+  // ---- Picker state (global) ----
+  let _availMods=[], _availChamps=[], _selectedModId='', _selectedChampId='';
+
+  function openModPicker(){
+    if(!_availMods.length) return;
+    renderModPicker(_availMods);
+    document.getElementById('mod-picker-modal').style.display='flex';
+    setTimeout(()=>document.getElementById('mod-picker-search').focus(),50);
+  }
+  function closeModPicker(){ document.getElementById('mod-picker-modal').style.display='none'; }
+  function filterModPicker(q){ renderModPicker(_availMods.filter(m=>m.name.toLowerCase().includes(q.toLowerCase()))); }
+  function renderModPicker(list){
+    const g=document.getElementById('mod-picker-grid');
+    if(!list.length){g.innerHTML='<div class="picker-none">No mods found</div>';return;}
+    g.innerHTML=list.map(m=>{
+      const logo=m.image_url?'<img src="'+m.image_url+'" class="picker-item-logo" alt="'+m.name+'">'
+        :'<div class="picker-item-logo-ph"><i class="ti ti-car"></i></div>';
+      return '<div class="picker-item'+(m.id===_selectedModId?' selected':'')+'" onclick="selectMod(''+m.id+'',this)">'
+        +logo+'<div class="picker-item-name">'+m.name+'</div></div>';
+    }).join('');
+  }
+  function selectMod(id, el){
+    const m=_availMods.find(x=>x.id===id); if(!m) return;
+    _selectedModId=id;
+    _previewModName=m.name;
+    document.getElementById('f-mod').value=id;
+    document.getElementById('f-mod-text').textContent=m.name;
+    const logoEl=document.getElementById('f-mod-logo');
+    if(m.image_url){ logoEl.outerHTML='<img src="'+m.image_url+'" class="picker-btn-logo" id="f-mod-logo" alt="'+m.name+'">'; }
+    else { document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>'; }
+    // Enable champ picker
+    document.getElementById('f-champ-btn').disabled=!_availChamps.length;
+    closeModPicker(); updatePreview(); updateChecklist();
+  }
+  function resetModPicker(){
+    _selectedModId='';
+    document.getElementById('f-mod').value='';
+    document.getElementById('f-mod-text').textContent='— Select a category first —';
+    try{ document.getElementById('f-mod-logo').innerHTML='<i class="ti ti-car"></i>'; }catch(e){}
+  }
+
+  function openChampPicker(){
+    renderChampPicker(_availChamps);
+    document.getElementById('champ-picker-modal').style.display='flex';
+    setTimeout(()=>document.getElementById('champ-picker-search').focus(),50);
+  }
+  function closeChampPicker(){ document.getElementById('champ-picker-modal').style.display='none'; }
+  function filterChampPicker(q){ renderChampPicker(_availChamps.filter(ch=>(ch.name+' '+(ch.short_name||'')).toLowerCase().includes(q.toLowerCase()))); }
+  function renderChampPicker(list){
+    const g=document.getElementById('champ-picker-grid');
+    const none='<div class="picker-item'+(!_selectedChampId?' selected':'')+'" onclick="selectChamp('',this)">'
+      +'<div class="picker-item-logo-ph"><i class="ti ti-x"></i></div>'
+      +'<div class="picker-item-name">No championship</div></div>';
+    g.innerHTML=none+list.map(ch=>{
+      const logo=ch.logo_url?'<img src="'+ch.logo_url+'" class="picker-item-logo" alt="'+ch.name+'">'
+        :'<div class="picker-item-logo-ph"><i class="ti ti-trophy"></i></div>';
+      return '<div class="picker-item'+(ch.id===_selectedChampId?' selected':'')+'" onclick="selectChamp(''+ch.id+'',this)">'
+        +logo+'<div class="picker-item-name">'+(ch.short_name||ch.name)+'</div></div>';
+    }).join('');
+  }
+  function selectChamp(id, el){
+    const ch=id?_availChamps.find(x=>x.id===id):null;
+    _selectedChampId=id;
+    _previewChampName=ch?(ch.short_name||ch.name):'';
+    document.getElementById('f-champ').value=id||'';
+    document.getElementById('f-champ-text').textContent=ch?(ch.short_name||ch.name):'No championship';
+    const logoEl=document.getElementById('f-champ-logo');
+    if(ch&&ch.logo_url){ logoEl.outerHTML='<img src="'+ch.logo_url+'" class="picker-btn-logo" id="f-champ-logo" alt="'+ch.name+'">'; }
+    else { document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>'; }
+    closeChampPicker(); updatePreview();
+  }
+  function resetChampPicker(){
+    _selectedChampId='';
+    document.getElementById('f-champ').value='';
+    document.getElementById('f-champ-text').textContent='— Select a category first —';
+    try{ document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>'; }catch(e){}
   }
 
   function setHint(id,text,isOk){
