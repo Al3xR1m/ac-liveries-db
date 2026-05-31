@@ -127,7 +127,7 @@
           <input type="text" id="f-name" placeholder="e.g. #3 / Red Bull Racing">
         </div>
         <div class="field livery-only">
-          <label>Team</label>
+          <label>Team *</label>
           <input type="text" id="f-team" placeholder="e.g. Red Bull Racing">
         </div>
         <div class="field livery-only">
@@ -135,13 +135,13 @@
           <input type="text" id="f-driver" placeholder="e.g. Max Verstappen">
         </div>
         <div class="field livery-only">
-          <label>Season / Year</label>
+          <label>Season / Year *</label>
           <input type="text" id="f-season" placeholder="e.g. 2023">
         </div>
         <div class="field livery-only">
-          <label>Car number</label>
+          <label>Car number *</label>
           <input type="text" id="f-carnumber" placeholder="e.g. 63" maxlength="4">
-          <div class="field-hint">Used for search — e.g. "63", "001"</div>
+          <div class="field-hint">Used for search and duplicate detection</div>
         </div>
         <div class="field">
           <label>Pricing</label>
@@ -555,8 +555,12 @@
     const cat=document.getElementById('f-cat').value;
     const author=document.getElementById('f-author').value.trim();
     const url=document.getElementById('f-url').value.trim();
+    const season=document.getElementById('f-season')?.value.trim();
+    const carnumber=document.getElementById('f-carnumber')?.value.trim();
     const errDiv=document.getElementById('error-msg');
     const urlValid = /^https?:\/\/.+/.test(url);
+    const isLivery = currentMode==='livery';
+    const team=document.getElementById('f-team')?.value.trim();
     if(!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
       errDiv.style.display='block';
       if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
@@ -564,9 +568,25 @@
       else errDiv.textContent='Please fill in all required fields (name, mod, category, creator, download URL).';
       return;
     }
+    if(isLivery && (!season||!carnumber||!team)){
+      errDiv.style.display='block';
+      errDiv.textContent='Please fill in Team, Season / Year and Car number — all required for liveries.';
+      return;
+    }
     errDiv.style.display='none';
     const btn=document.getElementById('submitBtn');
-    btn.disabled=true; btn.textContent='Submitting…';
+    btn.disabled=true; btn.textContent='Checking for duplicates…';
+
+    // Check for similar liveries — warning only, does NOT block
+    if(isLivery && mod && carnumber && season){
+      const similar = await fetchLiveries({modId:mod, search:carnumber, approvedOnly:false});
+      const matches = similar.filter(l=>l.car_number===carnumber && l.season===season && l.mod_id===mod);
+      if(matches.length){
+        errDiv.style.display='block';
+        errDiv.innerHTML='⚠️ A similar livery already exists: <a href="livery.html?id='+matches[0].id+'" target="_blank" style="color:var(--accent);text-decoration:underline">'+matches[0].name+'</a>. You can still submit if yours is different.';
+      }
+    }
+    btn.textContent='Submitting…';
     let ok=false;
     const base={
       name, mod_id:mod, category_id:cat,
@@ -578,7 +598,7 @@
     if(currentMode==='livery'){
       ok=await submitLivery({...base,
         championship_id:document.getElementById('f-champ').value||null,
-        team:document.getElementById('f-team').value.trim(),
+        team:team||document.getElementById('f-team').value.trim(),
         driver:document.getElementById('f-driver').value.trim(),
         season:document.getElementById('f-season').value.trim(),
         car_number:document.getElementById('f-carnumber').value.trim()||null,

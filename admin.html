@@ -333,6 +333,7 @@ async function loadPending(){
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:start">
       <div style="height:90px">${imgBlock}</div>
       <div>
+        ${l.car_number && l.season && list.some(x=>x.id!==l.id&&x.mod_id===l.mod_id&&x.car_number===l.car_number&&x.season===l.season) ? '<div style="font-size:11px;font-weight:600;padding:4px 10px;background:#FEF3C7;color:#92400E;border-radius:6px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px"><i class="ti ti-alert-triangle" style="font-size:12px"></i> Possible duplicate</div>' : ''}
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
           <div style="font-family:var(--font-display);font-size:17px;font-weight:700">${l.name}</div>
           ${paidBadge}
