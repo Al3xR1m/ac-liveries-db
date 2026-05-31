@@ -251,6 +251,9 @@
           <div class="check-item" id="chk-cat"><i class="ti ti-circle"></i> Category</div>
           <div class="check-item" id="chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
           <div class="check-item" id="chk-creator"><i class="ti ti-circle"></i> Creator</div>
+          <div class="check-item livery-only" id="chk-team"><i class="ti ti-circle"></i> Team</div>
+          <div class="check-item livery-only" id="chk-season"><i class="ti ti-circle"></i> Season / Year</div>
+          <div class="check-item livery-only" id="chk-carnumber"><i class="ti ti-circle"></i> Car number</div>
           <div class="check-item" id="chk-url"><i class="ti ti-circle"></i> Download URL</div>
           <div class="check-item" id="chk-img"><i class="ti ti-circle"></i> Preview image</div>
         </div>
@@ -345,12 +348,15 @@
 
   function updateChecklist() {
     const name = document.getElementById('f-name').value.trim();
-    setCheck('chk-name',    !!name);
-    setCheck('chk-cat',     !!_previewCatName);
-    setCheck('chk-mod',     !!_previewModName);
-    setCheck('chk-creator', !!(document.getElementById('f-author').value.trim() || selectedArtistId));
-    setCheck('chk-url',     !!document.getElementById('f-url').value.trim());
-    setCheck('chk-img',     !!_previewImgUrl);
+    setCheck('chk-name',      !!name);
+    setCheck('chk-cat',       !!_previewCatName);
+    setCheck('chk-mod',       !!_previewModName);
+    setCheck('chk-creator',   !!(document.getElementById('f-author').value.trim() || selectedArtistId));
+    setCheck('chk-team',      !!document.getElementById('f-team')?.value.trim());
+    setCheck('chk-season',    !!document.getElementById('f-season')?.value.trim());
+    setCheck('chk-carnumber', !!document.getElementById('f-carnumber')?.value.trim());
+    setCheck('chk-url',       !!document.getElementById('f-url').value.trim());
+    setCheck('chk-img',       !!_previewImgUrl);
   }
 
   function setCheck(id, done) {
@@ -359,7 +365,7 @@
     el.querySelector('i').className = done ? 'ti ti-circle-check' : 'ti ti-circle';
   }
 
-  ['f-name','f-author','f-url','f-notes'].forEach(id => document.getElementById(id)?.addEventListener('input', updatePreview));
+  ['f-name','f-author','f-url','f-notes','f-team','f-season','f-carnumber'].forEach(id => document.getElementById(id)?.addEventListener('input', updatePreview));
   document.querySelectorAll('input[name="pricing"]').forEach(r => r.addEventListener('change', updatePreview));
 
   // Mode
