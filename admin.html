@@ -577,32 +577,34 @@ async function loadEditRequests(){
   const list = await fetchEditRequests();
   const el = document.getElementById('edit-requests-list');
   if(!list.length){ el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending edit requests 🎉</div>'; return; }
-  el.innerHTML = list.map(r=>{
-    const fieldLabels = {'name':'Name','mod_id':'Mod','championship_id':'Championship','category_id':'Category'};
+  const fieldLabels = {'name':'Name','mod_id':'Mod','championship_id':'Championship','category_id':'Category'};
+  el.innerHTML = list.map(function(r){
     const label = fieldLabels[r.field] || r.field;
     const newVal = r.field.endsWith('_id') ? r.new_value.split('|')[0] : r.new_value;
     const newId  = r.field.endsWith('_id') ? r.new_value.split('|')[1] : null;
+    const approveVal = encodeURIComponent(newId||newVal);
     return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
       + '<div style="flex:1;min-width:200px">'
-      + '<div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:4px">'+(r.liveries?.name||'—')+'</div>'
-      + '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">By <strong>'+(r.artists?.name||'—')+'</strong></div>'
-      + '<div style="font-size:13px;color:var(--text2)">Change <strong style="color:var(--text)">'+label+'</strong> &rarr; <span style="color:var(--accent);font-weight:500">'+newVal+'</span></div>'
-      + '<div style="font-size:11px;color:var(--text3);margin-top:4px">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      + '<div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:4px">' + (r.liveries&&r.liveries.name||'—') + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">By <strong>' + (r.artists&&r.artists.name||'—') + '</strong></div>'
+      + '<div style="font-size:13px;color:var(--text2)">Change <strong style="color:var(--text)">' + label + '</strong> to <span style="color:var(--accent);font-weight:500">' + newVal + '</span></div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:4px">' + new Date(r.created_at).toLocaleDateString() + '</div>'
       + '</div>'
       + '<div style="display:flex;flex-direction:column;gap:8px;min-width:120px">'
-      + '<button class="action-btn success" onclick="doApproveEditRequest(''+r.id+'',''+r.livery_id+'',''+r.field+'',''+encodeURIComponent(newId||newVal)+'')"><i class="ti ti-check"></i> Approve</button>'
-      + '<button class="action-btn danger" onclick="doRejectEditRequest(''+r.id+'')"><i class="ti ti-x"></i> Reject</button>'
+      + '<button class="action-btn success" onclick="doApproveEditRequest(this)" data-id="' + r.id + '" data-livery="' + r.livery_id + '" data-field="' + r.field + '" data-val="' + approveVal + '"><i class="ti ti-check"></i> Approve</button>'
+      + '<button class="action-btn danger" onclick="doRejectEditRequest(this)" data-id="' + r.id + '"><i class="ti ti-x"></i> Reject</button>'
       + '</div></div>';
   }).join('');
 }
-async function doApproveEditRequest(id, liveryId, field, encodedValue){
+async function doApproveEditRequest(btn){
   if(!confirm('Apply this change?')) return;
-  await approveEditRequest(id, liveryId, field, decodeURIComponent(encodedValue));
+  const id=btn.dataset.id, liveryId=btn.dataset.livery, field=btn.dataset.field, val=decodeURIComponent(btn.dataset.val);
+  await approveEditRequest(id, liveryId, field, val);
   await loadEditRequests(); await loadDashboard();
 }
-async function doRejectEditRequest(id){
+async function doRejectEditRequest(btn){
   if(!confirm('Reject this change request?')) return;
-  await rejectEditRequest(id);
+  await rejectEditRequest(btn.dataset.id);
   await loadEditRequests(); await loadDashboard();
 }
 
