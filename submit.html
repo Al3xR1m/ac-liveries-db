@@ -99,7 +99,7 @@
           <div class="field-hint" id="cat-hint">Choose a category to unlock the other fields.</div>
         </div>
         <div class="field">
-          <label>RSS Mod *</label>
+          <label id="lbl-mod">RSS Mod *</label>
           <button type="button" class="picker-btn" id="f-mod-btn" disabled onclick="openModPicker()">
             <div class="picker-btn-ph" id="f-mod-logo"><i class="ti ti-car"></i></div>
             <span id="f-mod-text">— Select a category first —</span>
@@ -117,14 +117,14 @@
           <div class="field-hint" id="champ-hint"></div>
         </div>
         <div class="field" id="addon-type-field" style="display:none">
-          <label>Addon type *</label>
-          <select id="f-addon-type">
-            <option value="tyre_skin">Tyre skin</option>
-            <option value="3d_asset">3D asset</option>
-            <option value="shader">Shader / Visual</option>
-            <option value="ui">UI element</option>
-            <option value="other">Other</option>
-          </select>
+          <label>Addon type * <span style="font-size:11px;color:var(--text3);font-weight:400">(multiple allowed)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+            <label class="addon-type-check"><input type="checkbox" name="addon-type" value="tyre_skin"> 🏎️ Tyre skin</label>
+            <label class="addon-type-check"><input type="checkbox" name="addon-type" value="3d_asset"> 📦 3D asset</label>
+            <label class="addon-type-check"><input type="checkbox" name="addon-type" value="shader"> ✨ Shader / Visual</label>
+            <label class="addon-type-check"><input type="checkbox" name="addon-type" value="ui"> 🖥️ UI element</label>
+            <label class="addon-type-check"><input type="checkbox" name="addon-type" value="other"> 🔧 Other</label>
+          </div>
         </div>
       </div>
 
@@ -389,6 +389,10 @@
     document.getElementById('toggle-livery').classList.toggle('active', mode==='livery');
     document.getElementById('toggle-addon').classList.toggle('active', mode==='addon');
     document.getElementById('addon-type-field').style.display = mode==='addon' ? '' : 'none';
+    const modLabel = document.getElementById('lbl-mod');
+    if(modLabel) modLabel.innerHTML = mode==='addon'
+      ? 'RSS Mod <span style="font-size:11px;color:var(--text3);font-weight:400">(optional — leave empty to apply to all mods in category)</span>'
+      : 'RSS Mod *';
     document.querySelectorAll('.livery-only').forEach(el => el.style.display = mode==='livery' ? '' : 'none');
     document.getElementById('page-sub').textContent = mode==='livery'
       ? 'Share your livery with the community. All submissions are reviewed before publication.'
@@ -650,7 +654,23 @@
     const urlValid = /^https?:\/\/.+/.test(url);
     const isLivery = currentMode==='livery';
     const team=document.getElementById('f-team')?.value.trim();
-    if(!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
+    const addonTypes=[...document.querySelectorAll('input[name="addon-type"]:checked')].map(x=>x.value);
+    if(isLivery && (!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl())){
+      errDiv.style.display='block';
+      if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
+      else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
+      else errDiv.textContent='Please fill in all required fields.';
+      return;
+    }
+    if(!isLivery && (!name||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl())){
+      errDiv.style.display='block';
+      if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
+      else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
+      else errDiv.textContent='Please fill in all required fields (name, category, creator, download URL).';
+      return;
+    }
+    if(!isLivery && addonTypes.length===0){ errDiv.style.display='block'; errDiv.textContent='Please select at least one addon type.'; return; }
+    if(false&&!name||!mod||!cat||(!author&&!selectedArtistId)||!url||!urlValid||!getPreviewImageUrl()){
       errDiv.style.display='block';
       if(!url||!urlValid) errDiv.textContent='Please enter a valid download URL starting with http:// or https://';
       else if(!getPreviewImageUrl()) errDiv.textContent='Please upload a preview image before submitting.';
@@ -693,7 +713,7 @@
         car_number:document.getElementById('f-carnumber').value.trim()||null,
       });
     } else {
-      ok=await submitAddon({...base, addon_type:document.getElementById('f-addon-type').value});
+      ok=await submitAddon({...base, mod_id:mod||null, addon_type:addonTypes.join(',')});
     }
     if(ok){
       const isAddon=currentMode==='addon';
