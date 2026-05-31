@@ -93,9 +93,7 @@ async function createArtist(p) {
   const { error } = await db.rpc('create_artist', {
     p_name: p.name, p_avatar_url: p.avatar_url || null,
     p_discord: p.discord || null, p_bio: p.bio || null,
-    p_url_twitter: p.url_twitter || null, p_url_discord: p.url_discord || null,
-    p_url_patreon: p.url_patreon || null, p_url_youtube: p.url_youtube || null,
-    p_url_overtake: p.url_overtake || null
+    p_links: p.links && Object.values(p.links).some(v=>v) ? p.links : null
   });
   return !error;
 }
@@ -103,9 +101,7 @@ async function updateArtist(id, p) {
   const { error } = await db.rpc('update_artist', {
     p_id: id, p_name: p.name, p_avatar_url: p.avatar_url || null,
     p_discord: p.discord || null, p_bio: p.bio || null,
-    p_url_twitter: p.url_twitter || null, p_url_discord: p.url_discord || null,
-    p_url_patreon: p.url_patreon || null, p_url_youtube: p.url_youtube || null,
-    p_url_overtake: p.url_overtake || null
+    p_links: p.links && Object.values(p.links).some(v=>v) ? p.links : null
   });
   return !error;
 }
@@ -151,6 +147,34 @@ async function updateLiveryAsArtist(token, liveryId, payload) {
   });
   if (error) { console.error(error); return false; }
   return data === true;
+}
+
+async function updateArtistProfile(token, payload) {
+  const artist = await fetchArtistByToken(token);
+  if (!artist) return false;
+  const { error } = await db.from('artists').update({
+    bio:          payload.bio          || null,
+    discord:      payload.discord      || null,
+    url_twitter:  payload.url_twitter  || null,
+    url_discord:  payload.url_discord  || null,
+    url_patreon:  payload.url_patreon  || null,
+    url_youtube:  payload.url_youtube  || null,
+    url_overtake: payload.url_overtake || null,
+    avatar_url:   payload.avatar_url   || artist.avatar_url || null,
+  }).eq('id', artist.id);
+  return !error;
+}
+
+async function submitLiveryAsArtist(token, payload) {
+  const artist = await fetchArtistByToken(token);
+  if (!artist) return false;
+  const { error } = await db.from('liveries').insert([{
+    ...payload,
+    artist_id: artist.id,
+    author:    artist.name,
+    approved:  true,
+  }]);
+  return !error;
 }
 
 async function fetchArtistStats() {
