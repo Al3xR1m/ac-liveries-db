@@ -562,10 +562,10 @@
   function renderModPicker(list){
     const g=document.getElementById('mod-picker-grid');
     if(!list.length){g.innerHTML='<div class="picker-none">No mods found</div>';return;}
-    g.innerHTML=list.map(m=>{
+    g.innerHTML=list.map(function(m){
       const logo=m.image_url?'<img src="'+m.image_url+'" class="picker-item-logo" alt="'+m.name+'">'
         :'<div class="picker-item-logo-ph"><i class="ti ti-car"></i></div>';
-      return '<div class="picker-item'+(m.id===_selectedModId?' selected':'')+'" onclick="selectMod(''+m.id+'',this)">'
+      return '<div class="picker-item'+(m.id===_selectedModId?' selected':'')+'" data-id="'+m.id+'" onclick="selectMod(this)">'
         +logo+'<div class="picker-item-name">'+m.name+'</div></div>';
     }).join('');
   }
@@ -598,25 +598,30 @@
   function filterChampPicker(q){ renderChampPicker(_availChamps.filter(ch=>(ch.name+' '+(ch.short_name||'')).toLowerCase().includes(q.toLowerCase()))); }
   function renderChampPicker(list){
     const g=document.getElementById('champ-picker-grid');
-    const none='<div class="picker-item'+(!_selectedChampId?' selected':'')+'" onclick="selectChamp('',this)">'
+    const noneClass='picker-item'+(!_selectedChampId?' selected':'');
+    let html='<div class="'+noneClass+'" data-id="" onclick="selectChamp(this)">'
       +'<div class="picker-item-logo-ph"><i class="ti ti-x"></i></div>'
       +'<div class="picker-item-name">No championship</div></div>';
-    g.innerHTML=none+list.map(ch=>{
+    html+=list.map(function(ch){
       const logo=ch.logo_url?'<img src="'+ch.logo_url+'" class="picker-item-logo" alt="'+ch.name+'">'
         :'<div class="picker-item-logo-ph"><i class="ti ti-trophy"></i></div>';
-      return '<div class="picker-item'+(ch.id===_selectedChampId?' selected':'')+'" onclick="selectChamp(''+ch.id+'',this)">'
+      return '<div class="picker-item'+(ch.id===_selectedChampId?' selected':'')+'" data-id="'+ch.id+'" onclick="selectChamp(this)">'
         +logo+'<div class="picker-item-name">'+(ch.short_name||ch.name)+'</div></div>';
     }).join('');
+    g.innerHTML=html;
   }
-  function selectChamp(id, el){
+  function selectChamp(el){
+    const id=el.dataset.id;
     const ch=id?_availChamps.find(x=>x.id===id):null;
     _selectedChampId=id;
     _previewChampName=ch?(ch.short_name||ch.name):'';
     document.getElementById('f-champ').value=id||'';
     document.getElementById('f-champ-text').textContent=ch?(ch.short_name||ch.name):'No championship';
     const logoEl=document.getElementById('f-champ-logo');
-    if(ch&&ch.logo_url){ logoEl.outerHTML='<img src="'+ch.logo_url+'" class="picker-btn-logo" id="f-champ-logo" alt="'+ch.name+'">'; }
-    else { document.getElementById('f-champ-logo').innerHTML='<i class="ti ti-trophy"></i>'; }
+    if(logoEl){
+      if(ch&&ch.logo_url){ logoEl.outerHTML='<img src="'+ch.logo_url+'" class="picker-btn-logo" id="f-champ-logo" alt="'+ch.name+'">'; }
+      else { logoEl.innerHTML='<i class="ti ti-trophy"></i>'; }
+    }
     closeChampPicker(); updatePreview();
   }
   function resetChampPicker(){
