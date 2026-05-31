@@ -166,6 +166,12 @@
         <div style="overflow-x:auto"><table class="data-table" id="artists-table"></table></div>
       </div>
 
+      <!-- EDIT REQUESTS -->
+      <div class="panel" id="panel-edit-requests">
+        <div class="admin-title"><i class="ti ti-edit"></i>Edit Requests</div>
+        <div id="edit-requests-list"><div style="color:var(--text3);font-size:13px">Loading…</div></div>
+      </div>
+
       <!-- ALL ADDONS -->
       <div class="panel" id="panel-addons">
         <div class="top-row">
@@ -280,6 +286,7 @@ async function loadPanel(name){
   if(name==='dashboard')    await loadDashboard();
   if(name==='pending')      await loadPending();
   if(name==='reports')      await loadReports();
+  if(name==='edit-requests') await loadEditRequests();
   if(name==='liveries')     await loadLiveries();
   if(name==='addons')         await loadAddons();
   if(name==='artists')      await loadArtists();
@@ -297,6 +304,11 @@ async function loadDashboard(){
   document.getElementById('as-reports').textContent=stats.openReports;
   document.getElementById('pendingCount').textContent=(stats.pending + stats.pendingAddons) || 0;
   document.getElementById('reportsCount').textContent=stats.openReports;
+  fetchEditRequests().then(reqs=>{
+    const b=document.getElementById('editRequestsCount');
+    if(reqs.length){b.style.display='inline-flex';b.textContent=reqs.length;}
+    else b.style.display='none';
+  });
 }
 
 // PENDING
@@ -561,6 +573,39 @@ async function editArtistModal(id){
   });
   setTimeout(()=>{ _getArtistAvatar = buildUploadWidget('af-avatar-widget',{currentUrl:a.avatar_url||'',folder:'artists',isAvatar:true,label:'Upload profile picture'}); },50);
 }
+async function loadEditRequests(){
+  const list = await fetchEditRequests();
+  const el = document.getElementById('edit-requests-list');
+  if(!list.length){ el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px 0">No pending edit requests 🎉</div>'; return; }
+  el.innerHTML = list.map(r=>{
+    const fieldLabels = {'name':'Name','mod_id':'Mod','championship_id':'Championship','category_id':'Category'};
+    const label = fieldLabels[r.field] || r.field;
+    const newVal = r.field.endsWith('_id') ? r.new_value.split('|')[0] : r.new_value;
+    const newId  = r.field.endsWith('_id') ? r.new_value.split('|')[1] : null;
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:200px">'
+      + '<div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:4px">'+(r.liveries?.name||'—')+'</div>'
+      + '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">By <strong>'+(r.artists?.name||'—')+'</strong></div>'
+      + '<div style="font-size:13px;color:var(--text2)">Change <strong style="color:var(--text)">'+label+'</strong> &rarr; <span style="color:var(--accent);font-weight:500">'+newVal+'</span></div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:4px">'+new Date(r.created_at).toLocaleDateString()+'</div>'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px;min-width:120px">'
+      + '<button class="action-btn success" onclick="doApproveEditRequest(''+r.id+'',''+r.livery_id+'',''+r.field+'',''+encodeURIComponent(newId||newVal)+'')"><i class="ti ti-check"></i> Approve</button>'
+      + '<button class="action-btn danger" onclick="doRejectEditRequest(''+r.id+'')"><i class="ti ti-x"></i> Reject</button>'
+      + '</div></div>';
+  }).join('');
+}
+async function doApproveEditRequest(id, liveryId, field, encodedValue){
+  if(!confirm('Apply this change?')) return;
+  await approveEditRequest(id, liveryId, field, decodeURIComponent(encodedValue));
+  await loadEditRequests(); await loadDashboard();
+}
+async function doRejectEditRequest(id){
+  if(!confirm('Reject this change request?')) return;
+  await rejectEditRequest(id);
+  await loadEditRequests(); await loadDashboard();
+}
+
 async function doDeleteArtist(id){if(!confirm('Remove this confirmed artist? Their liveries will keep the text author name.'))return;await deleteArtist(id);await reloadCache();await loadArtists();}
 
 function getBaseUrl() {
