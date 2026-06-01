@@ -93,7 +93,9 @@ async function createArtist(p) {
   const { error } = await db.rpc('create_artist', {
     p_name: p.name, p_avatar_url: p.avatar_url || null,
     p_discord: p.discord || null, p_bio: p.bio || null,
-    p_links: p.links && Object.values(p.links).some(v=>v) ? p.links : null
+    p_url_twitter: p.url_twitter || null, p_url_discord: p.url_discord || null,
+    p_url_patreon: p.url_patreon || null, p_url_youtube: p.url_youtube || null,
+    p_url_overtake: p.url_overtake || null
   });
   return !error;
 }
@@ -101,7 +103,9 @@ async function updateArtist(id, p) {
   const { error } = await db.rpc('update_artist', {
     p_id: id, p_name: p.name, p_avatar_url: p.avatar_url || null,
     p_discord: p.discord || null, p_bio: p.bio || null,
-    p_links: p.links && Object.values(p.links).some(v=>v) ? p.links : null
+    p_url_twitter: p.url_twitter || null, p_url_discord: p.url_discord || null,
+    p_url_patreon: p.url_patreon || null, p_url_youtube: p.url_youtube || null,
+    p_url_overtake: p.url_overtake || null
   });
   return !error;
 }
@@ -147,71 +151,6 @@ async function updateLiveryAsArtist(token, liveryId, payload) {
   });
   if (error) { console.error(error); return false; }
   return data === true;
-}
-
-async function updateArtistProfile(token, payload) {
-  const artist = await fetchArtistByToken(token);
-  if (!artist) return false;
-  const { error } = await db.from('artists').update({
-    bio:          payload.bio          || null,
-    discord:      payload.discord      || null,
-    url_twitter:  payload.url_twitter  || null,
-    url_discord:  payload.url_discord  || null,
-    url_patreon:  payload.url_patreon  || null,
-    url_youtube:  payload.url_youtube  || null,
-    url_overtake: payload.url_overtake || null,
-    avatar_url:   payload.avatar_url   || artist.avatar_url || null,
-  }).eq('id', artist.id);
-  return !error;
-}
-
-async function submitLiveryAsArtist(token, payload) {
-  const artist = await fetchArtistByToken(token);
-  if (!artist) return false;
-  const { error } = await db.from('liveries').insert([{
-    ...payload,
-    artist_id: artist.id,
-    author:    artist.name,
-    approved:  true,
-  }]);
-  return !error;
-}
-
-async function submitEditRequest(token, liveryId, changes) {
-  const artist = await fetchArtistByToken(token);
-  if(!artist) return false;
-  const rows = Object.entries(changes).map(([field, vals]) => ({
-    livery_id: liveryId,
-    artist_id: artist.id,
-    field,
-    old_value: String(vals.old ?? ''),
-    new_value: String(vals.new ?? ''),
-    status: 'pending',
-  }));
-  if(!rows.length) return true;
-  const {error} = await db.from('livery_edit_requests').insert(rows);
-  return !error;
-}
-
-async function fetchEditRequests() {
-  const {data} = await db.from('livery_edit_requests')
-    .select('*, liveries(id,name), artists(id,name)')
-    .eq('status','pending')
-    .order('created_at', {ascending:false});
-  return data || [];
-}
-
-async function approveEditRequest(requestId, liveryId, field, newValue) {
-  const update = {};
-  update[field] = newValue || null;
-  await db.from('liveries').update(update).eq('id', liveryId);
-  await db.from('livery_edit_requests').update({status:'approved'}).eq('id', requestId);
-  return true;
-}
-
-async function rejectEditRequest(requestId) {
-  const {error} = await db.from('livery_edit_requests').update({status:'rejected'}).eq('id', requestId);
-  return !error;
 }
 
 async function fetchArtistStats() {
