@@ -142,121 +142,7 @@
         </div>
       </div>
 
-      <!-- Panel: Submit -->
-      <div class="dash-panel" id="panel-submit">
-        <div id="submit-form-wrap">
-          <div class="submit-layout">
-            <!-- LEFT: form -->
-            <div class="submit-col-form">
-              <div style="font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #10b98130;border-radius:var(--radius-sm);padding:10px 14px">
-                <i class="ti ti-bolt" style="color:var(--green);font-size:16px"></i>
-                Everything is published <strong style="color:var(--green);margin-left:4px">immediately</strong> — no moderation needed.
-              </div>
-              <div class="submit-toggle" style="margin-bottom:16px">
-                <button class="submit-toggle-btn active" id="sa-toggle-livery" onclick="setSAMode('livery')"><i class="ti ti-photo"></i> Livery</button>
-                <button class="submit-toggle-btn" id="sa-toggle-addon" onclick="setSAMode('addon')"><i class="ti ti-puzzle"></i> Addon</button>
-              </div>
-
-              <div class="form-section-title"><i class="ti ti-tag"></i> Classification</div>
-              <div class="form-grid">
-                <div class="field">
-                  <label>Category *</label>
-                  <select id="s-cat"><option value="">Select a category…</option></select>
-                  <div class="field-hint" id="s-cat-hint">Choose a category to unlock other fields.</div>
-                </div>
-                <div class="field">
-                  <label id="s-lbl-mod">RSS Mod *</label>
-                  <button type="button" class="picker-btn" id="s-mod-btn" disabled onclick="openSModPicker()">
-                    <div class="picker-btn-ph" id="s-mod-logo"><i class="ti ti-car"></i></div>
-                    <span id="s-mod-text">— Select a category first —</span>
-                  </button>
-                  <input type="hidden" id="s-mod">
-                </div>
-                <div class="field full" id="sa-champ-field">
-                  <label>Championship</label>
-                  <button type="button" class="picker-btn" id="s-champ-btn" disabled onclick="openSChampPicker()">
-                    <div class="picker-btn-ph" id="s-champ-logo"><i class="ti ti-trophy"></i></div>
-                    <span id="s-champ-text">— Select a category first —</span>
-                  </button>
-                  <input type="hidden" id="s-champ">
-                </div>
-                <div class="field full" id="sa-addon-type-field" style="display:none">
-                  <label>Addon type * <span style="font-size:11px;color:var(--text3);font-weight:400">(multiple allowed)</span></label>
-                  <div style="display:flex;flex-wrap:nowrap;gap:8px;margin-top:4px;overflow-x:auto;padding-bottom:2px">
-                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="tyre_skin"> 🏎️ Tyre skin</label>
-                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="3d_asset"> 📦 3D asset</label>
-                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="shader"> ✨ Shader / Visual</label>
-                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="ui"> 🖥️ UI element</label>
-                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="other"> 🔧 Other</label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-section-title"><i class="ti ti-info-circle"></i> Details</div>
-              <div class="form-grid">
-                <div class="field full"><label id="sa-name-label">Livery name *</label><input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23" oninput="updateSPreview()"></div>
-                <div class="field sa-livery-only"><label>Team *</label><input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari" oninput="updateSPreview()"></div>
-                <div class="field sa-livery-only"><label>Driver(s)</label><input type="text" id="s-driver" placeholder="e.g. Charles Leclerc"></div>
-                <div class="field sa-livery-only"><label>Season / Year *</label><input type="text" id="s-season" placeholder="e.g. 2023" oninput="updateSPreview()"></div>
-                <div class="field sa-livery-only"><label>Car number *</label><input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4" oninput="updateSPreview()"></div>
-                <div class="field full"><label>Pricing</label>
-                  <div style="display:flex;gap:10px;margin-top:4px">
-                    <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-free" checked onchange="updateSPreview()"> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>
-                    <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-paid" onchange="updateSPreview()"> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-section-title"><i class="ti ti-link"></i> Files & Links</div>
-              <div class="form-grid">
-                <div class="field full"><label>Download URL *</label><input type="url" id="s-url" placeholder="https://…" oninput="updateSPreview()"></div>
-                <div class="field full"><label>Preview image *</label><div id="s-img-widget"></div></div>
-                <div class="field full"><label>Notes</label><textarea id="s-notes" placeholder="Any extra info…"></textarea></div>
-              </div>
-
-              <div style="display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap">
-                <button class="submit-btn" id="s-submit-btn">Publish</button>
-              </div>
-              <div id="s-error" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
-
-            <!-- RIGHT: preview + checklist -->
-            <div class="submit-col-preview">
-              <div class="preview-card-wrap">
-                <div class="preview-section-title"><i class="ti ti-eye"></i> Live preview</div>
-                <div class="preview-livery-card" id="s-preview-card">
-                  <div class="preview-cover" id="s-preview-cover">
-                    <div class="preview-cover-placeholder" id="s-preview-placeholder">
-                      <i class="ti ti-photo" style="font-size:28px"></i>
-                      <span style="font-size:12px">Start filling in the form</span>
-                    </div>
-                  </div>
-                  <div class="preview-body">
-                    <div class="preview-name" id="s-preview-name" style="color:var(--text3)">Livery name</div>
-                    <div class="preview-mod" id="s-preview-mod">—</div>
-                    <div style="display:flex;align-items:center;justify-content:space-between">
-                      <span class="cat-badge" id="s-preview-cat" style="background:#eee;color:#555;font-size:11px">Category</span>
-                      <span id="s-preview-paid" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0">Free</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="submit-checklist">
-                <div class="checklist-title">Required fields</div>
-                <div class="check-item" id="s-chk-name"><i class="ti ti-circle"></i> Livery name</div>
-                <div class="check-item" id="s-chk-cat"><i class="ti ti-circle"></i> Category</div>
-                <div class="check-item" id="s-chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
-                <div class="check-item" id="s-chk-team"><i class="ti ti-circle"></i> Team</div>
-                <div class="check-item" id="s-chk-season"><i class="ti ti-circle"></i> Season / Year</div>
-                <div class="check-item" id="s-chk-carnumber"><i class="ti ti-circle"></i> Car number</div>
-                <div class="check-item" id="s-chk-url"><i class="ti ti-circle"></i> Download URL</div>
-                <div class="check-item" id="s-chk-img"><i class="ti ti-circle"></i> Preview image</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel: Profile -->
+            <!-- Panel: Profile -->
       <div class="dash-panel" id="panel-profile">
         <div class="submit-card">
           <div style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:16px;color:var(--text)">My Profile</div>
@@ -275,6 +161,122 @@
       </div>
     </div>
   </div>
+
+  <!-- Panel: Submit (outside dash-wrap for full width) -->
+  <!-- Panel: Submit -->
+  <div class="dash-panel" id="panel-submit">
+    <div id="submit-form-wrap">
+      <div class="submit-layout">
+        <!-- LEFT: form -->
+        <div class="submit-col-form">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #10b98130;border-radius:var(--radius-sm);padding:10px 14px">
+            <i class="ti ti-bolt" style="color:var(--green);font-size:16px"></i>
+            Everything is published <strong style="color:var(--green);margin-left:4px">immediately</strong> — no moderation needed.
+          </div>
+          <div class="submit-toggle" style="margin-bottom:16px">
+            <button class="submit-toggle-btn active" id="sa-toggle-livery" onclick="setSAMode('livery')"><i class="ti ti-photo"></i> Livery</button>
+            <button class="submit-toggle-btn" id="sa-toggle-addon" onclick="setSAMode('addon')"><i class="ti ti-puzzle"></i> Addon</button>
+          </div>
+
+          <div class="form-section-title"><i class="ti ti-tag"></i> Classification</div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Category *</label>
+              <select id="s-cat"><option value="">Select a category…</option></select>
+              <div class="field-hint" id="s-cat-hint">Choose a category to unlock other fields.</div>
+            </div>
+            <div class="field">
+              <label id="s-lbl-mod">RSS Mod *</label>
+              <button type="button" class="picker-btn" id="s-mod-btn" disabled onclick="openSModPicker()">
+                <div class="picker-btn-ph" id="s-mod-logo"><i class="ti ti-car"></i></div>
+                <span id="s-mod-text">— Select a category first —</span>
+              </button>
+              <input type="hidden" id="s-mod">
+            </div>
+            <div class="field full" id="sa-champ-field">
+              <label>Championship</label>
+              <button type="button" class="picker-btn" id="s-champ-btn" disabled onclick="openSChampPicker()">
+                <div class="picker-btn-ph" id="s-champ-logo"><i class="ti ti-trophy"></i></div>
+                <span id="s-champ-text">— Select a category first —</span>
+              </button>
+              <input type="hidden" id="s-champ">
+            </div>
+            <div class="field full" id="sa-addon-type-field" style="display:none">
+              <label>Addon type * <span style="font-size:11px;color:var(--text3);font-weight:400">(multiple allowed)</span></label>
+              <div style="display:flex;flex-wrap:nowrap;gap:8px;margin-top:4px;overflow-x:auto;padding-bottom:2px">
+                <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="tyre_skin"> 🏎️ Tyre skin</label>
+                <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="3d_asset"> 📦 3D asset</label>
+                <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="shader"> ✨ Shader / Visual</label>
+                <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="ui"> 🖥️ UI element</label>
+                <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="other"> 🔧 Other</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="ti ti-info-circle"></i> Details</div>
+          <div class="form-grid">
+            <div class="field full"><label id="sa-name-label">Livery name *</label><input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23" oninput="updateSPreview()"></div>
+            <div class="field sa-livery-only"><label>Team *</label><input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari" oninput="updateSPreview()"></div>
+            <div class="field sa-livery-only"><label>Driver(s)</label><input type="text" id="s-driver" placeholder="e.g. Charles Leclerc"></div>
+            <div class="field sa-livery-only"><label>Season / Year *</label><input type="text" id="s-season" placeholder="e.g. 2023" oninput="updateSPreview()"></div>
+            <div class="field sa-livery-only"><label>Car number *</label><input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4" oninput="updateSPreview()"></div>
+            <div class="field full"><label>Pricing</label>
+              <div style="display:flex;gap:10px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-free" checked onchange="updateSPreview()"> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-paid" onchange="updateSPreview()"> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-title"><i class="ti ti-link"></i> Files & Links</div>
+          <div class="form-grid">
+            <div class="field full"><label>Download URL *</label><input type="url" id="s-url" placeholder="https://…" oninput="updateSPreview()"></div>
+            <div class="field full"><label>Preview image *</label><div id="s-img-widget"></div></div>
+            <div class="field full"><label>Notes</label><textarea id="s-notes" placeholder="Any extra info…"></textarea></div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap">
+            <button class="submit-btn" id="s-submit-btn">Publish</button>
+          </div>
+          <div id="s-error" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
+
+        <!-- RIGHT: preview + checklist -->
+        <div class="submit-col-preview">
+          <div class="preview-card-wrap">
+            <div class="preview-section-title"><i class="ti ti-eye"></i> Live preview</div>
+            <div class="preview-livery-card" id="s-preview-card">
+              <div class="preview-cover" id="s-preview-cover">
+                <div class="preview-cover-placeholder" id="s-preview-placeholder">
+                  <i class="ti ti-photo" style="font-size:28px"></i>
+                  <span style="font-size:12px">Start filling in the form</span>
+                </div>
+              </div>
+              <div class="preview-body">
+                <div class="preview-name" id="s-preview-name" style="color:var(--text3)">Livery name</div>
+                <div class="preview-mod" id="s-preview-mod">—</div>
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span class="cat-badge" id="s-preview-cat" style="background:#eee;color:#555;font-size:11px">Category</span>
+                  <span id="s-preview-paid" style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0">Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="submit-checklist">
+            <div class="checklist-title">Required fields</div>
+            <div class="check-item" id="s-chk-name"><i class="ti ti-circle"></i> Livery name</div>
+            <div class="check-item" id="s-chk-cat"><i class="ti ti-circle"></i> Category</div>
+            <div class="check-item" id="s-chk-mod"><i class="ti ti-circle"></i> RSS Mod</div>
+            <div class="check-item" id="s-chk-team"><i class="ti ti-circle"></i> Team</div>
+            <div class="check-item" id="s-chk-season"><i class="ti ti-circle"></i> Season / Year</div>
+            <div class="check-item" id="s-chk-carnumber"><i class="ti ti-circle"></i> Car number</div>
+            <div class="check-item" id="s-chk-url"><i class="ti ti-circle"></i> Download URL</div>
+            <div class="check-item" id="s-chk-img"><i class="ti ti-circle"></i> Preview image</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="supabase.js"></script>
@@ -304,8 +306,11 @@
       document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
       document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
-      document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-      document.querySelector('.dash-wrap').classList.toggle('submit-active', btn.dataset.tab==='submit');
+      const panel = document.getElementById('panel-'+btn.dataset.tab);
+      if(panel) panel.classList.add('active');
+      const isSubmit = btn.dataset.tab==='submit';
+      document.querySelector('.dash-wrap').style.display = isSubmit ? 'none' : '';
+      document.getElementById('panel-submit').style.display = isSubmit ? 'block' : 'none';
     });
   });
 
