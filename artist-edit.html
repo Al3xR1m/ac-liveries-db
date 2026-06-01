@@ -110,8 +110,7 @@
       <div id="artist-header-wrap"></div>
       <div class="dash-tabs">
         <button class="dash-tab active" data-tab="liveries"><i class="ti ti-photo"></i> My Liveries <span id="tab-count" style="font-size:11px;background:var(--bg2);border-radius:20px;padding:1px 7px;color:var(--text3)">0</span></button>
-        <button class="dash-tab" data-tab="addons"><i class="ti ti-puzzle"></i> My Addons <span id="tab-count-addons" style="font-size:11px;background:var(--bg2);border-radius:20px;padding:1px 7px;color:var(--text3)">0</span></button>
-        <button class="dash-tab" data-tab="submit"><i class="ti ti-plus"></i> Submit</button>
+        <button class="dash-tab" data-tab="submit"><i class="ti ti-plus"></i> Submit a livery</button>
         <button class="dash-tab" data-tab="profile"><i class="ti ti-user"></i> My Profile</button>
       </div>
 
@@ -128,28 +127,19 @@
         </div>
       </div>
 
-      <!-- Panel: My Addons -->
-      <div class="dash-panel" id="panel-addons">
-        <div style="background:var(--surface);border:1px solid #FFD70040;border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text2);display:flex;align-items:flex-start;gap:10px">
-          <i class="ti ti-info-circle" style="color:#FFD700;font-size:16px;flex-shrink:0;margin-top:1px"></i>
-          <div>You can edit the <strong style="color:var(--text)">image, download link, notes and pricing</strong> of your addons.</div>
-        </div>
-        <div id="addons-list"></div>
-        <div id="no-addons" style="display:none;text-align:center;padding:40px;color:var(--text3)">
-          <i class="ti ti-puzzle-off" style="font-size:32px;display:block;margin-bottom:12px"></i>
-          <p>No published addons yet.</p>
-        </div>
-      </div>
-
       <!-- Panel: Submit -->
       <div class="dash-panel" id="panel-submit">
         <div id="submit-form-wrap">
           <div class="submit-layout">
             <!-- LEFT: form -->
             <div class="submit-col-form">
-              <div style="font-size:13px;color:var(--text2);margin-bottom:16px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #10b98130;border-radius:var(--radius-sm);padding:10px 14px">
+              <div style="font-size:13px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid #10b98130;border-radius:var(--radius-sm);padding:10px 14px">
                 <i class="ti ti-bolt" style="color:var(--green);font-size:16px"></i>
-                Your liveries are published <strong style="color:var(--green);margin-left:4px">immediately</strong> — no moderation needed.
+                Everything is published <strong style="color:var(--green);margin-left:4px">immediately</strong> — no moderation needed.
+              </div>
+              <div class="submit-toggle" style="margin-bottom:16px">
+                <button class="submit-toggle-btn active" id="sa-toggle-livery" onclick="setSAMode('livery')"><i class="ti ti-photo"></i> Livery</button>
+                <button class="submit-toggle-btn" id="sa-toggle-addon" onclick="setSAMode('addon')"><i class="ti ti-puzzle"></i> Addon</button>
               </div>
 
               <div class="form-section-title"><i class="ti ti-tag"></i> Classification</div>
@@ -167,7 +157,7 @@
                   </button>
                   <input type="hidden" id="s-mod">
                 </div>
-                <div class="field full">
+                <div class="field full" id="sa-champ-field">
                   <label>Championship</label>
                   <button type="button" class="picker-btn" id="s-champ-btn" disabled onclick="openSChampPicker()">
                     <div class="picker-btn-ph" id="s-champ-logo"><i class="ti ti-trophy"></i></div>
@@ -175,15 +165,25 @@
                   </button>
                   <input type="hidden" id="s-champ">
                 </div>
+                <div class="field full" id="sa-addon-type-field" style="display:none">
+                  <label>Addon type * <span style="font-size:11px;color:var(--text3);font-weight:400">(multiple allowed)</span></label>
+                  <div style="display:flex;flex-wrap:nowrap;gap:8px;margin-top:4px;overflow-x:auto;padding-bottom:2px">
+                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="tyre_skin"> 🏎️ Tyre skin</label>
+                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="3d_asset"> 📦 3D asset</label>
+                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="shader"> ✨ Shader / Visual</label>
+                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="ui"> 🖥️ UI element</label>
+                    <label class="addon-type-check"><input type="checkbox" name="sa-addon-type" value="other"> 🔧 Other</label>
+                  </div>
+                </div>
               </div>
 
               <div class="form-section-title"><i class="ti ti-info-circle"></i> Details</div>
               <div class="form-grid">
-                <div class="field full"><label>Livery name *</label><input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23" oninput="updateSPreview()"></div>
-                <div class="field"><label>Team *</label><input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari" oninput="updateSPreview()"></div>
-                <div class="field"><label>Driver(s)</label><input type="text" id="s-driver" placeholder="e.g. Charles Leclerc"></div>
-                <div class="field"><label>Season / Year *</label><input type="text" id="s-season" placeholder="e.g. 2023" oninput="updateSPreview()"></div>
-                <div class="field"><label>Car number *</label><input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4" oninput="updateSPreview()"></div>
+                <div class="field full"><label id="sa-name-label">Livery name *</label><input type="text" id="s-name" placeholder="e.g. #16 Ferrari SF-23" oninput="updateSPreview()"></div>
+                <div class="field sa-livery-only"><label>Team *</label><input type="text" id="s-team" placeholder="e.g. Scuderia Ferrari" oninput="updateSPreview()"></div>
+                <div class="field sa-livery-only"><label>Driver(s)</label><input type="text" id="s-driver" placeholder="e.g. Charles Leclerc"></div>
+                <div class="field sa-livery-only"><label>Season / Year *</label><input type="text" id="s-season" placeholder="e.g. 2023" oninput="updateSPreview()"></div>
+                <div class="field sa-livery-only"><label>Car number *</label><input type="text" id="s-carnumber" placeholder="e.g. 16" maxlength="4" oninput="updateSPreview()"></div>
                 <div class="field full"><label>Pricing</label>
                   <div style="display:flex;gap:10px;margin-top:4px">
                     <label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="s-pricing" id="s-free" checked onchange="updateSPreview()"> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>
@@ -200,10 +200,9 @@
               </div>
 
               <div style="display:flex;align-items:center;gap:16px;margin-top:20px;flex-wrap:wrap">
-                <button class="submit-btn" id="s-submit-btn">Publish livery</button>
+                <button class="submit-btn" id="s-submit-btn">Publish</button>
               </div>
               <div id="s-error" style="color:var(--accent);font-size:13px;margin-top:10px;display:none"></div>
-            </div>
 
             <!-- RIGHT: preview + checklist -->
             <div class="submit-col-preview">
@@ -350,62 +349,6 @@
   }
 
   // Livery edit card — tous les champs
-  let addons = [];
-  let addonImgGetters = {};
-
-  function renderAddonCard(a) {
-    const cn=a.categories?.name||''; const bg=a.categories?.color_bg||'#E6F1FB'; const tc=a.categories?.color_text||'#0C447C';
-    return '<div class="livery-edit-card" id="acard-'+a.id+'">'
-      + '<div class="livery-edit-header" data-id="'+a.id+'" onclick="toggleAddonCard(this.dataset.id)">'
-      + (a.image_url?'<img src="'+a.image_url+'" class="livery-edit-thumb" alt="'+a.name+'">'
-        :'<div class="livery-edit-thumb-ph"><i class="ti ti-puzzle"></i></div>')
-      + '<div style="flex:1"><div class="livery-edit-name">'+a.name+'</div>'
-      + '<div style="font-size:12px;color:var(--text3)">'+(a.mods?.name||'All mods')+'</div></div>'
-      + '<span class="cat-badge" style="background:'+bg+';color:'+tc+'">'+cn+'</span>'
-      + (a.addon_type?'<span style="font-size:11px;color:var(--text3);margin-left:6px">'+a.addon_type+'</span>':'')
-      + '<i class="ti ti-chevron-down chevron" id="achev-'+a.id+'"></i>'
-      + '</div>'
-      + '<div class="livery-edit-body" id="abody-'+a.id+'">'
-      + '<div class="section-label"><i class="ti ti-bolt" style="color:var(--green)"></i> Saved instantly</div>'
-      + '<div class="form-grid">'
-      + '<div class="field full"><label>Screenshot</label><div id="aupload-'+a.id+'"></div></div>'
-      + '<div class="field full"><label>Download URL</label><input type="url" id="aurl-'+a.id+'" value="'+(a.download_url||'')+'" placeholder="https://…"></div>'
-      + '<div class="field full"><label>Notes</label><textarea id="anotes-'+a.id+'" placeholder="Any extra info…">'+(a.notes||'')+'</textarea></div>'
-      + '<div class="field full"><label>Pricing</label><div style="display:flex;gap:10px;margin-top:4px">'
-      + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="aprice-'+a.id+'" id="afree-'+a.id+'" '+(a.is_paid?'':'checked')+'> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>'
-      + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="aprice-'+a.id+'" id="apaid-'+a.id+'" '+(a.is_paid?'checked':'')+'> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>'
-      + '</div></div>'
-      + '</div>'
-      + '<div class="save-row"><button class="submit-btn" data-id="'+a.id+'" onclick="saveAddon(this.dataset.id)"><i class="ti ti-device-floppy"></i> Save</button>'
-      + '<span class="save-status" id="astatus-'+a.id+'"></span></div>'
-      + '</div></div>';
-  }
-
-  function toggleAddonCard(id) {
-    const body=document.getElementById('abody-'+id); const chev=document.getElementById('achev-'+id);
-    const isOpen=body.classList.contains('open');
-    body.classList.toggle('open',!isOpen); chev.classList.toggle('open',!isOpen);
-    if(!isOpen && !addonImgGetters[id]){
-      const a=addons.find(x=>x.id===id);
-      addonImgGetters[id]=buildUploadWidget('aupload-'+id, a?.image_url||'');
-    }
-  }
-
-  async function saveAddon(id) {
-    const status=document.getElementById('astatus-'+id);
-    status.textContent='Saving…'; status.className='save-status';
-    const imageUrl=addonImgGetters[id]?addonImgGetters[id]():null;
-    const a=addons.find(x=>x.id===id);
-    const ok=await updateAddonAsArtist(token, id, {
-      image_url:    imageUrl||a?.image_url||null,
-      download_url: document.getElementById('aurl-'+id).value.trim(),
-      notes:        document.getElementById('anotes-'+id).value.trim(),
-      is_paid:      document.getElementById('apaid-'+id).checked,
-    });
-    if(ok){ status.textContent='✓ Saved!'; status.className='save-status ok'; setTimeout(()=>{status.textContent='';},3000); }
-    else { status.textContent='✗ Failed.'; status.className='save-status err'; }
-  }
-
   function renderLiveryCard(l) {
     const cn=l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
     const modOptions = allMods.map(m=>'<option value="'+m.id+'"'+(m.id===l.mod_id?' selected':'')+'>'+m.name+'</option>').join('');
@@ -537,6 +480,23 @@
     if(ok){ status.textContent='✓ Profile saved!'; status.className='save-status ok'; setTimeout(()=>{status.textContent='';},3000); }
     else { status.textContent='✗ Save failed.'; status.className='save-status err'; }
   });
+
+  let _saMode = 'livery';
+  function setSAMode(mode) {
+    _saMode = mode;
+    document.getElementById('sa-toggle-livery').classList.toggle('active', mode==='livery');
+    document.getElementById('sa-toggle-addon').classList.toggle('active', mode==='addon');
+    document.querySelectorAll('.sa-livery-only').forEach(el => el.style.display = mode==='livery' ? '' : 'none');
+    document.getElementById('sa-addon-type-field').style.display = mode==='addon' ? '' : 'none';
+    document.getElementById('sa-champ-field').style.display = mode==='livery' ? '' : 'none';
+    const lbl = document.getElementById('sa-name-label');
+    if(lbl) lbl.textContent = mode==='livery' ? 'Livery name *' : 'Addon name *';
+    const modLbl = document.getElementById('s-lbl-mod');
+    if(modLbl) modLbl.innerHTML = mode==='addon'
+      ? 'RSS Mod <span style="font-size:11px;color:var(--text3);font-weight:400">(optional)</span>'
+      : 'RSS Mod *';
+    updateSChecklist();
+  }
 
   // Submit — picker state
   let _sAvailMods=[], _sAvailChamps=[], _sSelModId='', _sSelChampId='', _sPreviewImg=null;
@@ -680,29 +640,42 @@
     const name=document.getElementById('s-name').value.trim();
     const mod=document.getElementById('s-mod').value;
     const cat=document.getElementById('s-cat').value;
-    const team=document.getElementById('s-team').value.trim();
-    const season=document.getElementById('s-season').value.trim();
-    const carnumber=document.getElementById('s-carnumber').value.trim();
     const url=document.getElementById('s-url').value.trim();
     const imgUrl=getSubmitImg(); _sPreviewImg=imgUrl;
     const errDiv=document.getElementById('s-error');
-    if(!name||!mod||!cat||!team||!season||!carnumber||!url){
-      errDiv.style.display='block'; errDiv.textContent='Please fill in all required fields.'; return;
-    }
+    const isAddon=_saMode==='addon';
+    const addonTypes=isAddon?[...document.querySelectorAll('input[name="sa-addon-type"]:checked')].map(x=>x.value):[];
+    if(!name||!cat||!url){ errDiv.style.display='block'; errDiv.textContent='Please fill in all required fields.'; return; }
+    if(!isAddon&&(!mod||!document.getElementById('s-team').value.trim()||!document.getElementById('s-season').value.trim()||!document.getElementById('s-carnumber').value.trim())){
+      errDiv.style.display='block'; errDiv.textContent='Please fill in all required fields.'; return; }
+    if(isAddon&&!addonTypes.length){ errDiv.style.display='block'; errDiv.textContent='Please select at least one addon type.'; return; }
     if(!/^https?:\/\/.+/.test(url)){ errDiv.style.display='block'; errDiv.textContent='Please enter a valid URL.'; return; }
     if(!imgUrl){ errDiv.style.display='block'; errDiv.textContent='Please upload a preview image.'; return; }
     errDiv.style.display='none';
     const btn=document.getElementById('s-submit-btn');
     btn.disabled=true; btn.textContent='Publishing…';
-    const ok = await submitLiveryAsArtist(token, {
-      name, mod_id:mod, category_id:cat,
-      championship_id: document.getElementById('s-champ').value||null,
-      download_url:url, image_url:imgUrl,
-      notes:      document.getElementById('s-notes').value.trim(),
-      is_paid:    document.getElementById('s-paid').checked,
-      team, driver: document.getElementById('s-driver').value.trim(),
-      season, car_number: carnumber||null,
-    });
+    let ok;
+    if(isAddon){
+      ok = await submitAddonAsArtist(token, {
+        name, category_id:cat, mod_id:mod||null,
+        download_url:url, image_url:imgUrl,
+        notes: document.getElementById('s-notes').value.trim(),
+        is_paid: document.getElementById('s-paid').checked,
+        addon_type: addonTypes.join(','),
+      });
+    } else {
+      ok = await submitLiveryAsArtist(token, {
+        name, mod_id:mod, category_id:cat,
+        championship_id: document.getElementById('s-champ').value||null,
+        download_url:url, image_url:imgUrl,
+        notes:      document.getElementById('s-notes').value.trim(),
+        is_paid:    document.getElementById('s-paid').checked,
+        team:       document.getElementById('s-team').value.trim(),
+        driver:     document.getElementById('s-driver').value.trim(),
+        season:     document.getElementById('s-season').value.trim(),
+        car_number: document.getElementById('s-carnumber').value.trim()||null,
+      });
+    }
     if(ok){
       document.getElementById('submit-form-wrap').innerHTML='<div style="text-align:center;padding:80px 20px"><i class="ti ti-circle-check" style="font-size:48px;color:var(--green);display:block;margin-bottom:16px"></i><div style="font-family:var(--font-display);font-size:26px;font-weight:700;margin-bottom:8px">Livery published!</div><p style="font-size:14px;color:var(--text2);margin-bottom:20px">Your livery is now live in the gallery.</p><button onclick="location.reload()" class="submit-btn">Back to dashboard</button></div>';
     } else { btn.disabled=false; btn.textContent='Publish livery'; errDiv.style.display='block'; errDiv.textContent='Something went wrong. Please try again.'; }
@@ -710,10 +683,9 @@
 
   async function init() {
     if(!token){ showInvalid(); return; }
-    const [a, livs, adds, mods, champs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token), fetchAddonsByToken(token), fetchMods(), fetchChampionships()]);
+    const [a, livs, mods, champs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token), fetchMods(), fetchChampionships()]);
     if(!a){ showInvalid(); return; }
-    artist=a; liveries=livs; addons=adds; allMods=mods; allChamps=champs;
-    document.getElementById('tab-count-addons').textContent=adds.length;
+    artist=a; liveries=livs; allMods=mods; allChamps=champs;
     document.getElementById('tab-count').textContent=livs.length;
     document.getElementById('artist-header-wrap').innerHTML='<div class="artist-header">'
       +(a.avatar_url?'<img src="'+a.avatar_url+'" alt="'+a.name+'">':'<div class="artist-header-ph"><i class="ti ti-user"></i></div>')
@@ -721,8 +693,6 @@
       +'<div style="font-size:13px;color:var(--text2);margin-top:2px">'+livs.length+' published liveries</div></div></div>';
     if(!livs.length){ document.getElementById('no-liveries').style.display='block'; }
     else { document.getElementById('liveries-list').innerHTML=livs.map(l=>renderLiveryCard(l)).join(''); }
-    if(!adds.length){ document.getElementById('no-addons').style.display='block'; }
-    else { document.getElementById('addons-list').innerHTML=adds.map(a=>renderAddonCard(a)).join(''); }
     buildProfileSection(a);
     await loadSubmitSelects();
     document.getElementById('loading').style.display='none';
