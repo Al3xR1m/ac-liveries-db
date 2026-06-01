@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .dash-wrap{max-width:860px;margin:0 auto;padding-bottom:60px}
+    .dash-wrap{max-width:860px;margin:0 auto;padding-bottom:60px;transition:max-width .2s}
+    .dash-wrap.submit-active{max-width:1200px}
     .artist-header{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid #FFD70030;border-radius:var(--radius);padding:20px 24px;margin-bottom:24px}
     .artist-header img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060}
     .artist-header-ph{width:56px;height:56px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text3);border:2px solid #FFD70060;flex-shrink:0}
@@ -110,8 +111,7 @@
       <div id="artist-header-wrap"></div>
       <div class="dash-tabs">
         <button class="dash-tab active" data-tab="liveries"><i class="ti ti-photo"></i> My Liveries <span id="tab-count" style="font-size:11px;background:var(--bg2);border-radius:20px;padding:1px 7px;color:var(--text3)">0</span></button>
-        <button class="dash-tab" data-tab="addons"><i class="ti ti-puzzle"></i> My Addons <span id="tab-count-addons" style="font-size:11px;background:var(--bg2);border-radius:20px;padding:1px 7px;color:var(--text3)">0</span></button>
-        <button class="dash-tab" data-tab="submit"><i class="ti ti-plus"></i> Submit</button>
+        <button class="dash-tab" data-tab="submit"><i class="ti ti-plus"></i> Submit a livery</button>
         <button class="dash-tab" data-tab="profile"><i class="ti ti-user"></i> My Profile</button>
       </div>
 
@@ -125,19 +125,6 @@
         <div id="no-liveries" style="display:none;text-align:center;padding:40px;color:var(--text3)">
           <i class="ti ti-photo-off" style="font-size:32px;display:block;margin-bottom:12px"></i>
           <p>No published liveries yet. Use the <strong>Submit</strong> tab!</p>
-        </div>
-      </div>
-
-      <!-- Panel: My Addons -->
-      <div class="dash-panel" id="panel-addons">
-        <div style="background:var(--surface);border:1px solid #FFD70040;border-radius:var(--radius);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--text2);display:flex;align-items:flex-start;gap:10px">
-          <i class="ti ti-info-circle" style="color:#FFD700;font-size:16px;flex-shrink:0;margin-top:1px"></i>
-          <div>You can edit the <strong style="color:var(--text)">image, download link, notes and pricing</strong> of your addons.</div>
-        </div>
-        <div id="addons-list"></div>
-        <div id="no-addons" style="display:none;text-align:center;padding:40px;color:var(--text3)">
-          <i class="ti ti-puzzle-off" style="font-size:32px;display:block;margin-bottom:12px"></i>
-          <p>No published addons yet.</p>
         </div>
       </div>
 
@@ -301,6 +288,7 @@
       document.querySelectorAll('.dash-panel').forEach(p=>p.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+      document.querySelector('.dash-wrap').classList.toggle('submit-active', btn.dataset.tab==='submit');
     });
   });
 
@@ -363,54 +351,6 @@
   }
 
   // Livery edit card — tous les champs
-  let addons = [], addonImgGetters = {};
-
-  function renderAddonCard(a) {
-    const cn=a.categories?.name||''; const bg=a.categories?.color_bg||'#E6F1FB'; const tc=a.categories?.color_text||'#0C447C';
-    return '<div class="livery-edit-card" id="acard-'+a.id+'">'
-      + '<div class="livery-edit-header" data-id="'+a.id+'" onclick="toggleAddonCard(this.dataset.id)">'
-      + (a.image_url?'<img src="'+a.image_url+'" class="livery-edit-thumb" alt="'+a.name+'">'
-        :'<div class="livery-edit-thumb-ph"><i class="ti ti-puzzle"></i></div>')
-      + '<div style="flex:1"><div class="livery-edit-name">'+a.name+'</div>'
-      + '<div style="font-size:12px;color:var(--text3)">'+(a.mods?.name||'All mods')+'</div></div>'
-      + '<span class="cat-badge" style="background:'+bg+';color:'+tc+'">'+cn+'</span>'
-      + '<i class="ti ti-chevron-down chevron" id="achev-'+a.id+'"></i>'
-      + '</div>'
-      + '<div class="livery-edit-body" id="abody-'+a.id+'">'
-      + '<div class="form-grid">'
-      + '<div class="field full"><label>Screenshot</label><div id="aupload-'+a.id+'"></div></div>'
-      + '<div class="field full"><label>Download URL</label><input type="url" id="aurl-'+a.id+'" value="'+(a.download_url||'')+'" placeholder="https://..."></div>'
-      + '<div class="field full"><label>Notes</label><textarea id="anotes-'+a.id+'">'+(a.notes||'')+'</textarea></div>'
-      + '<div class="field full"><label>Pricing</label><div style="display:flex;gap:10px;margin-top:4px">'
-      + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="aprice-'+a.id+'" id="afree-'+a.id+'" '+(a.is_paid?'':'checked')+'> <i class="ti ti-lock-open" style="color:#065F46;font-size:15px"></i> Free</label>'
-      + '<label style="display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);background:var(--bg)"><input type="radio" name="aprice-'+a.id+'" id="apaid-'+a.id+'" '+(a.is_paid?'checked':'')+'> <i class="ti ti-lock" style="color:#92400E;font-size:15px"></i> Paid</label>'
-      + '</div></div>'
-      + '</div>'
-      + '<div class="save-row"><button class="submit-btn" data-id="'+a.id+'" onclick="saveAddon(this.dataset.id)"><i class="ti ti-device-floppy"></i> Save</button>'
-      + '<span class="save-status" id="astatus-'+a.id+'"></span></div>'
-      + '</div></div>';
-  }
-  function toggleAddonCard(id) {
-    const body=document.getElementById('abody-'+id), chev=document.getElementById('achev-'+id);
-    const isOpen=body.classList.contains('open');
-    body.classList.toggle('open',!isOpen); chev.classList.toggle('open',!isOpen);
-    if(!isOpen&&!addonImgGetters[id]){ const a=addons.find(x=>x.id===id); addonImgGetters[id]=buildUploadWidget('aupload-'+id,a?.image_url||''); }
-  }
-  async function saveAddon(id) {
-    const st=document.getElementById('astatus-'+id);
-    st.textContent='Saving...'; st.className='save-status';
-    const imgUrl=addonImgGetters[id]?addonImgGetters[id]():null;
-    const a=addons.find(x=>x.id===id);
-    const ok=await updateAddonAsArtist(token,id,{
-      image_url:imgUrl||a?.image_url||null,
-      download_url:document.getElementById('aurl-'+id).value.trim(),
-      notes:document.getElementById('anotes-'+id).value.trim(),
-      is_paid:document.getElementById('apaid-'+id).checked,
-    });
-    if(ok){st.textContent='Saved!';st.className='save-status ok';setTimeout(()=>{st.textContent='';},3000);}
-    else{st.textContent='Failed.';st.className='save-status err';}
-  }
-
   function renderLiveryCard(l) {
     const cn=l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
     const modOptions = allMods.map(m=>'<option value="'+m.id+'"'+(m.id===l.mod_id?' selected':'')+'>'+m.name+'</option>').join('');
@@ -745,10 +685,9 @@
 
   async function init() {
     if(!token){ showInvalid(); return; }
-    const [a, livs, adds, mods, champs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token), fetchAddonsByToken(token), fetchMods(), fetchChampionships()]);
+    const [a, livs, mods, champs] = await Promise.all([fetchArtistByToken(token), fetchLiveriesByToken(token), fetchMods(), fetchChampionships()]);
     if(!a){ showInvalid(); return; }
-    artist=a; liveries=livs; addons=adds; allMods=mods; allChamps=champs;
-    document.getElementById('tab-count-addons').textContent=adds.length;
+    artist=a; liveries=livs; allMods=mods; allChamps=champs;
     document.getElementById('tab-count').textContent=livs.length;
     document.getElementById('artist-header-wrap').innerHTML='<div class="artist-header">'
       +(a.avatar_url?'<img src="'+a.avatar_url+'" alt="'+a.name+'">':'<div class="artist-header-ph"><i class="ti ti-user"></i></div>')
@@ -756,8 +695,6 @@
       +'<div style="font-size:13px;color:var(--text2);margin-top:2px">'+livs.length+' published liveries</div></div></div>';
     if(!livs.length){ document.getElementById('no-liveries').style.display='block'; }
     else { document.getElementById('liveries-list').innerHTML=livs.map(l=>renderLiveryCard(l)).join(''); }
-    if(!adds.length){ document.getElementById('no-addons').style.display='block'; }
-    else { document.getElementById('addons-list').innerHTML=adds.map(a=>renderAddonCard(a)).join(''); }
     buildProfileSection(a);
     await loadSubmitSelects();
     document.getElementById('loading').style.display='none';
