@@ -153,68 +153,41 @@ async function updateLiveryAsArtist(token, liveryId, payload) {
   return data === true;
 }
 
-async function updateArtistProfile(token, payload) {
+async function fetchAddonsByToken(token) {
+  const artist = await fetchArtistByToken(token);
+  if (!artist) return [];
+  const { data } = await db.from('addons')
+    .select('*, categories(name,color_bg,color_text), mods(name)')
+    .eq('artist_id', artist.id)
+    .eq('approved', true)
+    .order('created_at', { ascending: false });
+  return data || [];
+}
+
+async function updateAddonAsArtist(token, addonId, payload) {
   const artist = await fetchArtistByToken(token);
   if (!artist) return false;
-  const { error } = await db.from('artists').update({
-    bio:          payload.bio          || null,
-    discord:      payload.discord      || null,
-    url_twitter:  payload.url_twitter  || null,
-    url_discord:  payload.url_discord  || null,
-    url_patreon:  payload.url_patreon  || null,
-    url_youtube:  payload.url_youtube  || null,
-    url_overtake: payload.url_overtake || null,
-    avatar_url:   payload.avatar_url   || artist.avatar_url || null,
-  }).eq('id', artist.id);
+  const allowed = {
+    image_url:    payload.image_url    ?? undefined,
+    download_url: payload.download_url ?? undefined,
+    notes:        payload.notes        ?? undefined,
+    is_paid:      payload.is_paid      ?? undefined,
+    author:       payload.author       ?? undefined,
+  };
+  Object.keys(allowed).forEach(k => allowed[k] === undefined && delete allowed[k]);
+  const { error } = await db.from('addons').update(allowed).eq('id', addonId).eq('artist_id', artist.id);
   return !error;
 }
 
-async function submitLiveryAsArtist(token, payload) {
+async function submitAddonAsArtist(token, payload) {
   const artist = await fetchArtistByToken(token);
   if (!artist) return false;
-  const { error } = await db.from('liveries').insert([{
+  const { error } = await db.from('addons').insert([{
     ...payload,
     artist_id: artist.id,
     author:    artist.name,
     approved:  true,
   }]);
-  return !error;
-}
-
-async function submitEditRequest(token, liveryId, changes) {
-  const artist = await fetchArtistByToken(token);
-  if (!artist) return false;
-  const rows = Object.entries(changes).map(([field, vals]) => ({
-    livery_id: liveryId,
-    artist_id: artist.id,
-    field,
-    old_value: String(vals.old ?? ''),
-    new_value: String(vals.new ?? ''),
-    status: 'pending',
-  }));
-  if (!rows.length) return true;
-  const { error } = await db.from('livery_edit_requests').insert(rows);
-  return !error;
-}
-
-async function fetchEditRequests() {
-  const { data } = await db.from('livery_edit_requests')
-    .select('*, liveries(id,name), artists(id,name)')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-  return data || [];
-}
-
-async function approveEditRequest(requestId, liveryId, field, newValue) {
-  const update = {};
-  update[field] = newValue || null;
-  await db.from('liveries').update(update).eq('id', liveryId);
-  await db.from('livery_edit_requests').update({ status: 'approved' }).eq('id', requestId);
-  return true;
-}
-
-async function rejectEditRequest(requestId) {
-  const { error } = await db.from('livery_edit_requests').update({ status: 'rejected' }).eq('id', requestId);
   return !error;
 }
 
