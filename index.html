@@ -1,160 +1,277 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AC Liveries DB — Community livery database for RSS mods</title>
+  <title>AC Liveries DB — Community livery database for Assetto Corsa</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <!-- Open Graph / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="AC Liveries DB">
-  <meta property="og:title" content="AC Liveries DB — Community livery database for RSS mods">
-  <meta property="og:description" content="Browse, discover and submit liveries for Race Sim Studio mods on Assetto Corsa. Free community database.">
+  <meta property="og:title" content="AC Liveries DB — Community livery database for Assetto Corsa">
+  <meta property="og:description" content="Browse, discover and submit liveries for Assetto Corsa mods. Free community database.">
   <meta property="og:url" content="https://al3xr1m.github.io/ac-liveries-db/index.html">
   <meta property="og:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AC Liveries DB — Community livery database for RSS mods">
-  <meta name="twitter:description" content="Browse, discover and submit liveries for Race Sim Studio mods on Assetto Corsa. Free community database.">
+  <meta name="twitter:title" content="AC Liveries DB — Community livery database for Assetto Corsa">
+  <meta name="twitter:description" content="Browse, discover and submit liveries for Assetto Corsa mods. Free community database.">
   <meta name="twitter:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════ -->
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
-    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+    <span class="nav-logo__ac">AC</span>
+    <span class="nav-logo__name">&nbsp;Liveries</span>
+    <span class="nav-logo__db">DB</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html" class="active">Gallery</a>
-    <a href="mods.html">Mods</a>
-    <a href="artists.html">Artists</a>
-    <a href="submit.html">Submit</a>
-    <a href="about.html">About</a>
-  </div>
   <div class="nav-divider"></div>
-  <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
-    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link active" aria-current="page">Liveries</a>
+    <a href="mods.html" class="nav-link">Mods</a>
+    <a href="artists.html" class="nav-link">Artists</a>
+    <a href="addons.html" class="nav-link">Addons</a>
+    <a href="about.html" class="nav-link">About</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn--icon btn--ghost" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="btn btn--primary">
+      <i class="ti ti-plus"></i> Submit
+    </a>
   </div>
 </nav>
 
-<div class="container">
-  <div class="page-header">
-    <h1 class="page-title">Livery Gallery</h1>
-    <p class="page-sub">Community-built liveries for all Race Sim Studio mods on Assetto Corsa</p>
+<!-- ═══════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<div class="page" style="padding-top: 52px; padding-bottom: 0;">
+  <div class="hero" style="text-align:left; padding-top: 0;">
+    <div class="hero__eyebrow">
+      <i class="ti ti-flag-2"></i>
+      Assetto Corsa · Community
+    </div>
+    <h1 class="hero__title">
+      The<br>
+      <span class="accent">livery</span><br>
+      database.
+    </h1>
+    <p class="hero__tagline" style="margin-left:0; text-align:left;">
+      Community-built skin library for Assetto Corsa mods.<br>
+      Find, share and discover liveries — free forever.
+    </p>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-n" id="s-total">—</div><div class="stat-l">Liveries</div></div>
-    <div class="stat-card"><div class="stat-n" id="s-mods">—</div><div class="stat-l">RSS Mods</div></div>
-    <div class="stat-card"><div class="stat-n" id="s-votes">—</div><div class="stat-l">Total upvotes</div></div>
-    <div class="stat-card"><div class="stat-n" id="s-top">—</div><div class="stat-l">Most popular</div></div>
+  <!-- Stats -->
+  <div class="stat-row" style="max-width:480px; margin: 32px 0 0;">
+    <div class="stat-item">
+      <div class="stat-item__n" id="s-total">—</div>
+      <div class="stat-item__l">Liveries</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item__n" id="s-mods">—</div>
+      <div class="stat-item__l">Mods</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item__n" id="s-votes">—</div>
+      <div class="stat-item__l">Upvotes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item__n" id="s-top">—</div>
+      <div class="stat-item__l">Most popular</div>
+    </div>
   </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FILTERS
+════════════════════════════════════════════ -->
+<div class="page" style="padding-top: 28px;">
 
   <!-- cat-pills hidden, kept for JS compat -->
-  <div id="cat-pills" style="display:none"><button class="pill active" data-cat-id="all">All</button></div>
+  <div id="cat-pills" style="display:none">
+    <button class="pill active" data-cat-id="all">All</button>
+  </div>
 
-  <!-- Search bar + Sort + Filters toggle -->
-  <div class="toolbar" style="margin-bottom:8px">
-    <div class="search-wrap">
-      <i class="ti ti-search"></i>
-      <input type="text" class="search-input" id="search" placeholder="Search livery, driver, team, car number…">
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box" style="flex:1; min-width:200px;">
+      <i class="ti ti-search search-box__icon"></i>
+      <input
+        type="text"
+        class="form-input"
+        id="search"
+        placeholder="Search livery, driver, team, car number…"
+        style="padding-left:33px;"
+      >
     </div>
-    <select class="sort-select" id="sort" style="min-width:150px">
-      <option value="votes">Most popular</option>
+    <select class="filter-select" id="sort" style="min-width:140px;">
+      <option value="votes">↑ Most popular</option>
       <option value="newest">Newest first</option>
       <option value="name">A → Z</option>
     </select>
-    <button class="filters-btn" id="filters-toggle-btn" onclick="toggleFilters()" style="background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600">
-      <i class="ti ti-adjustments-horizontal" style="font-size:15px"></i>
+    <button
+      class="btn btn--ghost"
+      id="filters-toggle-btn"
+      onclick="toggleFilters()"
+    >
+      <i class="ti ti-adjustments-horizontal"></i>
       Filters
-      <span class="filter-badge" id="filter-badge" style="display:none;background:#fff;color:var(--accent)">0</span>
+      <span
+        class="badge badge--new"
+        id="filter-badge"
+        style="display:none; margin-left:2px;"
+      >0</span>
     </button>
   </div>
 
-  <!-- Filters panel (hidden by default) -->
-  <div class="filters-panel" id="filters-panel">
-    <div class="filter-group">
-      <label>Category</label>
-      <select class="sort-select" id="cat-select">
-        <option value="all">All categories</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Championship</label>
-      <select class="sort-select" id="champ-select">
-        <option value="all">All championships</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Pricing</label>
-      <select class="sort-select" id="pricing-select">
-        <option value="all">All pricing</option>
-        <option value="free">Free only</option>
-        <option value="paid">Paid only</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Creator</label>
-      <select class="sort-select" id="artist-select">
-        <option value="all">All creators</option>
-        <option value="confirmed">👑 Confirmed artists</option>
-        <option value="community">Community</option>
-      </select>
-    </div>
-    <div style="display:flex;align-items:flex-end;margin-left:auto">
-      <button onclick="resetFilters()" style="font-size:12px;padding:7px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);cursor:pointer">Reset filters</button>
+  <!-- Filters panel -->
+  <div class="filters-panel" id="filters-panel" style="display:none;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; padding: 16px; background:var(--bg-s1); border:1px solid var(--border); border-radius:var(--radius-lg); margin-top:8px;">
+      <div class="form-group" style="margin-bottom:0; min-width:160px;">
+        <label class="form-label">Category</label>
+        <select class="filter-select" id="cat-select">
+          <option value="all">All categories</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0; min-width:180px;">
+        <label class="form-label">Championship</label>
+        <select class="filter-select" id="champ-select">
+          <option value="all">All championships</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0; min-width:140px;">
+        <label class="form-label">Pricing</label>
+        <select class="filter-select" id="pricing-select">
+          <option value="all">All pricing</option>
+          <option value="free">Free only</option>
+          <option value="paid">Paid only</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0; min-width:160px;">
+        <label class="form-label">Creator</label>
+        <select class="filter-select" id="artist-select">
+          <option value="all">All creators</option>
+          <option value="confirmed">👑 Confirmed artists</option>
+          <option value="community">Community</option>
+        </select>
+      </div>
+      <button
+        onclick="resetFilters()"
+        class="btn btn--ghost btn--sm"
+        style="margin-left:auto; align-self:flex-end;"
+      >Reset filters</button>
     </div>
   </div>
 
   <!-- New liveries banner -->
-  <div id="new-banner" style="display:none;align-items:center;gap:10px;background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--green)">
-    <div style="width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 0 3px var(--green-bg)"></div>
+  <div
+    id="new-banner"
+    style="display:none; align-items:center; gap:10px; background:var(--green-2); border:1px solid rgba(34,197,94,0.3); border-radius:var(--radius-md); padding:10px 14px; margin-top:12px; font-size:13px; color:var(--green);"
+  >
+    <div style="width:8px; height:8px; border-radius:50%; background:var(--green); flex-shrink:0;"></div>
     <span id="new-banner-text"></span>
-    <button onclick="showNewOnly()" style="margin-left:4px;font-size:12px;font-weight:600;padding:3px 10px;border:1px solid var(--green);border-radius:20px;background:transparent;color:var(--green);cursor:pointer">Show</button>
-    <button onclick="dismissBanner()" style="margin-left:auto;background:none;border:none;color:var(--green);cursor:pointer;font-size:16px;line-height:1">×</button>
+    <button
+      onclick="showNewOnly()"
+      class="btn btn--sm"
+      style="margin-left:4px; background:transparent; border:1px solid var(--green); color:var(--green); border-radius:var(--radius-full);"
+    >Show</button>
+    <button
+      onclick="dismissBanner()"
+      style="margin-left:auto; background:none; border:none; color:var(--green); cursor:pointer; font-size:18px; line-height:1;"
+    >×</button>
   </div>
+
   <!-- Results count -->
-  <div id="results-count" style="font-size:12px;color:var(--text3);margin-bottom:10px;display:none"></div>
+  <div
+    id="results-count"
+    class="label"
+    style="margin-top:16px; margin-bottom:12px; display:none;"
+  ></div>
 
-  <div class="gallery" id="gallery">
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+  <!-- Gallery grid -->
+  <div class="livery-grid" id="gallery">
+    <!-- skeletons -->
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
   </div>
+
   <!-- Pagination -->
-  <div id="pagination" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:28px 0 40px;flex-wrap:wrap"></div>
+  <div
+    id="pagination"
+    style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:24px 0 48px; flex-wrap:wrap;"
+  ></div>
+
 </div>
 
-<!-- Report modal -->
-<div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:360px;width:90%">
-    <div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;color:var(--text)"><i class="ti ti-flag" style="color:var(--accent)"></i> Report a problem</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">What's wrong with this livery?</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px" id="report-reasons">
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="broken_link" checked> Broken download link</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="wrong_info"> Wrong information</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="duplicate"> Duplicate entry</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="report-reason" value="other"> Other</label>
+<!-- ═══════════════════════════════════════════
+     REPORT MODAL
+════════════════════════════════════════════ -->
+<div
+  id="report-modal"
+  class="modal-overlay"
+  style="display:none;"
+>
+  <div class="modal">
+    <div class="modal__title">
+      <i class="ti ti-flag" style="color:var(--acc); margin-right:6px;"></i>
+      Report a problem
     </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);display:block;margin-bottom:5px">Additional context <span style="font-weight:400;color:var(--text3)">(optional)</span></label>
-      <textarea id="report-notes" placeholder="Describe the issue in more detail…" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:12px;outline:none;resize:vertical;min-height:64px;box-sizing:border-box" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    <p style="font-size:13px; color:var(--text-2); margin-bottom:16px;">
+      What's wrong with this livery?
+    </p>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;" id="report-reasons">
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; color:var(--text-2);">
+        <input type="radio" name="report-reason" value="broken_link" checked>
+        Broken download link
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; color:var(--text-2);">
+        <input type="radio" name="report-reason" value="wrong_info">
+        Wrong information
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; color:var(--text-2);">
+        <input type="radio" name="report-reason" value="duplicate">
+        Duplicate entry
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; color:var(--text-2);">
+        <input type="radio" name="report-reason" value="other">
+        Other
+      </label>
     </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button id="report-cancel" style="font-size:13px;padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text2);cursor:pointer">Cancel</button>
-      <button id="report-submit" style="font-size:13px;padding:6px 14px;border:none;border-radius:var(--radius-sm);background:var(--accent);color:#fff;cursor:pointer;font-weight:500">Send report</button>
+    <div class="form-group">
+      <label class="form-label">
+        Additional context <span style="font-weight:400; color:var(--text-3);">(optional)</span>
+      </label>
+      <textarea
+        id="report-notes"
+        class="form-textarea"
+        placeholder="Describe the issue in more detail…"
+        style="min-height:64px;"
+      ></textarea>
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+      <button id="report-cancel" class="btn btn--ghost">Cancel</button>
+      <button id="report-submit" class="btn btn--primary">Send report</button>
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════
+     SCRIPTS — LOGIQUE INCHANGÉE
+════════════════════════════════════════════ -->
 <script src="supabase.js"></script>
 <script>
   // Theme
@@ -231,7 +348,6 @@
     const [cats, champs] = await Promise.all([fetchCategories(), fetchChampionships()]);
     _allChamps = champs;
 
-    // Category dropdown
     const catSel = document.getElementById('cat-select');
     catSel.innerHTML = '<option value="all">All categories</option>'
       + cats.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
@@ -242,7 +358,6 @@
       resetAndRender();
     });
 
-    // Championship dropdown
     updateChampSelect('all');
     document.getElementById('champ-select').addEventListener('change', function() {
       activeChampId = this.value;
@@ -258,7 +373,6 @@
     const g      = document.getElementById('gallery');
     const countEl= document.getElementById('results-count');
 
-    // Paramètres Supabase
     const params = {
       categoryId:     activeCatId!=='all' ? activeCatId : undefined,
       championshipId: activeChampId!=='all' ? activeChampId : undefined,
@@ -271,7 +385,6 @@
       pageSize:       PAGE_SIZE,
     };
 
-    // Fetch en parallèle : page courante + count total
     const [list, total] = await Promise.all([
       fetchLiveries(params),
       fetchLiveriesCount({
@@ -291,68 +404,80 @@
 
     if(!list.length){
       const hasFilters = activeCatId!=='all'||activeChampId!=='all'||activePricing!==null||activeArtist!=='all'||search;
-      g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.${hasFilters?` <button onclick="resetFilters()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;text-decoration:underline">Reset filters</button>`:''}</p></div>`;
+      g.innerHTML=`<div class="empty" style="grid-column:1/-1; padding:48px 24px; text-align:center; color:var(--text-2);"><i class="ti ti-search" style="font-size:32px; display:block; margin-bottom:12px; color:var(--text-3);"></i><p>No liveries match your filters.${hasFilters?` <button onclick="resetFilters()" style="background:none;border:none;color:var(--acc);cursor:pointer;font-size:14px;text-decoration:underline">Reset filters</button>`:''}</p></div>`;
       document.getElementById('pagination').innerHTML='';
       countEl.style.display='none';
       return;
     }
 
-    // Results count
     const showing = Math.min(currentPage*PAGE_SIZE, total);
     countEl.style.display='block';
     countEl.textContent=`Showing ${(currentPage-1)*PAGE_SIZE+1}–${showing} of ${total} liveri${total!==1?'es':'y'}`;
 
-    // Pagination
     const totalPages = Math.ceil(total / PAGE_SIZE);
     renderPagination(total, totalPages);
 
     const seed=l=>parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
     g.innerHTML=list.map(l=>{
       const cn=l.categories?.name||'';
-      const bg=l.categories?.color_bg||'#E6F1FB';
-      const tc=l.categories?.color_text||'#0C447C';
       const isVoted=voted.has(l.id);
       const isArtist=!!l.artists;
       const isNew = l.created_at && (Date.now()-new Date(l.created_at).getTime()) < 7*24*60*60*1000;
-      const newDot = isNew ? '<div class="new-dot"></div>' : '';
-      const crownBadge=isArtist?`<div class="crown-badge"><i class="ti ti-crown" style="font-size:10px"></i><span class="crown-text">${l.artists.name}</span></div>`:'';
-      const paidBadge=l.is_paid
-        ?`<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
-        :`<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
-      const champLine=l.championships?.short_name
-        ?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`
-        :`<div class="card-champ" style="color:var(--text3)">—</div>`;
+
+      const newBadge = isNew ? '<span class="badge badge--new">New</span>' : '';
+      const priceBadge = l.is_paid
+        ? '<span class="badge badge--paid">Paid</span>'
+        : '<span class="badge badge--free">Free</span>';
+      const crownBadge = isArtist
+        ? '<span class="livery-card__crown" title="Confirmed artist">👑</span>'
+        : '';
 
       return `
         <div class="livery-card" data-id="${l.id}">
-          <div class="card-cover">
-            ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed(l))}
-            <div class="card-cover-overlay"></div>
-            ${newDot}
-            <div class="card-top-badges">${crownBadge}${paidBadge}</div>
-            <div class="card-name-overlay">
-              <div class="card-name">${l.name}</div>
-              <div class="card-mod">${l.mods?.name||'—'}</div>
+          <div class="livery-card__thumb">
+            ${l.image_url
+              ? `<img src="${l.image_url}" alt="${l.name}" loading="lazy">`
+              : carSVG(cn, seed(l))
+            }
+            <div class="livery-card__thumb-overlay"></div>
+            <div class="livery-card__badges">
+              ${newBadge}
+              ${priceBadge}
+            </div>
+            ${crownBadge}
+            <div class="livery-card__votes">
+              <i class="ti ti-heart" style="font-size:11px;"></i>
+              ${l.upvotes.toLocaleString()}
             </div>
           </div>
-          <div class="card-actions">
-            <button class="card-action-btn" onclick="event.stopPropagation();copyLiveryLink('${l.id}')" title="Copy link"><i class="ti ti-link" style="font-size:12px"></i></button>
-            <button class="card-action-btn" onclick="event.stopPropagation();openReport('${l.id}')" title="Report a problem"><i class="ti ti-flag" style="font-size:12px"></i></button>
-          </div>
-          <div class="card-body">
-            <div class="card-info-row">
-              ${champLine}
-              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+          <div class="livery-card__body">
+            <div class="livery-card__series">
+              ${l.championships?.short_name || cn || '—'}
             </div>
-          </div>
-          <div class="card-upvote-row">
-            <div class="card-upvote-count">
-${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
+            <div class="livery-card__name">${l.name}</div>
+            <div class="livery-card__mod" style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+              <span style="color:var(--text-2); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l.mods?.name||'—'}</span>
+              <div style="display:flex; gap:4px; flex-shrink:0; margin-left:6px;">
+                <button
+                  class="btn btn--icon btn--ghost btn--sm"
+                  onclick="event.stopPropagation(); copyLiveryLink('${l.id}')"
+                  title="Copy link"
+                  style="width:22px; height:22px; border-radius:5px;"
+                ><i class="ti ti-link" style="font-size:11px;"></i></button>
+                <button
+                  class="btn btn--icon btn--ghost btn--sm"
+                  onclick="event.stopPropagation(); openReport('${l.id}')"
+                  title="Report a problem"
+                  style="width:22px; height:22px; border-radius:5px;"
+                ><i class="ti ti-flag" style="font-size:11px;"></i></button>
+                <button
+                  class="btn btn--sm${isVoted?' btn--primary':' btn--ghost'} upvote-btn${isVoted?' voted':''}"
+                  data-vote="${l.id}"
+                  onclick="event.stopPropagation()"
+                  style="height:22px; padding:0 7px; border-radius:5px; font-size:11px; gap:3px;"
+                ><i class="ti ti-thumb-up" style="font-size:11px;"></i> ${isVoted?'Upvoted':'Upvote'}</button>
+              </div>
             </div>
-            <button class="upvote-btn${isVoted?' voted':''}" data-vote="${l.id}" onclick="event.stopPropagation()">
-              <i class="ti ti-thumb-up" style="font-size:12px"></i>
-              ${isVoted?'Upvoted':'Upvote'}
-            </button>
           </div>
         </div>`;
     }).join('');
@@ -372,20 +497,18 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     const pg = document.getElementById('pagination');
     if(totalPages <= 1){ pg.innerHTML=''; return; }
     let html = '';
-    // Prev
-    html += `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} style="padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:${currentPage===1?'var(--text3)':'var(--text2)'};cursor:${currentPage===1?'default':'pointer'};font-size:13px"><i class="ti ti-chevron-left"></i></button>`;
-    // Pages
+    html += `<span style="font-size:12px; color:var(--text-3);">Showing ${Math.min((currentPage-1)*PAGE_SIZE+1, total)}–${Math.min(currentPage*PAGE_SIZE, total)} of ${total}</span>`;
+    html += `<div style="display:flex; gap:3px;">`;
+    html += `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} class="page-btn"><i class="ti ti-chevron-left"></i></button>`;
     for(let i=1;i<=totalPages;i++){
       if(i===1||i===totalPages||Math.abs(i-currentPage)<=1){
-        html += `<button onclick="goPage(${i})" style="padding:6px 12px;border:1px solid ${i===currentPage?'var(--accent)':'var(--border)'};border-radius:var(--radius-sm);background:${i===currentPage?'var(--accent)':'var(--surface)'};color:${i===currentPage?'#fff':'var(--text2)'};cursor:pointer;font-size:13px;min-width:36px">${i}</button>`;
+        html += `<button onclick="goPage(${i})" class="page-btn${i===currentPage?' active':''}">${i}</button>`;
       } else if(Math.abs(i-currentPage)===2){
-        html += `<span style="color:var(--text3);font-size:13px">…</span>`;
+        html += `<span style="color:var(--text-3); font-size:13px; padding:0 4px; display:flex; align-items:center;">…</span>`;
       }
     }
-    // Next
-    html += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''} style="padding:6px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:${currentPage===totalPages?'var(--text3)':'var(--text2)'};cursor:${currentPage===totalPages?'default':'pointer'};font-size:13px"><i class="ti ti-chevron-right"></i></button>`;
-    // Count
-    html += `<span style="font-size:12px;color:var(--text3);margin-left:6px">${total} result${total!==1?'s':''}</span>`;
+    html += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''} class="page-btn"><i class="ti ti-chevron-right"></i></button>`;
+    html += `</div>`;
     pg.innerHTML = html;
   }
 
@@ -398,9 +521,8 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
   function copyLiveryLink(id) {
     const url = `${location.origin}${location.pathname.replace('index.html','')}livery.html?id=${id}`;
     navigator.clipboard.writeText(url).then(() => {
-      // Feedback visuel sur le bouton
-      const btn = document.querySelector(`.card-action-btn[onclick*="copyLiveryLink('${id}')"]`);
-      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:12px"></i>',1500); }
+      const btn = document.querySelector(`.btn[onclick*="copyLiveryLink('${id}')"]`);
+      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:11px; color:var(--green);"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:11px;"></i>',1500); }
     });
   }
 
@@ -413,7 +535,6 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     document.getElementById('s-mods').textContent=stats.mods;
     document.getElementById('s-votes').textContent=stats.votes;
     document.getElementById('s-top').textContent=stats.top;
-    // Check new liveries via Supabase count
     const lastVisit = parseInt(localStorage.getItem('acliveries_last_visit')||'0');
     if(lastVisit){
       const newCount = await fetchNewLiveriesCount(lastVisit);
@@ -431,7 +552,8 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
 
   function toggleFilters(){
     const panel = document.getElementById('filters-panel');
-    panel.classList.toggle('open');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('filters-toggle-btn').classList.toggle('btn--primary', panel.style.display !== 'none');
   }
 
   function updateFilterBadge(){
@@ -467,11 +589,9 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
   }
 
   function showNewOnly(){
-    // Filtre sur les 7 derniers jours via le sort "newest" + dismiss banner
     document.getElementById('sort').value='newest';
     dismissBanner();
     resetAndRender();
-    // Scroll to first new card
     setTimeout(()=>document.querySelector('.new-dot')?.closest('.livery-card')?.scrollIntoView({behavior:'smooth',block:'center'}),200);
   }
 
@@ -480,10 +600,8 @@ ${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
     localStorage.setItem('acliveries_last_visit', Date.now().toString());
   }
 
-
   document.getElementById('search').addEventListener('input',resetAndRenderDebounced);
   document.getElementById('sort').addEventListener('change',resetAndRender);
-  // Reset selects visuellement au chargement (le browser peut garder les valeurs précédentes)
   document.getElementById('cat-select').value = 'all';
   document.getElementById('champ-select').value = 'all';
   document.getElementById('pricing-select').value = 'all';
