@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,44 +10,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
-    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+    <span class="nav-logo__ac">AC</span>
+    <span class="nav-logo__name">&nbsp;Liveries</span>
+    <span class="nav-logo__db">DB</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html">Gallery</a>
-    <a href="mods.html">RSS Mods</a>
-    <a href="artists.html">Artists</a>
-    <a href="submit.html">Submit</a>
-    <a href="about.html">About</a>
-  </div>
   <div class="nav-divider"></div>
-  <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
-    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Liveries</a>
+    <a href="mods.html" class="nav-link">Mods</a>
+    <a href="artists.html" class="nav-link">Artists</a>
+    <a href="addons.html" class="nav-link">Addons</a>
+    <a href="about.html" class="nav-link">About</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn--icon btn--ghost" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="btn btn--primary"><i class="ti ti-plus"></i> Submit</a>
   </div>
 </nav>
 
-<div class="container">
-  <div style="padding:16px 0 0">
-    <a href="index.html" style="font-size:13px;color:var(--text2);display:inline-flex;align-items:center;gap:6px">
-      <i class="ti ti-arrow-left" style="font-size:15px"></i> Back to gallery
+<div class="page" style="padding-top:20px; padding-bottom:60px;">
+
+  <div class="breadcrumb">
+    <a href="index.html" class="breadcrumb__item" style="display:flex;align-items:center;gap:5px;">
+      <i class="ti ti-arrow-left" style="font-size:13px;"></i> Back to gallery
     </a>
   </div>
-  <div id="content" class="detail-grid">
-    <div class="skeleton" style="min-height:300px;border-radius:10px"></div>
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="skeleton" style="height:220px;border-radius:10px"></div>
-      <div class="skeleton" style="height:80px;border-radius:10px"></div>
+
+  <div id="content" style="margin-top:20px;">
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+      <div class="skeleton" style="min-height:300px;border-radius:14px;"></div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="skeleton" style="height:220px;border-radius:14px;"></div>
+        <div class="skeleton" style="height:80px;border-radius:14px;"></div>
+      </div>
     </div>
   </div>
-  <div id="similar" style="margin-bottom:40px"></div>
+
+  <div id="similar" style="margin-top:48px;"></div>
 </div>
 
 <script src="supabase.js"></script>
 <script>
-  // Theme
   const root = document.documentElement;
   const saved = localStorage.getItem('acliveries_theme') || 'dark';
   root.setAttribute('data-theme', saved);
@@ -71,8 +79,6 @@
       <rect x="188" y="76" width="124" height="22" rx="4" fill="#88ccff" opacity=".5"/>
       <circle cx="150" cy="166" r="26" fill="#1a1a1a"/><circle cx="150" cy="166" r="14" fill="#2a2a2a"/>
       <circle cx="350" cy="166" r="26" fill="#1a1a1a"/><circle cx="350" cy="166" r="14" fill="#2a2a2a"/>
-      <path d="M104 142 L150 136 L160 154 L100 160Z" fill="${col}" opacity=".7"/>
-      <path d="M396 142 L350 136 L340 154 L400 160Z" fill="${col}" opacity=".7"/>
       <text x="250" y="138" text-anchor="middle" fill="white" font-size="22" font-family="sans-serif" font-weight="bold">${num}</text>
     </svg>`;
   }
@@ -84,7 +90,7 @@
 
     const l = await fetchLivery(id);
     if (!l) {
-      document.getElementById('content').innerHTML = '<div class="empty" style="grid-column:1/-1"><i class="ti ti-alert-circle"></i><p>Livery not found.</p></div>';
+      document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text-2);"><i class="ti ti-alert-circle" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>Livery not found.</p></div>';
       return;
     }
 
@@ -93,70 +99,89 @@
     const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||42;
     const catName = l.categories?.name || '';
 
-    // Detail rows
     const rows = [
       ['ti-car',      'Mod',          l.mods?.name || '—'],
-      ['ti-category', 'Category',     l.categories ? `<span class="cat-badge" style="background:${l.categories.color_bg};color:${l.categories.color_text}">${l.categories.name}</span>` : '—'],
+      ['ti-category', 'Category',     l.categories ? `<span class="badge" style="background:${l.categories.color_bg};color:${l.categories.color_text};">${l.categories.name}</span>` : '—'],
       ['ti-trophy',   'Championship', l.championships?.name || '—'],
       ['ti-flag',     'Team',         l.team   || '—'],
       ['ti-users',    'Drivers',      l.driver || '—'],
       ['ti-calendar', 'Season',       l.season || '—'],
       ...(l.car_number ? [['ti-hash', 'Car number', `#${l.car_number}`]] : []),
     ].map(([ico,k,v]) => `
-      <div class="detail-row">
-        <div class="detail-key"><i class="ti ${ico}"></i>${k}</div>
-        <div class="detail-val">${v}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);white-space:nowrap;flex-shrink:0;">
+          <i class="ti ${ico}" style="font-size:13px;"></i>${k}
+        </div>
+        <div style="font-size:13px;font-weight:500;color:var(--text);text-align:right;">${v}</div>
       </div>`).join('');
 
-    // Paid badge
-    const paidBadge = l.is_paid
-      ? `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock" style="font-size:12px"></i>Paid livery</span>`
-      : `<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-lock-open" style="font-size:12px"></i>Free livery</span>`;
+    const priceBadge = l.is_paid
+      ? '<span class="badge badge--paid" style="padding:3px 10px;font-size:11px;">Paid livery</span>'
+      : '<span class="badge badge--free" style="padding:3px 10px;font-size:11px;">Free livery</span>';
 
-    // Artist block
     const creatorBlock = l.artists
-      ? `<a href="artists.html?id=${l.artists.id}" class="artist-link-card">
-          ${l.artists.avatar_url
-            ? `<img src="${l.artists.avatar_url}" alt="${l.artists.name}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060">`
-            : `<div style="width:40px;height:40px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3);border:2px solid #FFD70060"><i class="ti ti-user"></i></div>`}
-          <div>
-            <div style="font-size:10px;color:#FFD700;font-weight:600;margin-bottom:2px">👑 Confirmed Artist</div>
-            <div style="font-size:14px;font-weight:600;color:var(--text)">${l.artists.name}</div>
-          </div>
-          <i class="ti ti-chevron-right" style="margin-left:auto;color:var(--text3)"></i>
-        </a>`
-      : `<div class="detail-row" style="border:none;padding:8px 0 0">
-          <div class="detail-key"><i class="ti ti-pencil"></i>Creator</div>
-          <div class="detail-val">${l.author || '—'}</div>
+      ? `<a href="artists.html?id=${l.artists.id}" style="display:flex;align-items:center;gap:12px;background:var(--bg-s1);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius-lg);padding:14px 16px;text-decoration:none;transition:border-color .15s;margin-top:12px;" onmouseover="this.style.borderColor='rgba(245,158,11,0.4)'" onmouseout="this.style.borderColor='rgba(245,158,11,0.2)'">
+        ${l.artists.avatar_url
+          ? `<img src="${l.artists.avatar_url}" alt="${l.artists.name}" style="width:40px;height:40px;border-radius:11px;object-fit:cover;border:2px solid rgba(245,158,11,0.3);">`
+          : `<div style="width:40px;height:40px;border-radius:11px;background:var(--acc-2);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--acc);border:2px solid rgba(245,158,11,0.3);">👑</div>`}
+        <div style="flex:1;">
+          <div style="font-size:10px;color:var(--crown);font-weight:700;letter-spacing:0.3px;text-transform:uppercase;margin-bottom:2px;">Confirmed Artist</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.3px;">${l.artists.name}</div>
+        </div>
+        <i class="ti ti-chevron-right" style="color:var(--text-3);font-size:14px;"></i>
+      </a>`
+      : `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);"><i class="ti ti-pencil" style="font-size:13px;"></i>Creator</div>
+          <div style="font-size:13px;font-weight:500;color:var(--text);">${l.author || '—'}</div>
         </div>`;
 
     document.getElementById('content').innerHTML = `
-      <div class="detail-cover">
-        ${l.image_url ? `<img src="${l.image_url}" alt="${l.name}">` : carSVGLarge(catName, seed)}
-      </div>
-      <div class="detail-side">
-        <div class="detail-card">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap">
-            <div class="detail-title" style="margin:0">${l.name}</div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              ${paidBadge}
-              <button onclick="copyPageLink()" id="copyLinkBtn" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:3px 10px;border:1px solid var(--border);border-radius:20px;background:var(--bg);color:var(--text2);cursor:pointer;transition:all .15s"><i class="ti ti-link" style="font-size:12px"></i> Copy link</button>
-            </div>
-          </div>
-          <div class="detail-mod">${l.mods?.name || '—'}</div>
-          ${rows}
-          ${l.notes ? `<div class="detail-row"><div class="detail-key"><i class="ti ti-notes"></i>Notes</div><div class="detail-val">${l.notes}</div></div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;">
+
+        <!-- Cover -->
+        <div style="border-radius:16px;overflow:hidden;background:var(--bg-s2);">
+          ${l.image_url
+            ? `<img src="${l.image_url}" alt="${l.name}" style="width:100%;display:block;">`
+            : carSVGLarge(catName, seed)}
         </div>
 
-        ${creatorBlock}
+        <!-- Side -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
 
-        ${l.download_url ? `<a href="${l.download_url}" target="_blank" class="dl-btn"><i class="ti ti-download"></i>Download livery</a>` : ''}
+          <!-- Info card -->
+          <div class="card" style="padding:18px;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+              <div>
+                <div style="font-family:var(--font-display);font-size:22px;font-weight:900;letter-spacing:-1px;color:var(--text);line-height:1.1;">${l.name}</div>
+                <div style="font-size:13px;color:var(--text-2);margin-top:4px;">${l.mods?.name || '—'}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                ${priceBadge}
+                <button onclick="copyPageLink()" id="copyLinkBtn" class="btn btn--ghost btn--sm" style="border-radius:20px;">
+                  <i class="ti ti-link"></i> Copy link
+                </button>
+              </div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:10px;">
+              ${rows}
+              ${l.notes ? `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);flex-shrink:0;"><i class="ti ti-notes" style="font-size:13px;"></i>Notes</div><div style="font-size:12px;color:var(--text-2);text-align:right;line-height:1.5;">${l.notes}</div></div>` : ''}
+            </div>
+          </div>
 
-        <button class="upvote-big${voted.has(l.id)?' voted':''}" id="upvoteBtn">
-          <i class="ti ti-thumb-up" style="font-size:20px"></i>
-          <span id="upvoteCount">${l.upvotes}</span> upvotes
-          <span id="upvoteHint" style="font-size:12px;font-weight:400;margin-left:4px;opacity:.6">${voted.has(l.id)?'(click to remove)':'(click to upvote)'}</span>
-        </button>
+          <!-- Artist -->
+          ${creatorBlock}
+
+          <!-- Download -->
+          ${l.download_url ? `<a href="${l.download_url}" target="_blank" class="btn btn--primary btn--lg" style="width:100%;justify-content:center;text-decoration:none;border-radius:var(--radius-md);"><i class="ti ti-download"></i> Download livery</a>` : ''}
+
+          <!-- Upvote -->
+          <button class="upvote-btn${voted.has(l.id)?' voted':''}" id="upvoteBtn" style="width:100%;height:48px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;">
+            <i class="ti ti-thumb-up" style="font-size:20px;"></i>
+            <span id="upvoteCount">${l.upvotes}</span> upvotes
+            <span id="upvoteHint" style="font-size:12px;font-weight:400;opacity:.6;">${voted.has(l.id)?'(click to remove)':'(click to upvote)'}</span>
+          </button>
+
+        </div>
       </div>`;
 
     document.getElementById('upvoteBtn').addEventListener('click', async () => {
@@ -176,20 +201,26 @@
     if (similar.length) {
       const seed2 = s => parseInt((s.id||'').replace(/\D/g,'').slice(0,6))||0;
       document.getElementById('similar').innerHTML = `
-        <h2 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:14px;color:var(--text)">Similar liveries</h2>
-        <div class="gallery" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+        <div class="section-label">Similar liveries</div>
+        <div class="livery-grid">
           ${similar.map(s => {
-            const cn=s.categories?.name||''; const bg=s.categories?.color_bg||'#E6F1FB'; const tc=s.categories?.color_text||'#0C447C';
+            const cn = s.categories?.name||'';
+            const isNew = s.created_at && (Date.now()-new Date(s.created_at).getTime()) < 7*24*60*60*1000;
             return `<div class="livery-card" onclick="location.href='livery.html?id=${s.id}'">
-              <div class="card-cover">${s.image_url?`<img src="${s.image_url}" alt="${s.name}" loading="lazy">`:carSVGLarge(cn,seed2(s)).replace('viewBox="0 0 500 260"','viewBox="0 0 500 260" height="100"')}</div>
-              ${s.artists?'<div class="crown-badge">👑</div>':''}
-              <div class="card-body">
-                <div class="card-mod">${s.mods?.name||'—'}</div>
-                <div class="card-name">${s.name}</div>
-                <div class="card-footer">
-                  <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
-                  <span style="font-size:12px;color:var(--text3)"><i class="ti ti-thumb-up" style="font-size:11px"></i> ${s.upvotes}</span>
+              <div class="livery-card__thumb">
+                ${s.image_url?`<img src="${s.image_url}" alt="${s.name}" loading="lazy">`:carSVGLarge(cn,seed2(s)).replace('viewBox="0 0 500 260"','viewBox="0 0 500 260" height="100"')}
+                <div class="livery-card__thumb-overlay"></div>
+                <div class="livery-card__badges">
+                  ${isNew?'<span class="badge badge--new">New</span>':''}
+                  ${s.is_paid?'<span class="badge badge--paid">Paid</span>':'<span class="badge badge--free">Free</span>'}
                 </div>
+                ${s.artists?'<span class="livery-card__crown">👑</span>':''}
+                <div class="livery-card__votes"><i class="ti ti-heart" style="font-size:11px;"></i>${s.upvotes}</div>
+              </div>
+              <div class="livery-card__body">
+                <div class="livery-card__series">${s.championships?.short_name || cn || '—'}</div>
+                <div class="livery-card__name">${s.name}</div>
+                <div class="livery-card__mod">${s.mods?.name||'—'}</div>
               </div>
             </div>`;
           }).join('')}
@@ -200,11 +231,13 @@
   function copyPageLink() {
     navigator.clipboard.writeText(location.href).then(() => {
       const btn = document.getElementById('copyLinkBtn');
-      btn.innerHTML = '<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i> Copied!';
-      btn.style.borderColor = 'var(--green)'; btn.style.color = 'var(--green)';
+      btn.innerHTML = '<i class="ti ti-check" style="color:var(--green);"></i> Copied!';
+      btn.style.borderColor = 'rgba(34,197,94,0.4)';
+      btn.style.color = 'var(--green)';
       setTimeout(() => {
-        btn.innerHTML = '<i class="ti ti-link" style="font-size:12px"></i> Copy link';
-        btn.style.borderColor = ''; btn.style.color = '';
+        btn.innerHTML = '<i class="ti ti-link"></i> Copy link';
+        btn.style.borderColor = '';
+        btn.style.color = '';
       }, 1800);
     });
   }

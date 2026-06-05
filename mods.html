@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,54 +7,62 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <!-- Open Graph / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="AC Liveries DB">
   <meta property="og:title" content="Mods — AC Liveries DB">
-  <meta property="og:description" content="Browse liveries by Race Sim Studio mod on Assetto Corsa.">
+  <meta property="og:description" content="Browse liveries by mod on Assetto Corsa.">
   <meta property="og:url" content="https://al3xr1m.github.io/ac-liveries-db/mods.html">
   <meta property="og:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Mods — AC Liveries DB">
-  <meta name="twitter:description" content="Browse liveries by Race Sim Studio mod on Assetto Corsa.">
-  <meta name="twitter:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
-    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+    <span class="nav-logo__ac">AC</span>
+    <span class="nav-logo__name">&nbsp;Liveries</span>
+    <span class="nav-logo__db">DB</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html">Gallery</a>
-    <a href="mods.html" class="active">Mods</a>
-    <a href="artists.html">Artists</a>
-    <a href="submit.html">Submit</a>
-    <a href="about.html">About</a>
-  </div>
   <div class="nav-divider"></div>
-  <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
-    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Liveries</a>
+    <a href="mods.html" class="nav-link active" aria-current="page">Mods</a>
+    <a href="artists.html" class="nav-link">Artists</a>
+    <a href="addons.html" class="nav-link">Addons</a>
+    <a href="about.html" class="nav-link">About</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn--icon btn--ghost" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="btn btn--primary"><i class="ti ti-plus"></i> Submit</a>
   </div>
 </nav>
 
-<div class="container">
-  <div class="page-header">
-    <h1 class="page-title">Mods</h1>
-    <p class="page-sub">Browse liveries by mod — click to filter the gallery.</p>
+<div class="page" style="padding-top:40px; padding-bottom:60px;">
+
+  <div style="margin-bottom:32px;">
+    <div class="hero__eyebrow" style="display:inline-flex;">
+      <i class="ti ti-package"></i> Supported mods
+    </div>
+    <h1 class="display-md" style="margin-top:12px;">
+      Supported <span style="color:var(--acc);">mods</span>
+    </h1>
+    <p style="font-size:13px; color:var(--text-2); margin-top:8px;">
+      Browse liveries by mod — click to explore the full library.
+    </p>
   </div>
+
   <div id="mods-root">
-    <div class="mods-section"><div class="mods-grid">
-      <div class="skeleton" style="height:180px"></div>
-      <div class="skeleton" style="height:180px"></div>
-      <div class="skeleton" style="height:180px"></div>
-      <div class="skeleton" style="height:180px"></div>
-    </div></div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px;">
+      <div class="skeleton" style="height:180px; border-radius:14px;"></div>
+      <div class="skeleton" style="height:180px; border-radius:14px;"></div>
+      <div class="skeleton" style="height:180px; border-radius:14px;"></div>
+      <div class="skeleton" style="height:180px; border-radius:14px;"></div>
+    </div>
   </div>
+
 </div>
 
 <script src="supabase.js"></script>
@@ -69,8 +77,15 @@
     document.getElementById('themeIcon').className = next === 'dark' ? 'ti ti-sun' : 'ti ti-moon';
   });
 
+  // Brand colors
+  const BRAND_COLORS = {
+    RSS: { color:'var(--rss)', bg:'var(--rss-2)', border:'var(--rss-border)', label:'Race Sim Studio' },
+    VRC: { color:'var(--vrc)', bg:'var(--vrc-2)', border:'var(--vrc-border)', label:'Virtual Racing Cars' },
+    URD: { color:'var(--urd)', bg:'var(--urd-2)', border:'var(--urd-border)', label:'URD Mods' },
+  };
+
   function catIcon(name) {
-    const n=(name||'').toLowerCase();
+    const n = (name||'').toLowerCase();
     if(n.includes('formula')) return 'ti-steering-wheel';
     if(n.includes('gt'))      return 'ti-car';
     if(n.includes('hill'))    return 'ti-mountain';
@@ -81,9 +96,10 @@
   async function init() {
     const [mods, cats, liveries] = await Promise.all([fetchMods(), fetchCategories(), fetchLiveries({ sort:'votes' })]);
     if (!mods.length) {
-      document.getElementById('mods-root').innerHTML = `<div class="empty"><i class="ti ti-car-off"></i><p>No mods yet. Add some from the <a href="admin.html" style="color:var(--accent)">admin panel</a>.</p></div>`;
+      document.getElementById('mods-root').innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text-2);"><i class="ti ti-car-off" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>No mods yet. Add some from the <a href="admin.html" style="color:var(--acc);">admin panel</a>.</p></div>`;
       return;
     }
+
     const liveryCount = {};
     liveries.forEach(l => { liveryCount[l.mod_id] = (liveryCount[l.mod_id]||0)+1; });
 
@@ -95,12 +111,10 @@
       grouped[key].mods.push(m);
     });
 
-    // Trier les mods dans chaque groupe par nombre de livrées décroissant
     Object.values(grouped).forEach(group => {
       group.mods.sort((a,b) => (liveryCount[b.id]||0) - (liveryCount[a.id]||0));
     });
 
-    // Trier les groupes (catégories) par total de livrées décroissant
     const sortedGroups = Object.values(grouped)
       .filter(g => g.mods.length > 0)
       .sort((a,b) => {
@@ -111,41 +125,53 @@
 
     const container = document.getElementById('mods-root');
     container.innerHTML = '';
+
     sortedGroups.forEach(group => {
       if (!group.mods.length) return;
-      const section = document.createElement('div');
-      section.className = 'mods-section';
       const totalLiveries = group.mods.reduce((s,m) => s+(liveryCount[m.id]||0), 0);
+
+      const section = document.createElement('div');
+      section.style.marginBottom = '36px';
+
+      // Section header
       section.innerHTML = `
-        <div class="mods-section-title">
-          <span class="cat-dot" style="background:${group.cat.color_text}"></span>
-          ${group.cat.name}
-          <span style="font-weight:400;color:var(--text3)">${group.mods.length} mod${group.mods.length>1?'s':''}</span>
-          <span style="font-weight:400;color:var(--text3)">·</span>
-          <span style="font-weight:400;color:var(--text3)"><i class="ti ti-photo" style="font-size:11px;vertical-align:-1px"></i> ${totalLiveries} liver${totalLiveries!==1?'ies':'y'}</span>
+        <div class="section-label" style="padding:0 0 16px;">
+          <span style="display:inline-flex;align-items:center;gap:6px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${group.cat.color_text};display:inline-block;"></span>
+            ${group.cat.name}
+          </span>
+          <span style="font-weight:400;color:var(--text-3);font-size:11px;margin-left:4px;">
+            ${group.mods.length} mod${group.mods.length>1?'s':''} · ${totalLiveries} liveri${totalLiveries!==1?'es':'y'}
+          </span>
         </div>
-        <div class="mods-grid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
           ${group.mods.map(m => {
             const count = liveryCount[m.id]||0;
-            const imgBlock = m.image_url
-              ? `<img src="${m.image_url}" alt="${m.name}">`
-              : `<i class="ti ${catIcon(group.cat.name)} mod-card-img-placeholder"></i>`;
+            const brand = m.brand ? (BRAND_COLORS[m.brand] || BRAND_COLORS.RSS) : null;
             return `
-              <div class="mod-card" onclick="location.href='mod.html?id=${m.id}'">
-                <div class="mod-card-img">${imgBlock}</div>
-                <div class="mod-card-body">
-                  <div class="mod-card-top">
-                    <span class="cat-badge" style="background:${group.cat.color_bg};color:${group.cat.color_text}">${group.cat.name}</span>
+              <div class="card card--interactive mod-card${brand?' mod-card--'+m.brand.toLowerCase():''}" onclick="location.href='mod.html?id=${m.id}'" style="${brand?'border-color:'+brand.border+';':''} overflow:hidden; cursor:pointer;">
+                <div style="width:100%;height:100px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;background:var(--bg-s2);">
+                  ${m.image_url
+                    ? `<img src="${m.image_url}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover;">`
+                    : `<i class="ti ${catIcon(group.cat.name)}" style="font-size:36px;color:var(--text-3);"></i>`}
+                  ${brand ? `<span class="badge badge--${m.brand.toLowerCase()}" style="position:absolute;top:8px;left:8px;font-size:9px;padding:2px 7px;">${m.brand}</span>` : ''}
+                </div>
+                <div style="padding:13px 14px 14px;">
+                  ${brand ? `<div style="font-size:10px;font-weight:700;color:${brand.color};letter-spacing:0.3px;text-transform:uppercase;margin-bottom:4px;">${brand.label}</div>` : ''}
+                  <div style="font-size:15px;font-weight:800;letter-spacing:-0.6px;color:var(--text);margin-bottom:4px;">${m.name}</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+                    <span class="badge" style="background:${group.cat.color_bg};color:${group.cat.color_text};">${group.cat.name}</span>
+                    <span style="font-size:12px;color:var(--text-2);">${count} liveri${count!==1?'es':'y'}</span>
                   </div>
-                  <div class="mod-name">${m.name}</div>
-                  <div class="mod-count">${count} ${count!==1?'liveries':'livery'} available</div>
                 </div>
               </div>`;
           }).join('')}
         </div>`;
+
       container.appendChild(section);
     });
   }
+
   init();
 </script>
 </body>
