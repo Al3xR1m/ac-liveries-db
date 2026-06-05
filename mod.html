@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,129 +7,127 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <!-- Open Graph / Discord -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="AC Liveries DB">
   <meta property="og:title" content="Mod — AC Liveries DB">
-  <meta property="og:description" content="Browse liveries and addons for this Race Sim Studio mod on Assetto Corsa.">
+  <meta property="og:description" content="Browse liveries and addons for this mod on Assetto Corsa.">
   <meta property="og:url" content="https://al3xr1m.github.io/ac-liveries-db/mods.html">
   <meta property="og:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Mod — AC Liveries DB">
-  <meta name="twitter:description" content="Browse liveries and addons for this Race Sim Studio mod on Assetto Corsa.">
-  <meta name="twitter:image" content="https://al3xr1m.github.io/ac-liveries-db/og-cover.png">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Marked.js for markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
-    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+    <span class="nav-logo__ac">AC</span>
+    <span class="nav-logo__name">&nbsp;Liveries</span>
+    <span class="nav-logo__db">DB</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html">Gallery</a>
-    <a href="mods.html" class="active">Mods</a>
-    <a href="artists.html">Artists</a>
-    <a href="submit.html">Submit</a>
-    <a href="about.html">About</a>
-  </div>
   <div class="nav-divider"></div>
-  <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
-    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Liveries</a>
+    <a href="mods.html" class="nav-link active" aria-current="page">Mods</a>
+    <a href="artists.html" class="nav-link">Artists</a>
+    <a href="addons.html" class="nav-link">Addons</a>
+    <a href="about.html" class="nav-link">About</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn--icon btn--ghost" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="btn btn--primary"><i class="ti ti-plus"></i> Submit</a>
   </div>
 </nav>
 
-<div class="container" style="padding-bottom:60px">
+<div class="page" style="padding-top:20px; padding-bottom:60px;">
 
-  <div style="padding:16px 0 0">
-    <a href="mods.html" style="font-size:13px;color:var(--text2);display:inline-flex;align-items:center;gap:6px">
-      <i class="ti ti-arrow-left" style="font-size:15px"></i> All RSS Mods
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="mods.html" class="breadcrumb__item" style="display:flex;align-items:center;gap:5px;">
+      <i class="ti ti-arrow-left" style="font-size:13px;"></i> All Mods
     </a>
   </div>
 
   <!-- Loading -->
-  <div id="loading" style="text-align:center;padding:60px 20px;color:var(--text3)">
-    <i class="ti ti-loader" style="font-size:32px;display:block;margin-bottom:12px"></i>
+  <div id="loading" style="text-align:center; padding:60px 20px; color:var(--text-3);">
+    <i class="ti ti-loader" style="font-size:32px; display:block; margin-bottom:12px;"></i>
     Loading mod…
   </div>
 
   <!-- Main content -->
-  <div id="main" style="display:none">
+  <div id="main" style="display:none;">
 
     <!-- Mod header -->
-    <div class="mod-detail-header" id="mod-header"></div>
+    <div id="mod-header" style="margin-top:24px;"></div>
 
-    <!-- Tabs: Liveries / Addons / Patch Notes -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="liveries">
-        <i class="ti ti-photo"></i> Liveries <span class="tab-count" id="tab-count-liveries">0</span>
+    <!-- Tabs -->
+    <div class="tabs" style="margin-top:28px;">
+      <button class="tab active tab-btn" data-tab="liveries">
+        <i class="ti ti-photo"></i> Liveries
+        <span class="tab__count" id="tab-count-liveries">0</span>
       </button>
-      <button class="tab-btn" data-tab="addons">
-        <i class="ti ti-puzzle"></i> Addons <span class="tab-count" id="tab-count-addons">0</span>
+      <button class="tab tab-btn" data-tab="addons">
+        <i class="ti ti-puzzle"></i> Addons
+        <span class="tab__count" id="tab-count-addons">0</span>
       </button>
-      <button class="tab-btn" data-tab="patchnotes">
+      <button class="tab tab-btn" data-tab="patchnotes">
         <i class="ti ti-notes"></i> Patch Notes
       </button>
     </div>
 
     <!-- Tab: Liveries -->
-    <div class="tab-panel active" id="tab-liveries">
-      <div class="toolbar" style="margin-bottom:16px">
-        <div class="search-wrap">
-          <i class="ti ti-search"></i>
-          <input type="text" class="search-input" id="liv-search" placeholder="Search livery, driver, team…">
+    <div class="tab-panel active" id="tab-liveries" style="padding-top:20px;">
+      <div class="toolbar" style="margin-bottom:16px;">
+        <div class="search-box" style="flex:1;">
+          <i class="ti ti-search search-box__icon"></i>
+          <input type="text" class="form-input" id="liv-search" placeholder="Search livery, driver, team…" style="padding-left:33px;">
         </div>
-        <select class="sort-select" id="liv-champ">
-          <option value="all">All championships</option>
-        </select>
-        <select class="sort-select" id="liv-pricing">
+        <select class="filter-select" id="liv-champ"><option value="all">All championships</option></select>
+        <select class="filter-select" id="liv-pricing">
           <option value="all">All pricing</option>
           <option value="free">Free only</option>
           <option value="paid">Paid only</option>
         </select>
-        <select class="sort-select" id="liv-artist">
+        <select class="filter-select" id="liv-artist">
           <option value="all">All creators</option>
           <option value="confirmed">👑 Confirmed artists</option>
           <option value="community">Community</option>
         </select>
-        <select class="sort-select" id="liv-sort">
-          <option value="votes">Most popular</option>
+        <select class="filter-select" id="liv-sort">
+          <option value="votes">↑ Most popular</option>
           <option value="newest">Newest first</option>
           <option value="name">A → Z</option>
         </select>
       </div>
-      <div class="gallery" id="liveries-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
+      <div class="livery-grid" id="liveries-grid"></div>
     </div>
 
     <!-- Tab: Addons -->
-    <div class="tab-panel" id="tab-addons">
-      <div class="toolbar" style="margin-bottom:16px">
-        <div class="search-wrap">
-          <i class="ti ti-search"></i>
-          <input type="text" class="search-input" id="add-search" placeholder="Search addon…">
+    <div class="tab-panel" id="tab-addons" style="display:none; padding-top:20px;">
+      <div class="toolbar" style="margin-bottom:16px;">
+        <div class="search-box" style="flex:1;">
+          <i class="ti ti-search search-box__icon"></i>
+          <input type="text" class="form-input" id="add-search" placeholder="Search addon…" style="padding-left:33px;">
         </div>
-        <select class="sort-select" id="add-pricing">
+        <select class="filter-select" id="add-pricing">
           <option value="all">All pricing</option>
           <option value="free">Free only</option>
           <option value="paid">Paid only</option>
         </select>
-        <select class="sort-select" id="add-sort">
-          <option value="votes">Most popular</option>
+        <select class="filter-select" id="add-sort">
+          <option value="votes">↑ Most popular</option>
           <option value="newest">Newest first</option>
           <option value="name">A → Z</option>
         </select>
       </div>
-      <div class="gallery" id="addons-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
+      <div class="livery-grid" id="addons-grid"></div>
     </div>
 
     <!-- Tab: Patch Notes -->
-    <div class="tab-panel" id="tab-patchnotes">
-      <div id="patchnotes-content" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:780px"></div>
+    <div class="tab-panel" id="tab-patchnotes" style="display:none; padding-top:20px;">
+      <div id="patchnotes-content" class="card card__body" style="max-width:780px; padding:28px;"></div>
     </div>
 
   </div>
@@ -152,9 +150,11 @@
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
       btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      const panel = document.getElementById('tab-' + btn.dataset.tab);
+      panel.classList.add('active');
+      panel.style.display = 'block';
     });
   });
 
@@ -165,86 +165,66 @@
     const p = CAT_COLORS[cat]||CAT_COLORS.Formula; const col=p[seed%p.length]; const num=(seed*7+1)%99+1; const bg=CAT_BG_MAP[cat]||'#111';
     return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
-  // Render livery card
-  function renderLiveryCard(l, maxVotes) {
+
+  function renderLiveryCard(l) {
     const voted = getVotedSet();
-    const cn = l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
+    const cn = l.categories?.name||'';
     const seed = parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
     const isVoted = voted.has(l.id);
-    const isArtist = !!l.artists;
     const isNew = l.created_at && (Date.now()-new Date(l.created_at).getTime()) < 7*24*60*60*1000;
-    const newDot = isNew ? '<div class="new-dot"></div>' : '';
-    const crownBadge = isArtist ? `<div class="crown-badge">👑<span class="crown-text">${l.artists.name}</span></div>` : '';
-    const paidBadge = l.is_paid
-      ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
-      : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+    const newBadge = isNew ? '<span class="badge badge--new">New</span>' : '';
+    const priceBadge = l.is_paid ? '<span class="badge badge--paid">Paid</span>' : '<span class="badge badge--free">Free</span>';
+    const crownBadge = l.artists ? '<span class="livery-card__crown">👑</span>' : '';
     return `
       <div class="livery-card" onclick="location.href='livery.html?id=${l.id}'">
-        <div class="card-cover">
+        <div class="livery-card__thumb">
           ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed)}
-          <div class="card-cover-overlay"></div>
-          ${newDot}
-          <div class="card-top-badges">${crownBadge}${paidBadge}</div>
-          <div class="card-name-overlay">
-            <div class="card-name">${l.name}</div>
-            <div class="card-mod">${l.mods?.name||'—'}</div>
-          </div>
+          <div class="livery-card__thumb-overlay"></div>
+          <div class="livery-card__badges">${newBadge}${priceBadge}</div>
+          ${crownBadge}
+          <div class="livery-card__votes"><i class="ti ti-heart" style="font-size:11px;"></i>${l.upvotes.toLocaleString()}</div>
         </div>
-        <div class="card-actions">
-          <button class="card-action-btn" onclick="event.stopPropagation();copyLiveryLink('${l.id}')" title="Copy link"><i class="ti ti-link" style="font-size:12px"></i></button>
-        </div>
-        <div class="card-body">
-          <div class="card-info-row">
-            ${l.championships?.short_name?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`:`<div class="card-champ" style="color:var(--text3)">—</div>`}
-            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+        <div class="livery-card__body">
+          <div class="livery-card__series">${l.championships?.short_name || cn || '—'}</div>
+          <div class="livery-card__name">${l.name}</div>
+          <div class="livery-card__mod" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+            <span style="color:var(--text-2);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.mods?.name||'—'}</span>
+            <div style="display:flex;gap:4px;flex-shrink:0;margin-left:6px;">
+              <button class="btn btn--icon btn--ghost btn--sm" onclick="event.stopPropagation();copyLiveryLink('${l.id}')" title="Copy link" style="width:22px;height:22px;border-radius:5px;"><i class="ti ti-link" style="font-size:11px;"></i></button>
+              <button class="btn btn--sm ${isVoted?'btn--primary':'btn--ghost'} upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleLiveryVote('${l.id}',this)" style="height:22px;padding:0 7px;border-radius:5px;font-size:11px;gap:3px;">
+                <i class="ti ti-thumb-up" style="font-size:11px;"></i> ${isVoted?'Upvoted':'Upvote'}
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="card-upvote-row">
-          <div class="card-upvote-count">
-${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}
-          </div>
-          <button class="upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleLiveryVote('${l.id}',this,event)">
-            <i class="ti ti-thumb-up" style="font-size:12px"></i> ${isVoted?'Upvoted':'Upvote'}
-          </button>
         </div>
       </div>`;
   }
 
-  // Render addon card
-  function renderAddonCard(a, maxVotes) {
+  function renderAddonCard(a) {
     const votedAddons = getVotedSet('addon');
-    const cn = a.categories?.name||''; const bg=a.categories?.color_bg||'#E6F1FB'; const tc=a.categories?.color_text||'#0C447C';
     const isVoted = votedAddons.has(a.id);
-    const paidBadge = a.is_paid
-      ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
-      : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
-    const addonTypeBadge = `<span class="addon-type-badge">${a.addon_type||'Addon'}</span>`;
+    const priceBadge = a.is_paid ? '<span class="badge badge--paid">Paid</span>' : '<span class="badge badge--free">Free</span>';
+    const typeBadge = a.addon_type ? `<span class="badge badge--3d" style="text-transform:capitalize;">${a.addon_type.replace('_',' ')}</span>` : '';
     return `
       <div class="livery-card">
-        <div class="card-cover" style="background:var(--bg2);cursor:default">
-          ${a.image_url?`<img src="${a.image_url}" alt="${a.name}" loading="lazy">`:`<i class="ti ti-puzzle" style="font-size:32px;color:var(--text3)"></i>`}
-          <div class="card-cover-overlay"></div>
-          <div class="card-top-badges">${addonTypeBadge}${paidBadge}</div>
-          <div class="card-name-overlay">
-            <div class="card-name">${a.name}</div>
-            <div class="card-mod">${a.author||a.artists?.name||'—'}</div>
-          </div>
+        <div class="livery-card__thumb" style="background:var(--bg-s2); cursor:default;">
+          ${a.image_url?`<img src="${a.image_url}" alt="${a.name}" loading="lazy">`:
+            `<i class="ti ti-puzzle" style="font-size:32px;color:var(--text-3);"></i>`}
+          <div class="livery-card__thumb-overlay"></div>
+          <div class="livery-card__badges">${typeBadge}${priceBadge}</div>
+          <div class="livery-card__votes"><i class="ti ti-heart" style="font-size:11px;"></i>${a.upvotes.toLocaleString()}</div>
         </div>
-        <div class="card-body">
-          <div class="card-info-row">
-            <div class="card-champ" style="color:var(--text2)">${a.notes?a.notes.slice(0,40)+(a.notes.length>40?'…':''):'—'}</div>
-            <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
-          </div>
-        </div>
-        <div class="card-upvote-row">
-          <div class="card-upvote-count">
-${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
-          </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            ${a.download_url?`<a href="${a.download_url}" target="_blank" onclick="event.stopPropagation()" class="upvote-btn" style="text-decoration:none"><i class="ti ti-download" style="font-size:12px"></i></a>`:''}
-            <button class="upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleAddonVote('${a.id}',this)">
-              <i class="ti ti-thumb-up" style="font-size:12px"></i> ${isVoted?'Upvoted':'Upvote'}
-            </button>
+        <div class="livery-card__body">
+          <div class="livery-card__series">${a.addon_type||'Addon'}</div>
+          <div class="livery-card__name">${a.name}</div>
+          <div class="livery-card__mod" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+            <span style="color:var(--text-2);font-size:11px;">${a.author||a.artists?.name||'—'}</span>
+            <div style="display:flex;gap:4px;flex-shrink:0;margin-left:6px;">
+              ${a.download_url?`<a href="${a.download_url}" target="_blank" onclick="event.stopPropagation()" class="btn btn--ghost btn--sm" style="height:22px;padding:0 7px;border-radius:5px;font-size:11px;text-decoration:none;"><i class="ti ti-download" style="font-size:11px;"></i></a>`:''}
+              <button class="btn btn--sm ${isVoted?'btn--primary':'btn--ghost'} upvote-btn${isVoted?' voted':''}" onclick="event.stopPropagation();handleAddonVote('${a.id}',this)" style="height:22px;padding:0 7px;border-radius:5px;font-size:11px;gap:3px;">
+                <i class="ti ti-thumb-up" style="font-size:11px;"></i> ${isVoted?'Upvoted':'Upvote'}
+              </button>
+            </div>
           </div>
         </div>
       </div>`;
@@ -255,23 +235,23 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
   function copyLiveryLink(id) {
     const url = `${location.origin}${location.pathname.replace('mod.html','')}livery.html?id=${id}`;
     navigator.clipboard.writeText(url).then(() => {
-      const btn = document.querySelector(`.card-action-btn[onclick*="copyLiveryLink('${id}')"]`);
-      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:12px;color:var(--green)"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:12px"></i>',1500); }
+      const btn = document.querySelector(`.btn[onclick*="copyLiveryLink('${id}')"]`);
+      if(btn){ btn.innerHTML='<i class="ti ti-check" style="font-size:11px;color:var(--green);"></i>'; setTimeout(()=>btn.innerHTML='<i class="ti ti-link" style="font-size:11px;"></i>',1500); }
     });
   }
 
   async function handleLiveryVote(id, btn) {
     const isVoted = getVotedSet().has(id);
     const l = liveries.find(x=>x.id===id);
-    if (isVoted) { const ok=await removeUpvoteLivery(id); if(ok&&l){l.upvotes=Math.max(0,l.upvotes-1);btn.className='upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvote';} }
-    else { const ok=await upvoteLivery(id); if(ok&&l){l.upvotes++;btn.className='upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvoted';} }
+    if (isVoted) { const ok=await removeUpvoteLivery(id); if(ok&&l){l.upvotes=Math.max(0,l.upvotes-1);btn.className='btn btn--ghost btn--sm upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:11px;"></i> Upvote';} }
+    else { const ok=await upvoteLivery(id); if(ok&&l){l.upvotes++;btn.className='btn btn--primary btn--sm upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:11px;"></i> Upvoted';} }
   }
 
   async function handleAddonVote(id, btn) {
     const isVoted = getVotedSet('addon').has(id);
     const a = addons.find(x=>x.id===id);
-    if (isVoted) { const ok=await removeUpvoteAddon(id); if(ok&&a){a.upvotes=Math.max(0,a.upvotes-1);btn.className='upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvote';} }
-    else { const ok=await upvoteAddon(id); if(ok&&a){a.upvotes++;btn.className='upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:12px"></i> Upvoted';} }
+    if (isVoted) { const ok=await removeUpvoteAddon(id); if(ok&&a){a.upvotes=Math.max(0,a.upvotes-1);btn.className='btn btn--ghost btn--sm upvote-btn';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:11px;"></i> Upvote';} }
+    else { const ok=await upvoteAddon(id); if(ok&&a){a.upvotes++;btn.className='btn btn--primary btn--sm upvote-btn voted';btn.innerHTML='<i class="ti ti-thumb-up" style="font-size:11px;"></i> Upvoted';} }
   }
 
   async function init() {
@@ -294,33 +274,38 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', `Browse ${livs.length} liveries for ${mod.name} on Assetto Corsa.`);
     if(mod.image_url) document.querySelector('meta[property="og:image"]')?.setAttribute('content', mod.image_url);
 
-    // Update tab counts
     document.getElementById('tab-count-liveries').textContent = livs.length;
     document.getElementById('tab-count-addons').textContent   = adds.length;
 
-    // Mod header
-    const catBadge = mod.categories
-      ? `<span class="cat-badge" style="background:${mod.categories.color_bg};color:${mod.categories.color_text}">${mod.categories.name}</span>`
-      : '';
+    // Brand colors
+    const brandColors = { RSS: { color:'var(--rss)', bg:'var(--rss-2)', border:'var(--rss-border)' }, VRC: { color:'var(--vrc)', bg:'var(--vrc-2)', border:'var(--vrc-border)' }, URD: { color:'var(--urd)', bg:'var(--urd-2)', border:'var(--urd-border)' } };
+    const brand = mod.brand ? (brandColors[mod.brand] || brandColors.RSS) : brandColors.RSS;
+    const brandLabel = mod.brand || 'RSS';
+
     document.getElementById('mod-header').innerHTML = `
-      <div class="mod-detail-cover">
-        ${mod.image_url
-          ? `<img src="${mod.image_url}" alt="${mod.name}">`
-          : `<i class="ti ti-car" style="font-size:48px;color:var(--text3)"></i>`}
-      </div>
-      <div class="mod-detail-info">
-        <div>${catBadge}</div>
-        <div class="mod-detail-title">${mod.name}</div>
-        ${mod.version ? `<div class="mod-detail-version"><i class="ti ti-tag" style="font-size:12px"></i> Version ${mod.version}</div>` : ''}
-        ${mod.description ? `<div class="mod-detail-desc">${mod.description}</div>` : ''}
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
-          <span style="font-size:13px;color:var(--text2)"><i class="ti ti-photo" style="font-size:13px"></i> ${livs.length} liveries</span>
-          <span style="font-size:13px;color:var(--text2)"><i class="ti ti-puzzle" style="font-size:13px"></i> ${adds.length} addons</span>
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;">
+        <div style="width:100%;height:160px;border-radius:14px;overflow:hidden;background:var(--bg-s2);display:flex;align-items:center;justify-content:center;">
+          ${mod.image_url
+            ? `<img src="${mod.image_url}" alt="${mod.name}" style="width:100%;height:100%;object-fit:cover;">`
+            : `<i class="ti ti-car" style="font-size:48px;color:var(--text-3);"></i>`}
         </div>
-        ${mod.official_url ? `<a href="${mod.official_url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);margin-top:4px"><i class="ti ti-external-link"></i> Official page</a>` : ''}
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span class="badge badge--${brandLabel.toLowerCase()}" style="font-size:10px;padding:3px 8px;">${brandLabel}</span>
+            ${mod.version ? `<span style="font-size:10px;padding:3px 7px;border-radius:4px;background:var(--border);color:var(--text-2);font-weight:700;">v${mod.version}</span>` : ''}
+            ${mod.categories ? `<span class="badge" style="background:${mod.categories.color_bg};color:${mod.categories.color_text};">${mod.categories.name}</span>` : ''}
+          </div>
+          <div style="font-family:var(--font-display);font-size:28px;font-weight:900;letter-spacing:-1.2px;color:var(--text);margin-bottom:6px;">${mod.name}</div>
+          <div style="font-size:11px;font-weight:700;color:${brand.color};letter-spacing:0.3px;text-transform:uppercase;margin-bottom:10px;">${brandLabel === 'RSS' ? 'Race Sim Studio' : brandLabel === 'VRC' ? 'Virtual Racing Cars' : 'URD Mods'}</div>
+          ${mod.description ? `<div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:14px;max-width:480px;">${mod.description}</div>` : ''}
+          <div class="stat-row" style="max-width:320px;margin-bottom:14px;">
+            <div class="stat-item"><div class="stat-item__n">${livs.length}</div><div class="stat-item__l">Liveries</div></div>
+            <div class="stat-item"><div class="stat-item__n">${adds.length}</div><div class="stat-item__l">Addons</div></div>
+          </div>
+          ${mod.official_url ? `<a href="${mod.official_url}" target="_blank" class="btn btn--ghost btn--sm" style="text-decoration:none;"><i class="ti ti-external-link"></i> Official page</a>` : ''}
+        </div>
       </div>`;
 
-    // Populate championship filter from liveries
     const champMap = {};
     livs.forEach(l => { if(l.championships) champMap[l.championship_id] = l.championships.short_name||l.championships.name; });
     const livChampSel = document.getElementById('liv-champ');
@@ -344,10 +329,9 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
       if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
       else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
       else list.sort((a,b)=>a.name.localeCompare(b.name));
-      const maxV = list.length ? Math.max(...list.map(l=>l.upvotes),1) : 1;
       document.getElementById('liveries-grid').innerHTML = list.length
-        ? list.map(l => renderLiveryCard(l, maxV)).join('')
-        : `<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.</p></div>`;
+        ? list.map(l => renderLiveryCard(l)).join('')
+        : `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-2);"><i class="ti ti-search" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>No liveries match your filters.</p></div>`;
     }
 
     function renderAddons() {
@@ -362,17 +346,14 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
       if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
       else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
       else list.sort((a,b)=>a.name.localeCompare(b.name));
-      const maxV = list.length ? Math.max(...list.map(a=>a.upvotes),1) : 1;
       document.getElementById('addons-grid').innerHTML = list.length
-        ? list.map(a => renderAddonCard(a, maxV)).join('')
-        : `<div class="empty"><i class="ti ti-puzzle-off"></i><p>No addons match your filters.</p></div>`;
+        ? list.map(a => renderAddonCard(a)).join('')
+        : `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-2);"><i class="ti ti-puzzle-off" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>No addons match your filters.</p></div>`;
     }
 
-    // Wire up livery filters
     ['liv-search','liv-champ','liv-pricing','liv-artist','liv-sort'].forEach(id =>
       document.getElementById(id).addEventListener(id==='liv-search'?'input':'change', renderLiveries)
     );
-    // Wire up addon filters
     ['add-search','add-pricing','add-sort'].forEach(id =>
       document.getElementById(id).addEventListener(id==='add-search'?'input':'change', renderAddons)
     );
@@ -380,12 +361,11 @@ ${a.upvotes.toLocaleString()} upvote${a.upvotes!==1?'s':''}
     renderLiveries();
     renderAddons();
 
-    // Patch notes tab (markdown)
     const pn = document.getElementById('patchnotes-content');
     if (mod.changelog) {
       pn.innerHTML = `<div class="md-content">${marked.parse(mod.changelog)}</div>`;
     } else {
-      pn.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3)"><i class="ti ti-notes" style="font-size:32px;display:block;margin-bottom:12px"></i><p>No patch notes yet for this mod.</p></div>`;
+      pn.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-3);"><i class="ti ti-notes" style="font-size:32px;display:block;margin-bottom:12px;"></i><p>No patch notes yet for this mod.</p></div>`;
     }
 
     document.getElementById('loading').style.display = 'none';

@@ -1,86 +1,109 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmed Artists — AC Liveries DB</title>
+  <title>Artists — AC Liveries DB</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
 <nav class="navbar">
   <a href="index.html" class="nav-logo">
-    <span class="logo-icon"><i class="ti ti-flag-3"></i></span>
-    <span class="logo-text">AC Liveries<span class="logo-dot">.</span>DB</span>
+    <span class="nav-logo__ac">AC</span>
+    <span class="nav-logo__name">&nbsp;Liveries</span>
+    <span class="nav-logo__db">DB</span>
   </a>
-  <div class="nav-links">
-    <a href="index.html">Gallery</a>
-    <a href="mods.html">Mods</a>
-    <a href="artists.html" class="active">Artists</a>
-    <a href="submit.html">Submit</a>
-    <a href="about.html">About</a>
-  </div>
   <div class="nav-divider"></div>
-  <div class="nav-right">
-    <button class="theme-toggle" id="themeToggle"><i class="ti ti-sun" id="themeIcon"></i></button>
-    <a href="submit.html" class="nav-submit"><i class="ti ti-plus" style="font-size:13px"></i> Submit a livery</a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Liveries</a>
+    <a href="mods.html" class="nav-link">Mods</a>
+    <a href="artists.html" class="nav-link active" aria-current="page">Artists</a>
+    <a href="addons.html" class="nav-link">Addons</a>
+    <a href="about.html" class="nav-link">About</a>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn--icon btn--ghost" id="themeToggle" aria-label="Toggle theme">
+      <i class="ti ti-sun" id="themeIcon"></i>
+    </button>
+    <a href="submit.html" class="btn btn--primary">
+      <i class="ti ti-plus"></i> Submit
+    </a>
   </div>
 </nav>
 
-<div class="container">
-  <div class="page-header">
-    <h1 class="page-title">👑 Confirmed Artists</h1>
-    <p class="page-sub">Verified livery creators — click an artist to browse all their work</p>
+<div class="page" style="padding-top:40px; padding-bottom:60px;">
+
+  <!-- Header -->
+  <div style="margin-bottom:32px;">
+    <div class="hero__eyebrow" style="display:inline-flex;">
+      <i class="ti ti-crown"></i> Confirmed Artists
+    </div>
+    <h1 class="display-md" style="margin-top:12px;">
+      The <span style="color:var(--acc);">artists</span>
+    </h1>
+    <p style="font-size:13px; color:var(--text-2); margin-top:8px;">
+      Verified livery creators — click an artist to browse all their work
+    </p>
   </div>
 
   <!-- Artist grid -->
-  <div class="artists-grid" id="artists-grid">
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
-    <div class="skeleton" style="height:200px;border-radius:10px"></div>
+  <div id="artists-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:40px;">
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
+    <div class="skeleton" style="height:200px;"></div>
   </div>
 
-  <!-- Liveries section (shown after clicking an artist) -->
-  <div id="artist-liveries-section" style="display:none;margin-bottom:40px">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-top:24px;border-top:1px solid var(--border)">
-      <button id="back-btn" style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0">
-        <i class="ti ti-arrow-left" style="font-size:15px"></i> All artists
+  <!-- Artist liveries section (shown after clicking an artist) -->
+  <div id="artist-liveries-section" style="display:none; margin-bottom:40px;">
+
+    <!-- Back + title -->
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px; padding-top:24px; border-top:1px solid var(--border);">
+      <button
+        id="back-btn"
+        class="btn btn--ghost btn--sm"
+        style="display:flex; align-items:center; gap:6px;"
+      >
+        <i class="ti ti-arrow-left"></i> All artists
       </button>
-      <div id="artist-liveries-title" style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text)"></div>
+      <h2 class="display-sm" id="artist-liveries-title"></h2>
     </div>
+
     <!-- Artist profile card -->
-    <div id="artist-profile-card" style="display:none;background:var(--surface);border:1px solid #FFD70030;border-radius:var(--radius);padding:20px;margin-bottom:20px;gap:16px;align-items:flex-start"></div>
-    <!-- Toolbar -->
-    <div class="toolbar" style="margin-bottom:16px">
-      <div class="search-wrap">
-        <i class="ti ti-search"></i>
-        <input type="text" class="search-input" id="artist-search" placeholder="Search livery, driver, team…">
+    <div
+      id="artist-profile-card"
+      style="display:none; background:var(--bg-s1); border:1px solid rgba(245,158,11,0.2); border-radius:var(--radius-lg); padding:20px; margin-bottom:20px; gap:16px; align-items:flex-start;"
+    ></div>
+
+    <!-- Filters -->
+    <div class="toolbar" style="margin-bottom:14px;">
+      <div class="search-box" style="flex:1; min-width:160px;">
+        <i class="ti ti-search search-box__icon"></i>
+        <input type="text" class="form-input" id="artist-search" placeholder="Search livery, driver, team…" style="padding-left:33px;">
       </div>
-      <select class="sort-select" id="artist-cat">
-        <option value="all">All categories</option>
-      </select>
-      <select class="sort-select" id="artist-champ">
-        <option value="all">All championships</option>
-      </select>
-      <select class="sort-select" id="artist-mod">
-        <option value="all">All mods</option>
-      </select>
-      <select class="sort-select" id="artist-pricing">
+      <select class="filter-select" id="artist-cat"><option value="all">All categories</option></select>
+      <select class="filter-select" id="artist-champ"><option value="all">All championships</option></select>
+      <select class="filter-select" id="artist-mod"><option value="all">All mods</option></select>
+      <select class="filter-select" id="artist-pricing">
         <option value="all">All pricing</option>
         <option value="free">Free only</option>
         <option value="paid">Paid only</option>
       </select>
-      <select class="sort-select" id="artist-sort">
-        <option value="votes">Most popular</option>
+      <select class="filter-select" id="artist-sort">
+        <option value="votes">↑ Most popular</option>
         <option value="newest">Newest first</option>
         <option value="name">A → Z</option>
       </select>
     </div>
-    <div id="results-count-artist" style="font-size:12px;color:var(--text3);margin-bottom:10px"></div>
-    <div class="gallery" id="artist-liveries-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,220px))"></div>
+
+    <div id="results-count-artist" class="label" style="margin-bottom:12px;"></div>
+
+    <div class="livery-grid" id="artist-liveries-grid"></div>
   </div>
+
 </div>
 
 <script src="supabase.js"></script>
@@ -106,37 +129,44 @@
     const bg = CAT_BG[cat] || '#111';
     return `<svg viewBox="0 0 200 100" width="200" height="100"><rect width="200" height="100" fill="${bg}"/><ellipse cx="100" cy="68" rx="65" ry="10" fill="#000" opacity=".4"/><path d="M36 62 Q45 46 60 42 L76 36 Q100 30 124 36 L140 42 Q155 46 164 62Z" fill="${col}"/><path d="M60 42 L64 32 Q100 24 136 32 L140 42Z" fill="${col}" opacity=".75"/><rect x="76" y="30" width="48" height="9" rx="2" fill="#88ccff" opacity=".5"/><circle cx="60" cy="64" r="10" fill="#1a1a1a"/><circle cx="60" cy="64" r="5.5" fill="#333"/><circle cx="140" cy="64" r="10" fill="#1a1a1a"/><circle cx="140" cy="64" r="5.5" fill="#333"/><text x="100" y="54" text-anchor="middle" fill="white" font-size="8" font-family="sans-serif" font-weight="bold">${num}</text></svg>`;
   }
+
   let voted = getVotedSet();
   let allLiveries = [];
-  let maxVotes = 1;
 
   async function init() {
     const [artists, stats] = await Promise.all([fetchArtists(), fetchArtistStats()]);
     const grid = document.getElementById('artists-grid');
 
     if (!artists.length) {
-      grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><i class="ti ti-user-off"></i><p>No confirmed artists yet.</p></div>`;
+      grid.innerHTML = `<div style="grid-column:1/-1; padding:48px 24px; text-align:center; color:var(--text-2);"><i class="ti ti-user-off" style="font-size:32px; display:block; margin-bottom:12px; color:var(--text-3);"></i><p>No confirmed artists yet.</p></div>`;
       return;
     }
 
     grid.innerHTML = artists.map(a => {
       const s = stats[a.id] || { count: 0, upvotes: 0 };
+      const initials = a.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       const avatar = a.avatar_url
-        ? `<img src="${a.avatar_url}" alt="${a.name}" class="artist-avatar">`
-        : `<div class="artist-avatar-placeholder"><i class="ti ti-user"></i></div>`;
+        ? `<img src="${a.avatar_url}" alt="${a.name}" style="width:52px;height:52px;border-radius:13px;object-fit:cover;border:2px solid rgba(245,158,11,0.3);">`
+        : `<div class="artist-avatar artist-avatar--md" style="background:var(--acc-2); color:var(--acc);">${initials}</div>`;
       return `
-        <div class="artist-card" data-artist-id="${a.id}" data-artist-name="${a.name}">
+        <div class="artist-card artist-card--confirmed" data-artist-id="${a.id}" data-artist-name="${a.name}" style="cursor:pointer;">
+          <div class="artist-card__glow"></div>
           ${avatar}
-          <div class="artist-badge">👑 Confirmed Artist</div>
-          <div class="artist-name">${a.name}</div>
-          <div class="artist-stats">
-            <div class="artist-stat">
-              <div class="artist-stat-n">${s.count}</div>
-              <div class="artist-stat-l">Liveries</div>
+          <div style="margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+              <span style="font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.3px;">${a.name}</span>
+              <span style="font-size:13px;">👑</span>
             </div>
-            <div class="artist-stat">
-              <div class="artist-stat-n">${s.upvotes}</div>
-              <div class="artist-stat-l">Upvotes</div>
+            ${a.discord ? `<div style="font-size:11px;color:var(--text-2);margin-bottom:10px;">${a.discord}</div>` : '<div style="margin-bottom:10px;"></div>'}
+            <div style="display:flex;gap:14px;">
+              <div>
+                <div style="font-size:16px;font-weight:800;letter-spacing:-0.8px;color:var(--text);">${s.count}</div>
+                <div class="label" style="margin-top:2px;">Liveries</div>
+              </div>
+              <div>
+                <div style="font-size:16px;font-weight:800;letter-spacing:-0.8px;color:var(--text);">${s.upvotes}</div>
+                <div class="label" style="margin-top:2px;">Votes</div>
+              </div>
             </div>
           </div>
         </div>`;
@@ -153,38 +183,35 @@
     section.style.display = 'block';
     document.getElementById('artist-liveries-title').textContent = `${artistName}'s liveries`;
 
-    // Afficher profil artiste
     const artistData = (await fetchArtists()).find(a=>a.id===artistId);
     const profileEl = document.getElementById('artist-profile-card');
     if(artistData && profileEl){
       profileEl.style.display = 'flex';
+      const initials = artistData.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       profileEl.innerHTML = `
-        <div style="flex-shrink:0">
+        <div style="flex-shrink:0;">
           ${artistData.avatar_url
-            ? `<img src="${artistData.avatar_url}" alt="${artistData.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #FFD70060">`
-            : `<div style="width:72px;height:72px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--text3);border:2px solid #FFD70060"><i class="ti ti-user"></i></div>`}
+            ? `<img src="${artistData.avatar_url}" alt="${artistData.name}" style="width:72px;height:72px;border-radius:18px;object-fit:cover;border:2px solid rgba(245,158,11,0.3);">`
+            : `<div class="artist-avatar" style="width:72px;height:72px;border-radius:18px;background:var(--acc-2);color:var(--acc);font-size:22px;">${initials}</div>`}
         </div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text)">${artistData.name}</div>
-            <span style="font-size:11px;color:#FFD700;font-weight:600">👑 Confirmed Artist</span>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-family:var(--font-display);font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.8px;">${artistData.name}</span>
+            <span class="badge badge--confirmed">👑 Confirmed Artist</span>
           </div>
-          ${artistData.discord ? `<div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:5px;margin-bottom:6px"><i class="ti ti-brand-discord" style="font-size:13px;color:#5865F2"></i>${artistData.discord}</div>` : ''}
-          ${artistData.bio ? '<div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">'+artistData.bio+'</div>' : ''}
+          ${artistData.discord ? `<div style="font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:5px;margin-bottom:8px;"><i class="ti ti-brand-discord" style="font-size:13px;color:#5865F2;"></i>${artistData.discord}</div>` : ''}
+          ${artistData.bio ? `<div style="font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:10px;">${artistData.bio}</div>` : ''}
           ${(()=>{
             const btns = [
-              {url: artistData.url_twitter,  icon:'ti-brand-twitter',  color:'#111',    label:'Twitter'},
-              {url: artistData.url_discord,  icon:'ti-brand-discord',  color:'#5865F2', label:'Discord'},
-              {url: artistData.url_patreon,  icon:'ti-brand-patreon',  color:'#FF424D', label:'Patreon'},
-              {url: artistData.url_youtube,  icon:'ti-brand-youtube',  color:'#FF0000', label:'YouTube'},
-              {url: artistData.url_overtake, icon:'ti-flag',           color:'#00D4AA', label:'Overtake'},
+              {url: artistData.url_twitter,  icon:'ti-brand-twitter',  label:'Twitter'},
+              {url: artistData.url_discord,  icon:'ti-brand-discord',  label:'Discord'},
+              {url: artistData.url_patreon,  icon:'ti-brand-patreon',  label:'Patreon'},
+              {url: artistData.url_youtube,  icon:'ti-brand-youtube',  label:'YouTube'},
+              {url: artistData.url_overtake, icon:'ti-flag',           label:'Overtake'},
             ].filter(b=>b.url);
             if(!btns.length) return '';
-            return '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-              + btns.map(b=>'<a href="'+b.url+'" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;text-decoration:none;background:var(--bg)">'
-                + '<div style="width:18px;height:18px;border-radius:4px;background:'+b.color+';display:flex;align-items:center;justify-content:center"><i class="ti '+b.icon+'" style="font-size:11px;color:#fff"></i></div>'
-                + '<span style="font-size:12px;color:var(--text2)">'+b.label+'</span>'
-                + '</a>').join('')
+            return '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+              + btns.map(b=>`<a href="${b.url}" target="_blank" class="social-btn"><i class="ti ${b.icon}"></i>${b.label}</a>`).join('')
               + '</div>';
           })()}
         </div>`;
@@ -192,9 +219,7 @@
 
     const liveries = await fetchLiveries({ artistId, sort: 'votes' });
     allLiveries = liveries;
-    maxVotes = liveries.length ? Math.max(...liveries.map(l => l.upvotes), 1) : 1;
 
-    // Reset tous les filtres
     ['artist-search','artist-cat','artist-champ','artist-mod','artist-pricing'].forEach(id=>{
       const el = document.getElementById(id);
       if(el) el.value = el.tagName==='INPUT' ? '' : 'all';
@@ -203,40 +228,27 @@
 
     const g = document.getElementById('artist-liveries-grid');
     if (!liveries.length) {
-      g.innerHTML = `<div class="empty"><i class="ti ti-photo-off"></i><p>No liveries yet.</p></div>`;
+      g.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-2);"><i class="ti ti-photo-off" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>No liveries yet.</p></div>`;
       return;
     }
 
-    // Peupler les selects depuis les livrées de cet artiste
     const cats   = [...new Map(liveries.filter(l=>l.categories).map(l=>[l.category_id,l.categories])).entries()].map(([id,cat])=>({id,...cat}));
     const champs = [...new Map(liveries.filter(l=>l.championships).map(l=>[l.championship_id,l.championships])).entries()].map(([id,ch])=>({id,...ch}));
     const mods   = [...new Map(liveries.filter(l=>l.mods).map(l=>[l.mod_id,l.mods])).entries()].map(([id,m])=>({id,...m}));
 
-    const catSel   = document.getElementById('artist-cat');
-    const champSel = document.getElementById('artist-champ');
-    const modSel   = document.getElementById('artist-mod');
-
-    catSel.innerHTML   = '<option value="all">All categories</option>'   + cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    champSel.innerHTML = '<option value="all">All championships</option>' + champs.map(c=>`<option value="${c.id}">${c.short_name||c.name}</option>`).join('');
-    modSel.innerHTML   = '<option value="all">All mods</option>'         + mods.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+    document.getElementById('artist-cat').innerHTML   = '<option value="all">All categories</option>'   + cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    document.getElementById('artist-champ').innerHTML = '<option value="all">All championships</option>' + champs.map(c=>`<option value="${c.id}">${c.short_name||c.name}</option>`).join('');
+    document.getElementById('artist-mod').innerHTML   = '<option value="all">All mods</option>'         + mods.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
 
     renderArtistLiveries(liveries);
 
-    // Cascading filters
     function updateArtistCascade(liveries) {
-      const cat   = document.getElementById('artist-cat').value;
-      const champ = document.getElementById('artist-champ').value;
-
-      // Filtrer selon cat courante
+      const cat = document.getElementById('artist-cat').value;
       const afterCat = cat==='all' ? liveries : liveries.filter(l=>l.category_id===cat);
-
-      // Champs disponibles pour cette cat
       const availChamps = [...new Map(afterCat.filter(l=>l.championships).map(l=>[l.championship_id,l.championships])).entries()].map(([id,ch])=>({id,...ch}));
       const prevChamp = document.getElementById('artist-champ').value;
       document.getElementById('artist-champ').innerHTML = '<option value="all">All championships</option>' + availChamps.map(ch=>`<option value="${ch.id}">${ch.short_name||ch.name}</option>`).join('');
       if(availChamps.some(ch=>ch.id===prevChamp)) document.getElementById('artist-champ').value=prevChamp;
-
-      // Mods disponibles pour cat + champ
       const effectiveChamp = document.getElementById('artist-champ').value;
       const afterChamp = effectiveChamp==='all' ? afterCat : afterCat.filter(l=>l.championship_id===effectiveChamp);
       const availMods = [...new Map(afterChamp.filter(l=>l.mods).map(l=>[l.mod_id,l.mods])).entries()].map(([id,m])=>({id,...m}));
@@ -257,63 +269,54 @@
     const q       = document.getElementById('artist-search').value.toLowerCase();
     const pricing = document.getElementById('artist-pricing').value;
     const sort    = document.getElementById('artist-sort').value;
-
-    const cat    = document.getElementById('artist-cat').value;
-    const champ  = document.getElementById('artist-champ').value;
-    const mod    = document.getElementById('artist-mod').value;
+    const cat     = document.getElementById('artist-cat').value;
+    const champ   = document.getElementById('artist-champ').value;
+    const mod     = document.getElementById('artist-mod').value;
 
     let list = liveries.filter(l => {
       const mq  = !q || [l.name,l.team,l.author,l.driver,l.car_number].join(' ').toLowerCase().includes(q);
       const pq  = pricing==='all'||(pricing==='free'&&!l.is_paid)||(pricing==='paid'&&l.is_paid);
-      const cq  = cat==='all'   || l.category_id===cat;
+      const cq  = cat==='all' || l.category_id===cat;
       const chq = champ==='all' || l.championship_id===champ;
-      const moq = mod==='all'   || l.mod_id===mod;
+      const moq = mod==='all' || l.mod_id===mod;
       return mq && pq && cq && chq && moq;
     });
     if(sort==='votes') list.sort((a,b)=>b.upvotes-a.upvotes);
     else if(sort==='newest') list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
     else list.sort((a,b)=>a.name.localeCompare(b.name));
 
-    const countEl = document.getElementById('results-count-artist');
-    countEl.textContent = list.length ? `${list.length} liveri${list.length!==1?'es':'y'}` : '';
+    document.getElementById('results-count-artist').textContent = list.length ? `${list.length} liveri${list.length!==1?'es':'y'}` : '';
 
     const g = document.getElementById('artist-liveries-grid');
-    if(!list.length){ g.innerHTML=`<div class="empty"><i class="ti ti-search"></i><p>No liveries match your filters.</p></div>`; return; }
+    if(!list.length){ g.innerHTML=`<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-2);"><i class="ti ti-search" style="font-size:32px;display:block;margin-bottom:12px;color:var(--text-3);"></i><p>No liveries match your filters.</p></div>`; return; }
 
     const seed = l => parseInt((l.id||'').replace(/\D/g,'').slice(0,6))||0;
     g.innerHTML = list.map(l => {
-      const cn = l.categories?.name||''; const bg=l.categories?.color_bg||'#E6F1FB'; const tc=l.categories?.color_text||'#0C447C';
+      const cn = l.categories?.name||'';
       const isNew = l.created_at && (Date.now()-new Date(l.created_at).getTime()) < 7*24*60*60*1000;
-      const newDot = isNew ? '<div class="new-dot"></div>' : '';
-      const paidBadge = l.is_paid
-        ? `<span class="card-paid-badge" style="background:rgba(254,243,199,.9);color:#92400E"><i class="ti ti-lock" style="font-size:10px"></i> Paid</span>`
-        : `<span class="card-paid-badge" style="background:rgba(209,250,229,.9);color:#065F46"><i class="ti ti-lock-open" style="font-size:10px"></i> Free</span>`;
+      const newBadge = isNew ? '<span class="badge badge--new">New</span>' : '';
+      const priceBadge = l.is_paid ? '<span class="badge badge--paid">Paid</span>' : '<span class="badge badge--free">Free</span>';
       return `
         <div class="livery-card" onclick="location.href='livery.html?id=${l.id}'">
-          <div class="card-cover">
+          <div class="livery-card__thumb">
             ${l.image_url?`<img src="${l.image_url}" alt="${l.name}" loading="lazy">`:carSVG(cn,seed(l))}
-            <div class="card-cover-overlay"></div>
-            ${newDot}
-            <div class="card-top-badges">
-              <div class="crown-badge"><i class="ti ti-crown" style="font-size:10px"></i><span class="crown-text">${l.artists?.name||''}</span></div>
-              ${paidBadge}
-            </div>
-            <div class="card-name-overlay">
-              <div class="card-name">${l.name}</div>
-              <div class="card-mod">${l.mods?.name||'—'}</div>
-            </div>
+            <div class="livery-card__thumb-overlay"></div>
+            <div class="livery-card__badges">${newBadge}${priceBadge}</div>
+            <div class="livery-card__crown">👑</div>
+            <div class="livery-card__votes"><i class="ti ti-heart" style="font-size:11px;"></i>${l.upvotes.toLocaleString()}</div>
           </div>
-          <div class="card-body">
-            <div class="card-info-row">
-              ${l.championships?.short_name?`<div class="card-champ"><i class="ti ti-trophy" style="font-size:10px;flex-shrink:0"></i><span>${l.championships.short_name}</span></div>`:`<div class="card-champ" style="color:var(--text3)">—</div>`}
-              <span class="cat-badge" style="background:${bg};color:${tc}">${cn}</span>
+          <div class="livery-card__body">
+            <div class="livery-card__series">${l.championships?.short_name || cn || '—'}</div>
+            <div class="livery-card__name">${l.name}</div>
+            <div class="livery-card__mod" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+              <span style="color:var(--text-2);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.mods?.name||'—'}</span>
+              <button class="btn btn--sm ${voted.has(l.id)?'btn--primary':'btn--ghost'} upvote-btn${voted.has(l.id)?' voted':''}"
+                onclick="event.stopPropagation();handleVote('${l.id}',this)"
+                style="height:22px;padding:0 7px;border-radius:5px;font-size:11px;gap:3px;flex-shrink:0;margin-left:6px;">
+                <i class="ti ti-thumb-up" style="font-size:11px;"></i>
+                <span>${l.upvotes}</span>
+              </button>
             </div>
-          </div>
-          <div class="card-upvote-row">
-            <div class="card-upvote-count">${l.upvotes.toLocaleString()} upvote${l.upvotes!==1?'s':''}</div>
-            <button class="upvote-btn${voted.has(l.id)?' voted':''}" onclick="event.stopPropagation();handleVote('${l.id}',this)">
-              <i class="ti ti-thumb-up" style="font-size:12px"></i> ${voted.has(l.id)?'Upvoted':'Upvote'}
-            </button>
           </div>
         </div>`;
     }).join('');
@@ -324,15 +327,11 @@
     const liv = allLiveries.find(l => l.id === id);
     if (isVoted) {
       const ok = await removeUpvoteLivery(id);
-      if (ok && liv) { liv.upvotes = Math.max(0, liv.upvotes-1); voted = getVotedSet(); refreshVoteBtn(btn, liv.upvotes, false); }
+      if (ok && liv) { liv.upvotes = Math.max(0, liv.upvotes-1); voted = getVotedSet(); renderArtistLiveries(allLiveries); }
     } else {
       const ok = await upvoteLivery(id);
-      if (ok && liv) { liv.upvotes++; voted = getVotedSet(); refreshVoteBtn(btn, liv.upvotes, true); }
+      if (ok && liv) { liv.upvotes++; voted = getVotedSet(); renderArtistLiveries(allLiveries); }
     }
-  }
-  function refreshVoteBtn(btn, count, isVoted) {
-    btn.className = 'upvote-btn' + (isVoted ? ' voted' : '');
-    btn.querySelector('span').textContent = count;
   }
 
   document.getElementById('back-btn').addEventListener('click', () => {
@@ -344,11 +343,9 @@
 
   init();
 
-  // Si ?id= dans l'URL, ouvrir directement cet artiste
   const urlParams = new URLSearchParams(location.search);
   const artistIdParam = urlParams.get('id');
   if(artistIdParam){
-    // Attendre que la grille soit chargée puis cliquer
     const waitAndOpen = setInterval(()=>{
       const card = document.querySelector(`.artist-card[data-artist-id="${artistIdParam}"]`);
       if(card){ clearInterval(waitAndOpen); card.click(); }
