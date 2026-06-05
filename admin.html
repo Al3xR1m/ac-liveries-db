@@ -314,7 +314,7 @@ function doLogin(){
   } else document.getElementById('loginErr').style.display='block';
 }
 document.getElementById('logoutBtn').addEventListener('click',()=>{sessionStorage.removeItem('acl_admin');location.reload();});
-if(checkLogin()){document.getElementById('loginScreen').style.display='none';document.getElementById('adminApp').style.display='block';}
+
 
 // Panel nav
 function showPanel(name){
@@ -928,4 +928,17 @@ function catModalForm(c={}){
     <div style="font-size:13px;color:var(--text-2);">Preview: <span id="cp-badge" class="cat-badge" style="background:${c.color_bg||'#E6F1FB'};color:${c.color_text||'#0C447C'};">${c.name||'Category'}</span></div>
   </div>`;
 }
-function bindCatPreview(){setTimeout(()=>{const update=()=>{const n=document.getElementById('catf-name')?.value||'Category';const bg=document.getElementById('catf-bg')?.value||'#E6F1FB';const tc=document.getElementById('c
+function bindCatPreview(){setTimeout(()=>{const update=()=>{const n=document.getElementById('catf-name')?.value||'Category';const bg=document.getElementById('catf-bg')?.value||'#E6F1FB';const tc=document.getElementById('catf-text')?.value||'#0C447C';const b=document.getElementById('cp-badge');if(b){b.textContent=n;b.style.background=bg;b.style.color=tc;}};document.getElementById('catf-name')?.addEventListener('input',update);document.getElementById('catf-bg')?.addEventListener('input',update);document.getElementById('catf-text')?.addEventListener('input',update);},100);}
+document.getElementById('addCatBtn').addEventListener('click',()=>{openModal('<i class="ti ti-category"></i> Add category',catModalForm(),async()=>{const ok=await createCategory({name:document.getElementById('catf-name').value.trim(),color_bg:document.getElementById('catf-bg').value,color_text:document.getElementById('catf-text').value});if(ok){await reloadCache();closeModal();await loadCategories();}});bindCatPreview();});
+async function editCatModal(id){const c=_cats.find(x=>x.id===id);if(!c)return;openModal('<i class="ti ti-pencil"></i> Edit category',catModalForm(c),async()=>{await updateCategory(id,{name:document.getElementById('catf-name').value.trim(),color_bg:document.getElementById('catf-bg').value,color_text:document.getElementById('catf-text').value});await reloadCache();closeModal();await loadCategories();});bindCatPreview();}
+async function doDeleteCat(id){if(!confirm('Delete this category?'))return;await deleteCategory(id);await reloadCache();await loadCategories();}
+
+// checkLogin at the very bottom after all functions are defined
+if(checkLogin()){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminApp').style.display='block';
+  initAdmin();
+}
+</script>
+</body>
+</html>
